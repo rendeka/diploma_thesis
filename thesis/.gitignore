@@ -1,3 +1,7 @@
+# Track pictures used in the thesis
+-f pics/
+
+# Ignore latex auxiliary files
 *.aux
 *.bbl
 *.bcf
