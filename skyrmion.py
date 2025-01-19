@@ -15,13 +15,13 @@ from skyrmion_dataset import SKYRMION
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--activation", default="relu", type=str, help="Activation type")
-parser.add_argument("--augment", default="cutmix", type=str, help="Augmentation type")
+parser.add_argument("--augment", default=None, type=str, choices=["cutmix", "mixup"], help="Augmentation type")
 parser.add_argument("--batch_size", default=16, type=int, help="Batch size.")
 parser.add_argument("--dataloader_workers", default=0, type=int, help="Dataloader workers.")
 parser.add_argument("--decay", default=None, type=str, choices=["linear", "exponential", "cosine", "piecewise"], help="Decay type")
 parser.add_argument("--depth", default=56, type=int, help="Model depth")
 parser.add_argument("--dropout", default=0., type=float, help="Dropout")
-parser.add_argument("--epochs", default=25, type=int, help="Number of epochs.")
+parser.add_argument("--epochs", default=3, type=int, help="Number of epochs.")
 parser.add_argument("--label_smoothing", default=0., type=float, help="Label smoothing.")
 parser.add_argument("--learning_rate", default=0.1, type=float, help="Learning rate")
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
@@ -60,6 +60,11 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
 
 def main(args: argparse.Namespace) -> None:
+    # Check if a GPU is available
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cpu")
+    print(f"Using device: {device}")
+    
     # Set the random seed and the number of threads.
     keras.utils.set_random_seed(args.seed)
     if args.threads:
@@ -74,7 +79,7 @@ def main(args: argparse.Namespace) -> None:
     ))
 
     # Load data
-    skyrmion = SKYRMION()
+    skyrmion = SKYRMION(path="data/train/cutmix_data.npz")
 
     # Dataset creation
     def process_element(example):
@@ -144,7 +149,8 @@ def main(args: argparse.Namespace) -> None:
     else:
         raise ValueError("Uknown model '{}'".format(args.model))
     
-    model.summary()
+    # model.summary()
+    # model = model.to(device)
 
     # Decay schedule
     def get_schedule(args):

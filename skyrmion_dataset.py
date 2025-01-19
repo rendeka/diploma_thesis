@@ -16,7 +16,7 @@ class SKYRMION:
     Element = TypedDict("Element", {"image": np.ndarray, "label": np.ndarray})
     Elements = TypedDict("Elements", {"images": np.ndarray, "labels": np.ndarray})
 
-    _PATH = "data/train/skyrmion_dataset.npz"
+    # _PATH = "data/train/skyrmion_dataset.npz"
 
     class Dataset(torch.utils.data.Dataset):
         def __init__(self, data: "SKYRMION.Elements") -> None:
@@ -51,9 +51,7 @@ class SKYRMION:
         def transform(self, transform: Callable[..., Any]) -> "SKYRMION.TransformedDataset":
             return SKYRMION.TransformedDataset(self, transform)
 
-    def __init__(self, size: dict[str, int] = {}) -> None:
-        # path = os.path.basename(self._URL)
-        path = self._PATH
+    def __init__(self, path: str = "data/train/skyrmion_dataset.npz", size: dict[str, int] = {}) -> None:
         if not os.path.exists(path):
             print("SKYRMION dataset not found...", file=sys.stderr)
 
