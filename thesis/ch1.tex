@@ -3,7 +3,21 @@
 
 \chapter{Regularization}
 
-The main source for this chapter is \citet{bengio2017deep}
+\todo{
+terms to describe:
+training error
+underfitting and overfitting
+trainable parameter and hyperparameter
+objective function
+describe the model we are using
+describe the dataset we have
+}
+
+The main source for this chapter is \cite{bengio2017deep}
+
+The key concept for this thesis is the term generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean single phase images and want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
+
+There are many strategies how to improve generalization (often with the cost of increasing training error). Some of these strategies relies on putting constrains on the model parameters, some modify the objective function. Some strategies modify the training data, some interfere with the training process, model's architecture and many other things. We will describe strategies that are relevant for us in the following section.
 
 
 

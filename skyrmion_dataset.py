@@ -1,7 +1,8 @@
-import os
 import sys
-from typing import Any, Callable, Sequence, TextIO, TypedDict
-
+from typing import Any, Callable, Sequence, TextIO, TypedDict, Optional, Union
+from pathlib import Path
+import math
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -10,8 +11,8 @@ class SKYRMION:
     H: int = 200
     W: int = 200
     C: int = 1
-    # LABELS: list[str] = ["ferromagnet", "skyrmion", "spiral"]
-    LABELS: list[int] = [0, 1, 2]
+    LABELS: list[str] = ["ferromagnet", "skyrmion", "spiral"]
+    # LABELS: list[int] = [0, 1, 2]
 
     Element = TypedDict("Element", {"image": np.ndarray, "label": np.ndarray})
     Elements = TypedDict("Elements", {"images": np.ndarray, "labels": np.ndarray})
@@ -35,6 +36,7 @@ class SKYRMION:
 
         def transform(self, transform: Callable[["SKYRMION.Element"], Any]) -> "SKYRMION.TransformedDataset":
             return SKYRMION.TransformedDataset(self, transform)
+        
 
     class TransformedDataset(torch.utils.data.Dataset):
         def __init__(self, dataset: torch.utils.data.Dataset, transform: Callable[..., Any]) -> None:
@@ -51,20 +53,79 @@ class SKYRMION:
         def transform(self, transform: Callable[..., Any]) -> "SKYRMION.TransformedDataset":
             return SKYRMION.TransformedDataset(self, transform)
 
-    def __init__(self, path: str = "data/train/skyrmion_dataset.npz", size: dict[str, int] = {}) -> None:
-        if not os.path.exists(path):
+    def __init__(self, path: Union[Path, str, None] = "data/train/skyrmion_dataset.npz",
+                  size: dict[str, int] = {}) -> None:
+        
+        if isinstance(path, str):
+            path = Path(path)
+
+        if not path.exists():
             print("SKYRMION dataset not found...", file=sys.stderr)
 
+        skyrmion = np.load(path, allow_pickle=True)
+        if "transition" in str(path):
+            self.LABELS = ["Set of non-negative integers ordering images in the phase transition"]
+            dataset = skyrmion["arr_0"].item()
+            for D_value, data in dataset.items():
+                setattr(self, f"{path.stem}-{D_value}", self.Dataset(data))
 
-        skyrmion = np.load(path)
-        for dataset in ["train", "dev", "test"]:
-            data = {key[len(dataset) + 1:]: skyrmion[key][:size.get(dataset, None)]
-                    for key in skyrmion if key.startswith(dataset)}
-            setattr(self, dataset, self.Dataset(data))
+        else:
+            for dataset in ["train", "dev", "test"]:
+                data = {key[len(dataset) + 1:]: skyrmion[key][:size.get(dataset, None)]
+                        for key in skyrmion if key.startswith(dataset)}
+                setattr(self, dataset, self.Dataset(data))
+
+    @staticmethod
+    def visualize_images(images: np.ndarray, labels: np.ndarray, row_size: int = 1) -> None:
+        """
+        Visualize a grid of images with their corresponding labels.
+
+        Args:
+            images (np.ndarray): Array of images to visualize.
+            labels (np.ndarray): Array of labels corresponding to the images.
+            row_size (int): Number of images per row in the grid.
+        """
+
+        Nsamp = np.arange(len(images))
+        n_rows = math.ceil(len(Nsamp) / row_size)
+
+        fig, axs = plt.subplots(
+            n_rows, row_size, 
+            figsize=(3 * row_size, 3 * n_rows), 
+            sharey=True
+        )
+
+        # Flatten axs for simpler indexing, in case of a single row
+        axs = axs.ravel() if len(Nsamp) > 1 else [axs]
+
+        for n, num_sample in enumerate(Nsamp):
+            im = axs[n].imshow(images[num_sample], vmin=0.0, vmax=1.0, cmap="RdBu")
+
+            axs[n].set_xlim((0.0, 200.0))
+            axs[n].set_ylim((0.0, 200.0))
+
+            axs[n].text(
+                100, 185, f"{np.round(np.array(labels[num_sample]), 2)}",
+                color="black", size=12, ha="center", va="top",
+                bbox=dict(facecolor="yellow", edgecolor="black", alpha=0.7),
+            )
+
+            axs[n].axis("off")  # Hide axes for cleaner visualization
+
+        # Hide any unused subplots
+        for n in range(len(Nsamp), len(axs)):
+            axs[n].axis("off")
+
+        fig.subplots_adjust(wspace=0.03)
+        plt.show()
 
     train: Dataset
     dev: Dataset
     test: Dataset
+
+    # Same goes for 
+    # fe_sk_transition_{D_value}: Dataset
+    # sk_sp_transition_{D_value}: Dataset
 
     # Evaluation infrastructure.
     @staticmethod
@@ -82,8 +143,7 @@ class SKYRMION:
     def evaluate_file(gold_dataset: Dataset, predictions_file: TextIO) -> float:
         predictions = [int(line) for line in predictions_file]
         return SKYRMION.evaluate(gold_dataset, predictions)
-
-
+        
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()

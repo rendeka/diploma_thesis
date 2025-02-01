@@ -3,13 +3,14 @@ from skyrmion_dataset import SKYRMION
 
 class Model(keras.Model):
     def _activation(self, inputs, args):
-        return keras.layers.Activation({
-            "relu": "relu",
-            "lrelu": "leaky_relu",
-            "elu": "elu",
-            "swish": "swish",
-            "gelu": "gelu",
-        }[args.activation])(inputs)
+        valid_activations = [func for func in dir(keras.activations) if not func.startswith("__")]
+        if args.activation in valid_activations:
+            activation_function = args.activation
+        else:
+            activation_function = "relu"
+            raise ValueError(f"'{args.activation}' is not a valid activation function 'relu' will be used. See 'keras.activations' for valid activation funcitons")
+
+        return keras.layers.Activation(activation=activation_function)(inputs)
 
 
 class ResNet(Model):
@@ -139,7 +140,7 @@ class Model5(Model):
         )
 
         inputs = keras.Input(shape=[SKYRMION.H, SKYRMION.W, SKYRMION.C], dtype="float32")
-        hidden = keras.layers.Rescaling(scale=1 / 255)(inputs)            
+        # hidden = keras.layers.Rescaling(scale=1 / 255)(inputs)            
         # feature extraction
         hidden = self._GroupConv2D(filters=8)(inputs)
         hidden = self._MCSpatialDropout2D(rate=0.1)(hidden)
@@ -155,7 +156,8 @@ class Model5(Model):
 
         hidden = self._Conv2D(filters=32)(hidden)
         hidden = self._BatchNormalization()(hidden)
-        hidden = keras.layers.Activation("selu")(hidden)
+        # hidden = keras.layers.Activation("selu")(hidden)
+        hidden = self._activation(hidden, args)
         
         # classification
         hidden = keras.layers.Flatten()(hidden)
@@ -177,7 +179,7 @@ class Model5(Model):
             x = BatchNormalization()(x)
             # activation
             x = Activation(activation="selu")(x)
-            # average pooling
+            # average poRandom seed.oling
             x = AveragePooling2D()(x)
                     
             return x
