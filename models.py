@@ -91,7 +91,13 @@ class Model5(keras.Model):
         self.mc_dropout = keras.layers.Dropout
         self.mc_spatial_dropout = keras.layers.SpatialDropout2D
 
-        self.increase_filters = True if self.args.stride == 1 or self.args.conv_type == "depthwise_separable" else False
+        if isinstance(self.pooling, keras.layers.Identity) or self.args.conv_type == "depthwise_separable":
+            self.filter_scaling_factor = 2
+        elif self.args.stride > 1:
+            self.filter_scaling_factor = 1.5
+        else:
+            self.filter_scaling_factor = 1
+        
 
         self.build_model()
 
@@ -101,22 +107,23 @@ class Model5(keras.Model):
         hidden = keras.layers.Rescaling(scale=1.)(inputs) # scale=1./255 for images with rgb values up to 255       
 
         for i in range(self.args.depth):
-            num_filters = self.args.filters << max(i, 2) if self.increase_filters else self.args.filters
-            hidden = self.group_conv(hidden, filters=num_filters)
+            # num_filters = self.args.filters << max(i, 2) if self.increase_filters else self.args.filters
+            num_filters = int(self.args.filters * self.filter_scaling_factor ** i)
+            hidden = self.conv_block(hidden, filters=num_filters)
             hidden = self.mc_spatial_dropout(rate=self.args.dropout)(hidden)
         
         # hidden = keras.layers.Flatten()(hidden)
         hidden = keras.layers.GlobalAveragePooling2D()(hidden)
         
-        hidden = self.group_dense(hidden, units=num_filters * 4)
+        hidden = self.dense_block(hidden, units=num_filters * 4)
         hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
-        hidden = self.group_dense(hidden, units=num_filters) # I've added this because it doesn't make sense to me to use dropout just before output
+        hidden = self.dense_block(hidden, units=num_filters) # I've added this because it doesn't make sense to me to use dropout just before output
         
         outputs = self.dense(units=len(SKYRMION.LABELS), activation="softmax")(hidden)
 
         super().__init__(inputs, outputs)
 
-    def group_conv(self, input, filters):
+    def conv_block(self, input, filters):
 
         hidden = self.conv(filters=filters)(input)
         hidden = self.batch_norm()(hidden)
@@ -125,13 +132,41 @@ class Model5(keras.Model):
 
         return output
 
-    def group_dense(self, input, units):
+    def dense_block(self, input, units):
 
         hidden = self.dense(units)(input)
         hidden = self.batch_norm()(hidden)
         output = keras.layers.Activation(self.args.activation)(hidden)
 
         return output
+    
+    def cbam_block(self, input, ratio=8):
+        filters = input.shape[-1]
+
+        # Channel Attention
+        pool_average = self.average_pooling(input)
+        pool_max = self.max_pooling(input)
+
+        mlp_1 = keras.layers.Dense(filters // ratio, activation="relu")
+        mlp_2 = keras.layers.Dense(filters, activation="sigmoid")
+
+        output_avg = mlp_2(mlp_1(pool_average))
+        output_max = mlp_2(mlp_1(pool_max))
+
+        channel_attention = keras.layers.Add()([output_avg, output_max])
+        channel_attention = keras.layers.Reshape((1, 1, filters))(channel_attention)
+
+        x = keras.layers.Multiply()([input, channel_attention])
+
+        # Spatial Attention
+        pool_average = keras.layers.Lambda(lambda x: keras.backend.mean(x, axis=-1, keepdims=True))(x)
+        pool_max = keras.layers.Lambda(lambda x: keras.backend.max(x, axis=-1, keepdims=True))(x)
+
+        concat = keras.layers.Concatenate(axis=-1)([pool_average, pool_max])
+        spatial_attention = keras.layers.Conv2D(1, kernel_size=7, padding="same", activation="sigmoid")(concat)
+        output = keras.layers.Multiply()([x, spatial_attention])
+
+        return output # TODO: apply this to some architecture and try SE block as well
 
     def get_config(self):
             

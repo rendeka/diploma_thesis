@@ -144,12 +144,12 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         return performance_metrics
     
     def log_filters_and_features(self, epoch):
-        """Logs convolutional filters and feature maps to TensorBoard at 10%, 60%, and end of training."""
+        """Logs convolutional filters and feature maps to TensorBoard at given milestones of training."""
         if not self.model:
             return
 
         total_epochs = self.args.epochs
-        log_milestones = {int(0.1 * total_epochs), int(0.6 * total_epochs), total_epochs}
+        log_milestones = {int(0.6 * total_epochs), total_epochs}
         
         if epoch not in log_milestones or epoch in self._logged_epochs:
             return  # Skip if it's not a logging epoch or already logged
@@ -224,7 +224,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                         self.writer(metric_category).add_scalar(metric, score, epoch + 1)
                         self.writer(metric_category).flush()
 
-            if self.fm_dataset is not None:
+            if self.fm_dataset is not None and self.args.get_ffm:
                 self.log_filters_and_features(epoch + 1)
 
 
