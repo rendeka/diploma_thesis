@@ -98,11 +98,11 @@ class Model5(keras.Model):
     def build_model(self):
 
         inputs = keras.Input(shape=[SKYRMION.H, SKYRMION.W, SKYRMION.C], dtype="float32")
-        # hidden = keras.layers.Rescaling(scale=1 / 255)(inputs)            
+        hidden = keras.layers.Rescaling(scale=1.)(inputs) # scale=1./255 for images with rgb values up to 255       
 
         for i in range(self.args.depth):
-            num_filters = self.args.filters << i if self.increase_filters else self.args.filters
-            hidden = self.group_conv(inputs, filters=num_filters)
+            num_filters = self.args.filters << max(i, 2) if self.increase_filters else self.args.filters
+            hidden = self.group_conv(hidden, filters=num_filters)
             hidden = self.mc_spatial_dropout(rate=self.args.dropout)(hidden)
         
         # hidden = keras.layers.Flatten()(hidden)

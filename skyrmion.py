@@ -26,7 +26,7 @@ parser.add_argument("--dataloader_workers", default=0, type=int, help="Dataloade
 parser.add_argument("--decay", default=None, type=str, choices=["linear", "exponential", "cosine", "piecewise"], help="Decay type")
 parser.add_argument("--depth", default=3, type=int, help="Model depth (use default=56 for ResNet)")
 parser.add_argument("--dropout", default=0.1, type=float, help="Dropout")
-parser.add_argument("--epochs", default=3, type=int, help="Number of epochs.")
+parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
 parser.add_argument("--get_ffm", default=False, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
 parser.add_argument("--kernel_regularizer", default=1e-4, type=float, help="Parameter for L2 regularization of convolutional kernel")
@@ -181,12 +181,6 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
             ax.imshow(np.mean(filters[row][..., col], axis=-1), cmap="gray")  # Averaging across channels
             ax.axis("off")
 
-        # for row in range(num_rows):
-        #     for col in range(num_cols):
-        #         ax = axes[row, col] if num_rows > 1 else axes[col]
-        #         ax.imshow(np.mean(filters[row][..., col], axis=-1), cmap="gray") # Averaging across channels
-        #         ax.axis("off")
-
         writer.add_figure("conv_filters", fig, epoch)
 
         # Log feature maps
@@ -247,12 +241,6 @@ def main(args: argparse.Namespace) -> None:
         torch.set_num_interop_threads(args.threads)
 
     # Create logdir name
-    # args.logdir = os.path.join("logs", "{}-{}-{}".format(
-    #     os.path.basename(globals().get("__file__", "notebook")),
-    #     datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S"),
-    #     ",".join(("{}={}".format(re.sub("(.)[^_]*_?", r"\1", k), v) for k, v in sorted(vars(args).items())))
-    # ))
-
     # Get script name or "notebook"
     script_name = Path(globals().get("__file__", "notebook")).stem
 
