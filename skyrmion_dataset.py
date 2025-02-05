@@ -63,7 +63,11 @@ class SKYRMION:
             print("SKYRMION dataset not found...", file=sys.stderr)
 
         skyrmion = np.load(path, allow_pickle=True)
-        if "transition" in str(path):
+        if "fm_dataset" in str(path): # Feature map dataset
+            self.LABELS = ["Unique ID of an image (originated from datasetMC.npz)"]
+            setattr(self, "dataset", self.Dataset(skyrmion["arr_0"].item()))
+
+        elif "transition" in str(path):
             self.LABELS = ["Set of non-negative integers ordering images in the phase transition"]
             dataset = skyrmion["arr_0"].item()
             for D_value, data in dataset.items():

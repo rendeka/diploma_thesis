@@ -1,18 +1,163 @@
 import keras
 from skyrmion_dataset import SKYRMION
+from functools import partial
+import argparse
+     
+@keras.saving.register_keras_serializable()
+class Model5(keras.Model):
+    def __init__(self, args, **kwargs):
+
+        self.args = args
+
+        # Dense layer
+        self.dense = partial(
+            keras.layers.Dense,
+            activation=keras.layers.Activation(self.args.activation),
+            use_bias=True, 
+            kernel_initializer=keras.initializers.glorot_normal(), 
+            bias_initializer=keras.initializers.glorot_uniform(), 
+            kernel_regularizer=keras.regularizers.l2(self.args.kernel_regularizer), 
+            bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer)
+        )
+
+        # Convolutional layer
+        if self.args.conv_type == "standard":
+            self.conv = partial(
+                keras.layers.Conv2D,
+                kernel_size=args.kernel_size,
+                activation=keras.layers.Activation(self.args.activation),
+                strides=self.args.stride,
+                padding=self.args.padding,
+                kernel_initializer=keras.initializers.he_normal(), 
+                bias_initializer=keras.initializers.he_uniform(),
+                kernel_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
+                bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer)
+            )
+        elif self.args.conv_type == "ds":
+            self.conv = partial(
+                keras.layers.SeparableConv2D,
+                kernel_size=self.args.kernel_size,
+                strides=self.args.stride,
+                padding=self.args.padding,
+                # # depth_multiplier=self.args.depth_multiplier,
+                # activation=keras.layers.Activation(self.args.activation),
+                # # use_bias=self.args.use_bias,
+                # depthwise_initializer=keras.initializers.GlorotUniform(),
+                # pointwise_initializer=keras.initializers.GlorotUniform(),
+                # bias_initializer=keras.initializers.Zeros(),
+                # depthwise_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
+                # pointwise_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
+                # bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer),
+                # activity_regularizer=keras.regularizers.l2(self.args.bias_regularizer),
+                # # depthwise_constraint=self.args.depthwise_constraint,
+                # # pointwise_constraint=self.args.pointwise_constraint,
+                # # bias_constraint=self.args.bias_constraint
+            )
+    
+        else:
+            raise AttributeError("Non-valid conv_type specified")
+
+        # Max pooling layer
+        self.max_pooling = partial(
+            keras.layers.MaxPooling2D,
+            pool_size=(2,2),
+            padding=self.args.padding
+        )
+
+        # Average pooling layer
+        self.average_pooling = partial(
+            keras.layers.AveragePooling2D,
+            pool_size=(2,2),
+            padding=self.args.padding
+        )
+
+        # Set default pooling based on provided args
+        if self.args.stride > 1:
+            # Don't pool, dimensionality reduction is done via convolutions
+            self.pooling = keras.layers.Identity
+        elif self.args.pooling == "average":
+            self.pooling = self.average_pooling
+        elif self.args.pooling == "max":
+            self.pooling = self.max_pooling
+        else:
+            raise AttributeError("Non-valid pooling type: 'max' or 'average' are valid types")
+        
+        # Batch normalization layer
+        self.batch_norm = partial(
+            keras.layers.BatchNormalization,
+            momentum=0.9
+        )   
+            
+        self.mc_dropout = keras.layers.Dropout
+        self.mc_spatial_dropout = keras.layers.SpatialDropout2D
+
+        self.increase_filters = True if self.args.stride == 1 or self.args.conv_type == "depthwise_separable" else False
+
+        self.build_model()
+
+    def build_model(self):
+
+        inputs = keras.Input(shape=[SKYRMION.H, SKYRMION.W, SKYRMION.C], dtype="float32")
+        # hidden = keras.layers.Rescaling(scale=1 / 255)(inputs)            
+
+        for i in range(self.args.depth):
+            num_filters = self.args.filters << i if self.increase_filters else self.args.filters
+            hidden = self.group_conv(inputs, filters=num_filters)
+            hidden = self.mc_spatial_dropout(rate=self.args.dropout)(hidden)
+        
+        # hidden = keras.layers.Flatten()(hidden)
+        hidden = keras.layers.GlobalAveragePooling2D()(hidden)
+        
+        hidden = self.group_dense(hidden, units=num_filters * 4)
+        hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
+        hidden = self.group_dense(hidden, units=num_filters) # I've added this because it doesn't make sense to me to use dropout just before output
+        
+        outputs = self.dense(units=len(SKYRMION.LABELS), activation="softmax")(hidden)
+
+        super().__init__(inputs, outputs)
+
+    def group_conv(self, input, filters):
+
+        hidden = self.conv(filters=filters)(input)
+        hidden = self.batch_norm()(hidden)
+        hidden = keras.layers.Activation(self.args.activation)(hidden)
+        output = self.pooling()(hidden)
+
+        return output
+
+    def group_dense(self, input, units):
+
+        hidden = self.dense(units)(input)
+        hidden = self.batch_norm()(hidden)
+        output = keras.layers.Activation(self.args.activation)(hidden)
+
+        return output
+
+    def get_config(self):
+            
+            config = super().get_config()  
+            config["args"] = vars(self.args)
+
+            return config
+
+    @classmethod
+    def from_config(cls, config):
+
+        args = config.pop("args") 
+
+        return cls(argparse.Namespace(**args), **config)
 
 class Model(keras.Model):
-    def _activation(self, inputs, args):
-        valid_activations = [func for func in dir(keras.activations) if not func.startswith("__")]
-        if args.activation in valid_activations:
-            activation_function = args.activation
-        else:
-            activation_function = "relu"
-            raise ValueError(f"'{args.activation}' is not a valid activation function 'relu' will be used. See 'keras.activations' for valid activation funcitons")
-
-        return keras.layers.Activation(activation=activation_function)(inputs)
+    def _activation(self, inputs, args: argparse.Namespace):
+        """Apply activation function with a fallback to 'relu' if invalid."""
+        try:
+            activation_function = getattr(keras.activations, args.activation, keras.activations.relu)
+            return keras.layers.Activation(activation=activation_function)(inputs)
+        except AttributeError:
+            raise ValueError(f"Invalid activation function '{args.activation}', using 'relu' instead. Check keras.activations for valid activations")
 
 
+# I am not really testing this model at all (sofar)
 class ResNet(Model):
     def _cnn(self, inputs, args, filters, kernel_size, stride, activation):
         hidden = keras.layers.Conv2D(filters, kernel_size=kernel_size, strides=stride, padding="same", use_bias=False)(inputs)
@@ -44,284 +189,3 @@ class ResNet(Model):
         hidden = keras.layers.Dropout(args.dropout)(hidden)
         outputs = keras.layers.Dense(len(SKYRMION.LABELS), activation="softmax")(hidden)
         super().__init__(inputs, outputs)
-
-
-class Model5(Model):
-    def __init__(self, args):
-
-        from functools import partial
-        super().__init__()
-
-        self._Dense = partial(
-            keras.layers.Dense,
-            activation=None,
-            use_bias=True, 
-            kernel_initializer="glorot_normal", 
-            bias_initializer="glorot_uniform", 
-            kernel_regularizer=keras.regularizers.l2(1.e-4), 
-            bias_regularizer=keras.regularizers.l2(1.e-5)
-        )
-
-        # 2D convolutional layer
-        self._Conv2D = partial(
-            keras.layers.Conv2D,
-            kernel_size=(3,3),
-            activation=None,
-            padding="same",
-            kernel_initializer="he_normal", 
-            bias_initializer="he_uniform",
-            kernel_regularizer=keras.regularizers.l2(1.e-4),
-            bias_regularizer=keras.regularizers.l2(1.e-5)
-        )
-
-        # 2D convolutional pooling layer
-        self._ConvPooling2D = partial(
-            keras.layers.Conv2D,
-            kernel_size=(2,2),
-            strides=(2,2),
-            activation=None,
-            padding="valid",
-            kernel_initializer="he_normal", 
-            bias_initializer="he_uniform",
-            kernel_regularizer=keras.regularizers.l2(1.e-4),
-            bias_regularizer=keras.regularizers.l2(1.e-5)
-        )
-
-        # 2D max pooling layer
-        self._MaxPooling2D = partial(
-            keras.layers.MaxPooling2D,
-            pool_size=(2,2),
-            padding="same"
-        )
-
-        # 2D average pooling layer
-        self._AveragePooling2D = partial(
-            keras.layers.AveragePooling2D,
-            pool_size=(2,2),
-            padding="same"
-        )
-
-        # batch normalization layer
-        self._BatchNormalization = partial(
-            keras.layers.BatchNormalization,
-            momentum=0.9
-        )
-
-        # Monte Carlo Dropout layer
-        class MCDropout(keras.layers.Dropout):
-            """Monte Carlo Dropout layer."""
-            
-            def call(self, inputs):
-                return super().call(inputs, training=True)
-
-        # Monte Carlo 2D spatial dropout layer
-        class MCSpatialDropout2D(keras.layers.SpatialDropout2D):
-            """Monte Carlo 2D spatial Dropout layer."""
-            
-            def call(self, inputs):
-                return super().call(inputs, training=True)
-            
-        self._MCDropout = MCDropout
-        self._MCSpatialDropout2D = MCSpatialDropout2D
-
-        self._GroupConv2D = partial(
-            self.GroupConv2D,
-            Conv2D=self._Conv2D,
-            BatchNormalization=self._BatchNormalization,
-            Activation=keras.layers.Activation,
-            AveragePooling2D=self._AveragePooling2D
-        )
-
-        self._GroupDense = partial(
-            self.GroupDense,
-            Dense=self._Dense,
-            BatchNormalization=self._BatchNormalization,
-            Activation=keras.layers.Activation
-        )
-
-        inputs = keras.Input(shape=[SKYRMION.H, SKYRMION.W, SKYRMION.C], dtype="float32")
-        # hidden = keras.layers.Rescaling(scale=1 / 255)(inputs)            
-        # feature extraction
-        hidden = self._GroupConv2D(filters=8)(inputs)
-        hidden = self._MCSpatialDropout2D(rate=0.1)(hidden)
-        
-        hidden = self._GroupConv2D(filters=16)(hidden)
-        hidden = self._MCSpatialDropout2D(rate=0.2)(hidden)
-        
-        hidden = self._GroupConv2D(filters=32)(hidden)
-        hidden = self._MCSpatialDropout2D(rate=0.2)(hidden)
-        
-        hidden = self._GroupConv2D(filters=64)(hidden)
-        hidden = self._MCSpatialDropout2D(rate=0.2)(hidden)
-
-        hidden = self._Conv2D(filters=32)(hidden)
-        hidden = self._BatchNormalization()(hidden)
-        # hidden = keras.layers.Activation("selu")(hidden)
-        hidden = self._activation(hidden, args)
-        
-        # classification
-        hidden = keras.layers.Flatten()(hidden)
-        
-        hidden = self._GroupDense(units=128)(hidden)
-        hidden = self._MCDropout(rate=0.2)(hidden)
-        
-        outputs = self._Dense(units=len(SKYRMION.LABELS), activation="softmax")(hidden)
-
-        super().__init__(inputs, outputs)
-
-    def GroupConv2D(self, filters, Conv2D, BatchNormalization, Activation, AveragePooling2D):
-        """Conv2D -> BatchNormalization -> SELU -> Average pooling."""
-        
-        def Layers(x):
-            # convolutional layer
-            x = Conv2D(filters=filters)(x)
-            # batch normalization
-            x = BatchNormalization()(x)
-            # activation
-            x = Activation(activation="selu")(x)
-            # average poRandom seed.oling
-            x = AveragePooling2D()(x)
-                    
-            return x
-        
-        return Layers
-
-    def GroupDense(self, units, Dense, BatchNormalization, Activation):
-        """Dense -> BatchNormalization -> ELU."""
-        
-        def Layers(x):
-            # dense layer
-            x = Dense(units)(x)
-            # batch normalization
-            x = BatchNormalization()(x)
-            # activation
-            x = Activation(activation="elu")(x)
-                    
-            return x
-        
-        return Layers
-
-
-# class Model5():
-#     def __init__(self, args):
-
-#         from functools import partial
-#         super().__init__()
-
-#         self._Dense = partial(
-#             keras.layers.Dense,
-#             activation=None,
-#             use_bias=True, 
-#             kernel_initializer="glorot_normal", 
-#             bias_initializer="glorot_uniform", 
-#             kernel_regularizer=keras.regularizers.l2(1.e-4), 
-#             bias_regularizer=keras.regularizers.l2(1.e-5)
-#         )
-
-#         # 2D convolutional layer
-#         self._Conv2D = partial(
-#             keras.layers.Conv2D,
-#             kernel_size=(3,3),
-#             activation=None,
-#             padding="same",
-#             kernel_initializer="he_normal", 
-#             bias_initializer="he_uniform",
-#             kernel_regularizer=keras.regularizers.l2(1.e-4),
-#             bias_regularizer=keras.regularizers.l2(1.e-5)
-#         )
-
-#         # 2D convolutional pooling layer
-#         self._ConvPooling2D = partial(
-#             keras.layers.Conv2D,
-#             kernel_size=(2,2),
-#             strides=(2,2),
-#             activation=None,
-#             padding="valid",
-#             kernel_initializer="he_normal", 
-#             bias_initializer="he_uniform",
-#             kernel_regularizer=keras.regularizers.l2(1.e-4),
-#             bias_regularizer=keras.regularizers.l2(1.e-5)
-#         )
-
-#         # 2D max pooling layer
-#         self._MaxPooling2D = partial(
-#             keras.layers.MaxPooling2D,
-#             pool_size=(2,2),
-#             padding="same"
-#         )
-
-#         # 2D average pooling layer
-#         self._AveragePooling2D = partial(
-#             keras.layers.AveragePooling2D,
-#             pool_size=(2,2),
-#             padding="same"
-#         )
-
-#         # batch normalization layer
-#         self._BatchNormalization = partial(
-#             keras.layers.BatchNormalization,
-#             momentum=0.9
-#         )
-
-#         def GroupConv2D(self, filters):
-#             """Conv2D -> BatchNormalization -> SELU -> Average pooling."""
-            
-#             def Layers(x):
-#                 # convolutional layer
-#                 x = self._Conv2D(filters=filters)(x)
-#                 # batch normalization
-#                 x = self._BatchNormalization()(x)
-#                 # activation
-#                 x = keras.layers.Activation(activation="selu")(x)
-#                 # average pooling
-#                 x = self._AveragePooling2D()(x)
-                        
-#                 return x
-            
-#             return Layers
-
-#         ###################################################################################################
-
-#         def GroupDense(self, units):
-#             """Dense -> BatchNormalization -> ELU."""
-            
-#             def Layers(x):
-#                 # dense layer
-#                 x = self._Dense(units)(x)
-#                 # batch normalization
-#                 x = self._BatchNormalization()(x)
-#                 # activation
-#                 x = keras.layers.Activation(activation="elu")(x)
-                        
-#                 return x
-            
-#             return Layers
-
-#         inputs = keras.Input(shape=[SKYRMION.H, SKYRMION.W, SKYRMION.C], dtype="float32")
-#         hidden = keras.layers.Rescaling(scale=1 / 255)(inputs)            
-#         # feature extraction
-#         hidden = self._GroupConv2D(filters=8)(inputs)
-#         hidden = self._MCSpatialDropout2D(rate=0.1)(hidden)
-        
-#         hidden = self._GroupConv2D(filters=16)(hidden)
-#         hidden = self._MCSpatialDropout2D(rate=0.2)(hidden)
-        
-#         hidden = self._GroupConv2D(filters=32)(hidden)
-#         hidden = self._MCSpatialDropout2D(rate=0.2)(hidden)
-        
-#         hidden = self._GroupConv2D(filters=64)(hidden)
-#         hidden = self._MCSpatialDropout2D(rate=0.2)(hidden)
-
-#         hidden = self._Conv2D(filters=32)(hidden)
-#         hidden = self._BatchNormalization()(hidden)
-#         hidden = keras.layers.Activation("selu")(hidden)
-        
-#         # classification
-#         hidden = keras.layers.Flatten()(hidden)
-        
-#         hidden = self._GroupDense(units=128)(hidden)
-#         hidden = self._MCDropout(rate=0.2)(hidden)
-        
-#         outputs = self._Dense(units=len(SKYRMION.LABELS), activation="softmax")(hidden)
-
-#         super().__init__(inputs, outputs)

@@ -30,7 +30,7 @@ def split_dataset(images, labels, train_ratio, dev_ratio, random_seed=42):
     images, labels = shuffle_dataset(images, labels, random_seed)
     
     train_stop = int(len(images) * train_ratio)
-    dev_stop = train_stop + int(len(images) * dev_ratio)
+    dev_stop = len(images) if train_ratio + dev_ratio >= 1 else train_stop + int(len(images) * dev_ratio)
 
     splitted_dataset = {
         "train": {"images": images[:train_stop], "labels": labels[:train_stop]},
@@ -66,6 +66,8 @@ def save_dataset(filename, train, dev, test):
         dev_images=dev["images"], dev_labels=dev["labels"],
         test_images=test["images"], test_labels=test["labels"]
     )
+
+    
 
 
 if __name__ == "__main__":
