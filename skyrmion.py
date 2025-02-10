@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import datetime
 import os
@@ -28,14 +29,14 @@ parser.add_argument("--depth", default=3, type=int, help="Model depth (use defau
 parser.add_argument("--dropout", default=0.1, type=float, help="Dropout")
 parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
-parser.add_argument("--get_ffm", default=False, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
+parser.add_argument("--ffm", default=False, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
 parser.add_argument("--kernel_regularizer", default=1e-4, type=float, help="Parameter for L2 regularization of convolutional kernel")
 parser.add_argument("--kernel_size", default=3, type=int, help="Kernel size")
 parser.add_argument("--label_smoothing", default=0., type=float, help="Label smoothing")
 parser.add_argument("--learning_rate", default=0.1, type=float, help="Learning rate")
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
-parser.add_argument("--logdir_suffix", default=None, type=str, help="If specified, logs will be saved in 'logs_{logdir_suffix}/' directory")
-parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet"], help="Model of choice")
+parser.add_argument("--logdir_suffix", default="", type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
+parser.add_argument("--model", default="cbam", type=str, choices=["model5", "resnet", "cbam"], help="Model of choice")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam"], help="Optimizer type")
 parser.add_argument("--padding", default="same", type=str, choices=["same", "valid"], help="Padding in convolutional layers")
 parser.add_argument("--pooling", default="max", type=str, choices=["max", "average"], help="Pooling type")
@@ -224,11 +225,20 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                         self.writer(metric_category).add_scalar(metric, score, epoch + 1)
                         self.writer(metric_category).flush()
 
-            if self.fm_dataset is not None and self.args.get_ffm:
+            if self.fm_dataset is not None and self.args.ffm:
                 self.log_filters_and_features(epoch + 1)
 
 
 def main(args: argparse.Namespace) -> None:
+    # Get path to the project base directory ()
+    try:
+        base_path = Path(os.environ["SKYRMION_BASE_PATH"])
+    except KeyError as e:
+        raise RuntimeError(
+            "Environment variable SKYRMION_BASE_PATH is not set.\n"
+            "Please set it using: export SKYRMION_BASE_PATH='/path/to/data' in your .bashrc"
+        ) from e
+
     # Check if a GPU is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # device = torch.device("cpu")
@@ -241,33 +251,36 @@ def main(args: argparse.Namespace) -> None:
         torch.set_num_interop_threads(args.threads)
 
     # Create logdir name
-    # Get script name or "notebook"
-    script_name = Path(globals().get("__file__", "notebook")).stem
 
     # Generate timestamp
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
 
     # Format arguments
+    # Unnecessary args to have in the args_str 
+    no_log_args = ("epochs", "model", "save_model", "ffm", "logdir_suffix", "logdir")
+    # Taking only the descriptive subset of non-default arguments for args string
+    log_args = {arg: value for arg, value in vars(args).items() 
+                        if parser.get_default(arg) != vars(args)[arg] and arg not in no_log_args}
     args_str = ",".join(
-        f"{k[0]}={v}"
-        for k, v in sorted(vars(args).items())
+        f"{k[:3]}={'+'.join(v) if isinstance(v, list) else v}"
+        for k, v in sorted(log_args.items())
     )
 
     # Construct the log directory path
-    base_log_dir = Path("logs") if args.logdir_suffix is None else Path(f"logs_{args.logdir_suffix}")
-    args.logdir = str(base_log_dir / f"{script_name}-{timestamp}-{args_str}") # Must be converted to string in order to be serializable
+    base_log_dir = base_path / "logs" / f"{args.model}-{args.logdir_suffix}"
+    args.logdir = str(base_log_dir / f"{timestamp}-{args_str}") # Must be converted to string in order to be serializable
 
     # Load tran/dev/test data
-    skyrmion = SKYRMION()
+    skyrmion = SKYRMION(path=(base_path / "data" / "train" / "skyrmion_dataset").with_suffix(".npz"))
 
     # Load data for evaluating performance in phase transition
     skyrmion_transitions = {
-        trans[:5]: SKYRMION(path=(Path("data") / "test" / trans).with_suffix(".npz"))
+        trans[:5]: SKYRMION(path=(base_path / "data" / "test" / trans).with_suffix(".npz"))
         for trans in ["fe_sk_transition", "sk_sp_transition"]
     }
 
     # Dataset to extract feature maps in tensorboard callback
-    skyrmion_fm = SKYRMION(path=(Path("data") / "test" / "fm_dataset").with_suffix(".npz"))
+    skyrmion_fm = SKYRMION(path=(base_path / "data" / "test" / "fm_dataset").with_suffix(".npz"))
 
     # train/dev/test dataset creation
     def process_element(example):
@@ -317,7 +330,7 @@ def main(args: argparse.Namespace) -> None:
             # augmented images. In this way, we can artifically increase the size of our dataset by increasing number
             # of epochs, because in each epoch new data are generated. I choose to increase the dataset (or rather number
             # of epochs) by factor of 10 * number_of_different_augmentations 
-            args.epochs *= 3 * len(batch_augmentations) # Changed epoch-scalling factor to 3
+            args.epochs *= 2 * len(batch_augmentations) # Changed epoch-scalling factor to 2
             batch_augmentations = v2.RandomChoice(batch_augmentations) # Randomly picks one of the augemntations
             def augmented_collate_fn(examples):
                 images, labels = torch.utils.data.default_collate(examples)
@@ -396,6 +409,9 @@ def main(args: argparse.Namespace) -> None:
     elif args.model == "resnet":
         from models import ResNet
         model = ResNet(args)
+    elif args.model == "cbam":
+        from models import ModelCBAM
+        model = ModelCBAM(args)
     else:
         raise ValueError("Uknown model '{}'".format(args.model))
     
@@ -412,7 +428,7 @@ def main(args: argparse.Namespace) -> None:
     model.fit(train, epochs=args.epochs, validation_data=dev, callbacks=[tb_callback])
 
     if args.save_model:
-        model.save((Path("saved_models") / f"{script_name}-{timestamp}-{args_str}").with_suffix(".keras"))
+        model.save((base_path / "saved_models" / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
 
     if skyrmion.test.__len__() > 0:
         with open(args.logdir / "skyrmion_test.txt", "w", encoding="utf-8") as predictions_file:

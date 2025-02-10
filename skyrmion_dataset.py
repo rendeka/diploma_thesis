@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 from typing import Any, Callable, Sequence, TextIO, TypedDict, Optional, Union
 from pathlib import Path
@@ -12,12 +13,9 @@ class SKYRMION:
     W: int = 200
     C: int = 1
     LABELS: list[str] = ["ferromagnet", "skyrmion", "spiral"]
-    # LABELS: list[int] = [0, 1, 2]
 
     Element = TypedDict("Element", {"image": np.ndarray, "label": np.ndarray})
     Elements = TypedDict("Elements", {"images": np.ndarray, "labels": np.ndarray})
-
-    # _PATH = "data/train/skyrmion_dataset.npz"
 
     class Dataset(torch.utils.data.Dataset):
         def __init__(self, data: "SKYRMION.Elements") -> None:
@@ -53,8 +51,7 @@ class SKYRMION:
         def transform(self, transform: Callable[..., Any]) -> "SKYRMION.TransformedDataset":
             return SKYRMION.TransformedDataset(self, transform)
 
-    def __init__(self, path: Union[Path, str, None] = "data/train/skyrmion_dataset.npz",
-                  size: dict[str, int] = {}) -> None:
+    def __init__(self, path: Union[Path, str], size: dict[str, int] = {}) -> None:
         
         if isinstance(path, str):
             path = Path(path)
@@ -103,7 +100,7 @@ class SKYRMION:
         axs = axs.ravel() if len(Nsamp) > 1 else [axs]
 
         for n, num_sample in enumerate(Nsamp):
-            im = axs[n].imshow(images[num_sample], vmin=0.0, vmax=1.0, cmap="RdBu")
+            axs[n].imshow(images[num_sample], vmin=0.0, vmax=1.0, cmap="RdBu")
 
             axs[n].set_xlim((0.0, 200.0))
             axs[n].set_ylim((0.0, 200.0))
