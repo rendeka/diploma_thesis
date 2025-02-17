@@ -30,13 +30,14 @@ parser.add_argument("--dropout", default=0.1, type=float, help="Dropout")
 parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
 parser.add_argument("--ffm", default=False, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
+parser.add_argument("--head", default="softmax", type=str, choices=["softmax", "sigmoid"], help="Activation function for the classification head)")
 parser.add_argument("--kernel_regularizer", default=1e-4, type=float, help="Parameter for L2 regularization of convolutional kernel")
 parser.add_argument("--kernel_size", default=3, type=int, help="Kernel size")
 parser.add_argument("--label_smoothing", default=0., type=float, help="Label smoothing")
 parser.add_argument("--learning_rate", default=0.1, type=float, help="Learning rate")
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
 parser.add_argument("--logdir_suffix", default="", type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
-parser.add_argument("--model", default="cbam", type=str, choices=["model5", "resnet", "cbam"], help="Model of choice")
+parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam"], help="Model of choice")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam"], help="Optimizer type")
 parser.add_argument("--padding", default="same", type=str, choices=["same", "valid"], help="Padding in convolutional layers")
 parser.add_argument("--pooling", default="max", type=str, choices=["max", "average"], help="Pooling type")
@@ -45,7 +46,7 @@ parser.add_argument("--save_model", default=False, type=bool, help="If True, tra
 parser.add_argument("--stochastic_depth", default=0., type=float, help="Stochastic depth")
 parser.add_argument("--stride", default=1, type=int, help="Stride in convolutional layers")
 parser.add_argument("--threads", default=1, type=int, help="Maximum number of threads to use")
-parser.add_argument("--weight_decay", default=0.004, type=float, help="Weight decay")
+parser.add_argument("--weight_decay", default=None, type=float, help="Weight decay")
 parser.add_argument("--width", default=1, type=int, help="Model width")
 
 class TorchTensorBoardCallback(keras.callbacks.Callback):
@@ -262,8 +263,8 @@ def main(args: argparse.Namespace) -> None:
     log_args = {arg: value for arg, value in vars(args).items() 
                         if parser.get_default(arg) != vars(args)[arg] and arg not in no_log_args}
     args_str = ",".join(
-        f"{k[:3]}={'+'.join(v) if isinstance(v, list) else v}"
-        for k, v in sorted(log_args.items())
+        f"{arg[:3]}={'+'.join([v[0] for v in value]) if isinstance(value, list) else value}"
+        for arg, value in sorted(log_args.items())
     )
 
     # Construct the log directory path

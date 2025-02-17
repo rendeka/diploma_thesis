@@ -29,6 +29,14 @@ class ModelBase(keras.Model):
             return 1
         else:
             return 1.5
+    
+    # Activation
+    @property
+    def activation(self):
+        return partial(
+            keras.layers.Activation,
+            self.args.activation
+        )
 
     # Dense layer
     @property
@@ -144,6 +152,17 @@ class ModelBase(keras.Model):
 
         return output
     
+
+    def head(self, inputs):
+        if self.args.head == "softmax":
+            outputs = self.dense(units=self.num_classes, activation="softmax")(inputs)
+        if self.args.head == "sigmoid":
+            hidden = self.dense(units=self.num_classes, activation="sigmoid")(inputs)
+            outputs = hidden / keras.ops.sum(hidden, axis=1, keepdims=True)
+
+        return outputs
+        
+    
     def cbam_block(self, inputs, ratio=8):
         filters = inputs.shape[-1]
 
@@ -222,7 +241,7 @@ class Model5(ModelBase):
         hidden = self.dense_block(hidden, units=num_filters * 4)
         hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
         hidden = self.dense_block(hidden, units=num_filters)
-        outputs = self.dense(units=self.num_classes, activation="softmax")(hidden)
+        outputs = self.head(hidden)
 
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
 
@@ -248,7 +267,7 @@ class ModelCBAM(ModelBase):
         
         hidden = keras.layers.GlobalAveragePooling2D()(hidden)
         hidden = keras.layers.Dense(num_filters, activation="relu")(hidden)
-        outputs = keras.layers.Dense(self.num_classes, activation="softmax")(hidden)
+        outputs = self.head(hidden)
         
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
 

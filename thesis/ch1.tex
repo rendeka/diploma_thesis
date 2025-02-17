@@ -22,6 +22,33 @@ There are many strategies how to improve generalization (often with the cost of 
 \subsection{Parameter-norm penalties}
 A common way to regularize, used long before deeplearning, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x}; \bm{\theta})$
 
+\begin{equation}
+	\label{eq:loss-parameter-norm}
+	\tilde{L(\bm{x}; \bm{\theta})} = L(\bm{x}; \bm{\theta}) + \alpha \Omega(\bm{\theta}),
+\end{equation}
+where $\alpha \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
+
+This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting.
+
+
+The most common parameter norms are $L^2$:
+\begin{equation}
+ 	\label{eq:l2-regularization}
+ 	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_2^2,
+\end{equation} a
+nd $L^1$:
+\begin{equation}
+	\label{eq:l1-regularization}
+	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_1.
+\end{equation} 
+
+
+\subsection{Weight decay}
+A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss function, it just modifies the weight update rule in minimization. 
+
+
+......
+
 
 \chapter{Important first chapter}
 \label{chap:refs}
