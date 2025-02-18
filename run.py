@@ -11,12 +11,12 @@ N_THREADS = 4
 
 # Define the argument combinations
 args_combinations = {
-    "--activation": [
-        "celu", "elu", "exponential", "gelu", "glu", "hard_shrink", "hard_sigmoid", 
-        "hard_silu", "hard_swish", "hard_tanh", "leaky_relu", "linear", "log_sigmoid", 
-        "log_softmax", "mish", "relu", "relu6", "selu", "sigmoid", "silu", "swish", 
-        "soft_shrink", "softmax", "softplus", "softsign", "squareplus", "tanh", "tanh_shrink"
-        ],
+    # "--activation": [
+    #     "celu", "elu", "exponential", "gelu", "glu", "hard_shrink", "hard_sigmoid", 
+    #     "hard_silu", "hard_swish", "hard_tanh", "leaky_relu", "linear", "log_sigmoid", 
+    #     "log_softmax", "mish", "relu", "relu6", "selu", "sigmoid", "silu", "swish", 
+    #     "soft_shrink", "softmax", "softplus", "softsign", "squareplus", "tanh", "tanh_shrink"
+    #     ],
     "--augment": [("cutmix", "mixup")],
     # "--batch_size": 16,
     # "--bias_regularizer": 1e-5,
@@ -28,13 +28,14 @@ args_combinations = {
     "--epochs": [6],
     "--filters": [32],
     # "--ffm": False,
+    "--head": ["softmax", "sigmoid"],
     # "--kernel_regularizer": 1e-4,
     # "--kernel_size": [3],
     # "--label_smoothing": 0.0,
     # "--learning_rate": 0.1,
     # "--learning_rate_final": 0.001,
-    "--logdir_suffix": ["activations"],
-    "--model": ["model5"],
+    "--logdir_suffix": ["head"],
+    "--model": ["model5", "cbam"],
     "--optimizer": ["SGD"],
     # "--padding": "same",
     # "--pooling": ["max", "average"],

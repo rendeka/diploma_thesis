@@ -43,7 +43,7 @@ class ModelBase(keras.Model):
     def dense(self):
         return partial(
             keras.layers.Dense,
-            activation=keras.layers.Activation(self.args.activation),
+            activation=self.activation(),
             use_bias=True, 
             kernel_initializer=keras.initializers.glorot_normal(), 
             bias_initializer=keras.initializers.glorot_uniform(), 
@@ -58,7 +58,7 @@ class ModelBase(keras.Model):
             return partial(
                 keras.layers.Conv2D,
                 kernel_size=self.args.kernel_size,
-                activation=keras.layers.Activation(self.args.activation),
+                activation=self.activation(),
                 strides=self.args.stride,
                 padding=self.args.padding,
                 kernel_initializer=keras.initializers.he_normal(), 
@@ -73,7 +73,7 @@ class ModelBase(keras.Model):
                 strides=self.args.stride,
                 padding=self.args.padding,
                 # # depth_multiplier=self.args.depth_multiplier,
-                # activation=keras.layers.Activation(self.args.activation),
+                # activation=self.activation(),
                 # # use_bias=self.args.use_bias,
                 # depthwise_initializer=keras.initializers.GlorotUniform(),
                 # pointwise_initializer=keras.initializers.GlorotUniform(),
@@ -139,7 +139,7 @@ class ModelBase(keras.Model):
 
         hidden = self.conv(filters=filters)(inputs)
         hidden = self.batch_norm()(hidden)
-        hidden = keras.layers.Activation(self.args.activation)(hidden)
+        hidden = self.activation()(hidden)
         output = self.pooling()(hidden)
 
         return output
@@ -148,7 +148,7 @@ class ModelBase(keras.Model):
 
         hidden = self.dense(units)(inputs)
         hidden = self.batch_norm()(hidden)
-        output = keras.layers.Activation(self.args.activation)(hidden)
+        output = self.activation()(hidden)
 
         return output
     
@@ -191,9 +191,9 @@ class ModelBase(keras.Model):
 
         concat = keras.layers.Concatenate(axis=-1)([pool_average, pool_max])
         spatial_attention = keras.layers.Conv2D(1, kernel_size=7, padding="same", activation="sigmoid")(concat)
-        output = keras.layers.Multiply()([hidden, spatial_attention])
+        outputs = keras.layers.Multiply()([hidden, spatial_attention])
 
-        return output # TODO: apply this to some architecture and try SE block as well
+        return outputs # TODO: apply this to some architecture and try SE block as well
     
     def se_block(self, inputs, ratio=8):
         """Squeeze-and-Excitation Block"""
@@ -272,15 +272,21 @@ class ModelCBAM(ModelBase):
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
 
     def residual_block_cbam(self, inputs, filters):
-        skip = inputs
+        if inputs.shape[-1] == filters:
+            skip = inputs
+        else:
+            skip = keras.layers.Conv2D(filters=filters, kernel_size=1, strides=1, activation=None)(inputs)
+
         hidden = self.conv(filters=filters)(inputs)
         hidden = self.batch_norm()(hidden)
-        hidden = keras.layers.Activation("relu")(hidden)
+        # hidden = keras.layers.Activation("relu")(hidden)
+        hidden = self.activation()(hidden)
         hidden = self.conv(filters=filters)(hidden)
         hidden = self.batch_norm()(hidden)
         hidden = self.cbam_block(hidden)
         hidden = keras.layers.Add()([hidden, skip])
-        outputs = keras.layers.Activation("relu")(hidden)
+        # outputs = keras.layers.Activation("relu")(hidden)
+        outputs = self.activation()(hidden)
 
         return outputs
 
