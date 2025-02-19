@@ -10,6 +10,24 @@ class ModelBase(keras.Model):
         super().__init__(inputs, outputs)
         self.args = args
 
+    @keras.saving.register_keras_serializable()
+    class MCDropout(keras.layers.Dropout):
+        def __init__(self, rate, mc_inference=False, **kwargs):
+            super().__init__(rate, **kwargs)
+            self.mc_inference = mc_inference
+
+        def call(self, inputs, training=False):
+            return super().call(inputs, training=(training or self.mc_inference))
+        
+    @keras.saving.register_keras_serializable()
+    class MCSpatialDropout(keras.layers.SpatialDropout2D):
+        def __init__(self, rate, mc_inference=False, **kwargs):
+            super().__init__(rate, **kwargs)
+            self.mc_inference = mc_inference
+
+        def call(self, inputs, training=False):
+            return super().call(inputs, training=(training or self.mc_inference))
+
     # Get Input shape
     @property
     def get_input_shape(self):
@@ -127,13 +145,19 @@ class ModelBase(keras.Model):
             keras.layers.BatchNormalization,
             momentum=0.9
         )   
-    @property
-    def mc_dropout(self):
-        return keras.layers.Dropout
     
-    @property
-    def mc_spatial_dropout(self):
-        return keras.layers.SpatialDropout2D
+    def mc_dropout(self, rate):
+        return ModelBase.MCDropout(rate = rate, mc_inference=self.args.mc_inference)
+    
+    def mc_spatial_dropout(self, rate):
+        return ModelBase.MCSpatialDropout(rate = rate, mc_inference=self.args.mc_inference)
+
+    def set_mc_inference(self, mc_inference: bool = False):
+        """Enable or disable MC Dropout after loading the model."""
+        self.args.mc_inference = mc_inference
+        for layer in self.layers:
+            if isinstance(layer, (ModelBase.MCDropout, ModelBase.MCSpatialDropout)):
+                layer.mc_inference = self.args.mc_inference
         
     def conv_block(self, inputs, filters):
 

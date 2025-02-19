@@ -38,6 +38,7 @@ parser.add_argument("--label_smoothing", default=0., type=float, help="Label smo
 parser.add_argument("--learning_rate", default=0.1, type=float, help="Learning rate")
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
 parser.add_argument("--logdir_suffix", default=None, type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
+parser.add_argument("--mc_inference", default=False, type=bool, help="True to apply dropout on inference") # This is not the correct place to set it to True, it just simplifies the serialization. Correct place is during the inference
 parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam"], help="Model of choice")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam"], help="Optimizer type")
 parser.add_argument("--padding", default="same", type=str, choices=["same", "valid"], help="Padding in convolutional layers")
@@ -62,7 +63,6 @@ def main(args: argparse.Namespace) -> None:
 
     # Check if a GPU is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # device = torch.device("cpu")
     print(f"Using device: {device}")
     
     # Set the random seed and the number of threads.
@@ -78,7 +78,7 @@ def main(args: argparse.Namespace) -> None:
 
     # Format arguments
     # Unnecessary args to have in the args_str 
-    no_log_args = ("epochs", "model", "save_model", "ffm", "logdir_suffix", "logdir")
+    no_log_args = ("epochs", "model", "save_model", "ffm", "logdir_suffix", "logdir", "mc_inference")
     # Taking only the descriptive subset of non-default arguments for args string
     log_args = {arg: value for arg, value in vars(args).items() 
                         if parser.get_default(arg) != vars(args)[arg] and arg not in no_log_args}
@@ -87,8 +87,12 @@ def main(args: argparse.Namespace) -> None:
         for arg, value in sorted(log_args.items())
     )
 
+    args_str = args_str if args_str else "default"
+
     # Construct the log directory path
-    base_log_dir = base_path / "logs" / f"{args.model}-{args.logdir_suffix}" if args.logdir_suffix is not None else f"{args.model}"
+    base_log_dir = base_path / "logs" / \
+        (f"{args.model}-{args.logdir_suffix}" if args.logdir_suffix is not None else f"{args.model}")
+   
     args.logdir = str(base_log_dir / f"{timestamp}-{args_str}") # Must be converted to string in order to be serializable
 
     # Load tran/dev/test data
@@ -252,7 +256,7 @@ def main(args: argparse.Namespace) -> None:
     model.fit(train, epochs=args.epochs, validation_data=dev, callbacks=[tb_callback])
 
     if args.save_model:
-        model.save((base_path / "saved_models" / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
+        model.save((base_path / "saved_models" / (f"{args.model}-{timestamp}-{args_str}")).with_suffix(".keras"))
 
     if skyrmion.test.__len__() > 0:
         with open(args.logdir / "skyrmion_test.txt", "w", encoding="utf-8") as predictions_file:

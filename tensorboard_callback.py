@@ -132,7 +132,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         num_rows = len(filters) # Same for plotting feature maps
         num_cols = min(8, filters[0].shape[-1])
 
-        fig, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5 * num_rows))
+        fig, axes = plt.subplots(num_rows, num_cols, figsize=(20, 3 * num_rows))
         axes = np.array(axes).ravel()
         fig.subplots_adjust(hspace=0.01, wspace=0.1)
 
