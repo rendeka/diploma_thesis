@@ -10,7 +10,6 @@ class ModelBase(keras.Model):
         super().__init__(inputs, outputs)
         self.args = args
 
-    @keras.saving.register_keras_serializable()
     class MCDropout(keras.layers.Dropout):
         def __init__(self, rate, mc_inference=False, **kwargs):
             super().__init__(rate, **kwargs)
@@ -19,13 +18,20 @@ class ModelBase(keras.Model):
         def call(self, inputs, training=False):
             return super().call(inputs, training=(training or self.mc_inference))
         
-    @keras.saving.register_keras_serializable()
     class MCSpatialDropout(keras.layers.SpatialDropout2D):
         def __init__(self, rate, mc_inference=False, **kwargs):
             super().__init__(rate, **kwargs)
             self.mc_inference = mc_inference
 
         def call(self, inputs, training=False):
+            return super().call(inputs, training=(training or self.mc_inference))
+        
+    class MCAplhaDropout(keras.layers.AlphaDropout):
+        def __init__(self, rate, mc_inference=False, **kwargs):
+            super().__init__(rate, **kwargs)
+            self.mc_inference = mc_inference
+
+        def call(self, inputs, training = False):
             return super().call(inputs, training=(training or self.mc_inference))
 
     # Get Input shape
@@ -41,7 +47,9 @@ class ModelBase(keras.Model):
     # Get filter scaling factor (definning how the number of filters increase in the conv layers)
     @property
     def get_filter_scaling_factor(self):
-        if self.args.pooling == "max" or self.args.conv_type == "depthwise_separable":
+        if "Flatten" in self.args.fag:
+            return 1
+        elif self.args.pooling == "max" or self.args.conv_type == "depthwise_separable":
             return 2
         elif self.args.stride > 1:
             return 1
@@ -128,7 +136,7 @@ class ModelBase(keras.Model):
     # Set default pooling based on provided args
     @property
     def pooling(self):
-        if self.args.stride > 1:
+        if self.args.stride > 1 or self.args.pooling == "no":
             # Don't pool, dimensionality reduction is done via convolutions
             return keras.layers.Identity
         elif self.args.pooling == "average":
@@ -141,23 +149,30 @@ class ModelBase(keras.Model):
     # Batch normalization layer
     @property
     def batch_norm(self):
-        return partial(
-            keras.layers.BatchNormalization,
-            momentum=0.9
-        )   
+        if self.args.batch_norm:
+            return partial(
+                keras.layers.BatchNormalization,
+                momentum=0.9
+            ) 
+        else:
+            return keras.layers.Identity  
     
     def mc_dropout(self, rate):
-        return ModelBase.MCDropout(rate = rate, mc_inference=self.args.mc_inference)
+        if self.args.activation == "selu" and self.args.alpha_dropout:
+            return ModelBase.MCAplhaDropout(rate = rate)
+        else:
+            return ModelBase.MCDropout(rate = rate)
     
     def mc_spatial_dropout(self, rate):
-        return ModelBase.MCSpatialDropout(rate = rate, mc_inference=self.args.mc_inference)
+        return ModelBase.MCSpatialDropout(rate = rate)
 
-    def set_mc_inference(self, mc_inference: bool = False):
+    def set_mc_inference(self, mc_inference: bool = False, rate=None):
         """Enable or disable MC Dropout after loading the model."""
-        self.args.mc_inference = mc_inference
+        if rate:
+            self.args.dropout = rate
         for layer in self.layers:
             if isinstance(layer, (ModelBase.MCDropout, ModelBase.MCSpatialDropout)):
-                layer.mc_inference = self.args.mc_inference
+                layer.mc_inference = mc_inference
         
     def conv_block(self, inputs, filters):
 
@@ -217,20 +232,31 @@ class ModelBase(keras.Model):
         spatial_attention = keras.layers.Conv2D(1, kernel_size=7, padding="same", activation="sigmoid")(concat)
         outputs = keras.layers.Multiply()([hidden, spatial_attention])
 
-        return outputs # TODO: apply this to some architecture and try SE block as well
+        return outputs
     
     def se_block(self, inputs, ratio=8):
         """Squeeze-and-Excitation Block"""
         filters = inputs.shape[-1]
         
-        # Squeeze
         se = keras.layers.GlobalAveragePooling2D()(inputs)
         se = keras.layers.Dense(filters // ratio, activation="relu")(se)
         se = keras.layers.Dense(filters, activation="sigmoid")(se)
         
-        # Scale
         se = keras.layers.Reshape((1, 1, filters))(se)
         return keras.layers.Multiply()([inputs, se])
+    
+    def feature_aggregation(self, inputs):
+        if "SE" in self.args.fag:
+            inputs = self.se_block(inputs)
+            return keras.layers.GlobalAveragePooling2D()(inputs)    
+            
+        if "GAP" in self.args.fag:
+            return keras.layers.GlobalAveragePooling2D()(inputs)
+        
+        elif "Flatten" in self.args.fag:
+            return keras.layers.Flatten()(inputs)
+        
+
 
     def get_config(self):
             """Serialize the model configuration."""
@@ -259,9 +285,9 @@ class Model5(ModelBase):
         for i in range(self.args.depth):
             num_filters = int(self.args.filters * (self.filter_scaling_factor ** i))
             hidden = self.conv_block(hidden, filters=num_filters)
-            hidden = self.mc_spatial_dropout(rate=self.args.dropout)(hidden)
+            hidden = self.mc_spatial_dropout(rate=self.args.spatial_dropout)(hidden)
 
-        hidden = keras.layers.GlobalAveragePooling2D()(hidden)
+        hidden = self.feature_aggregation(hidden)
         hidden = self.dense_block(hidden, units=num_filters * 4)
         hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
         hidden = self.dense_block(hidden, units=num_filters)
@@ -282,15 +308,18 @@ class ModelCBAM(ModelBase):
 
         num_filters = self.args.filters
         hidden = self.conv(num_filters)(inputs)
-        hidden = self.max_pooling()(hidden)
+        hidden = self.pooling()(hidden)
 
         for i in range(self.args.depth):
             num_filters = int(self.args.filters * (self.filter_scaling_factor ** i))
             hidden = self.residual_block_cbam(hidden, num_filters)
-            hidden = self.max_pooling()(hidden)
+            hidden = self.pooling()(hidden)
         
-        hidden = keras.layers.GlobalAveragePooling2D()(hidden)
-        hidden = keras.layers.Dense(num_filters, activation="relu")(hidden)
+        # hidden = keras.layers.GlobalAveragePooling2D()(hidden)
+        # hidden = keras.layers.Dense(num_filters, activation="relu")(hidden)
+
+        hidden = self.feature_aggregation(hidden)
+        # hidden = self.dense_block(hidden, units=num_filters)
         outputs = self.head(hidden)
         
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
@@ -301,7 +330,7 @@ class ModelCBAM(ModelBase):
         else:
             skip = keras.layers.Conv2D(filters=filters, kernel_size=1, strides=1, activation=None)(inputs)
 
-        hidden = self.conv(filters=filters)(inputs)
+        hidden = self.conv(filters=filters)(inputs) 
         hidden = self.batch_norm()(hidden)
         # hidden = keras.layers.Activation("relu")(hidden)
         hidden = self.activation()(hidden)
@@ -313,19 +342,26 @@ class ModelCBAM(ModelBase):
         outputs = self.activation()(hidden)
 
         return outputs
+    
+class ModelFFN(ModelBase):
 
-class Model(keras.Model):
-    def _activation(self, inputs, args: argparse.Namespace):
-        """Apply activation function with a fallback to 'relu' if invalid."""
-        try:
-            activation_function = getattr(keras.activations, args.activation, keras.activations.relu)
-            return keras.layers.Activation(activation=activation_function)(inputs)
-        except AttributeError:
-            raise ValueError(f"Invalid activation function '{args.activation}', using 'relu' instead. Check keras.activations for valid activations")
+    def __init__(self, args, **kwargs):
+        self.args = args
+        self.input_shape = self.get_input_shape
+        self.num_classes = self.get_num_classes
+        self.build_model(**kwargs)
 
+    def build_model(self, **kwargs):
+        inputs = keras.Input(shape=self.input_shape)
+        hidden = keras.layers.Flatten()(inputs)
+        hidden = keras.layers.Dense(units=self.args.filters)(hidden)
+        hidden = self.activation()(hidden)
+        outputs = self.head(hidden)
+
+        super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
 
 # I am not really testing this model at all (sofar)
-class ResNet(Model):
+class ResNet(ModelBase):
     def _cnn(self, inputs, args, filters, kernel_size, stride, activation):
         hidden = keras.layers.Conv2D(filters, kernel_size=kernel_size, strides=stride, padding="same", use_bias=False)(inputs)
         hidden = keras.layers.BatchNormalization()(hidden)

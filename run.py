@@ -1,76 +1,131 @@
 #!/usr/bin/env python3
-import itertools
-import subprocess
-import multiprocessing
-import gc
-import os
+from running import RUN
 
-SKYRMION_BASE_PATH = os.environ.get("SKYRMION_BASE_PATH")
-ON_LOCAL = SKYRMION_BASE_PATH == "/home/rothals/dev/school/diploma_thesis/dev"
-N_THREADS = 4
+runs = []
+# runs.append(
+#     RUN(
+#         name="softmax",
+#         args_combinations = {
+#             # "--activation": [
+#             #     "celu", "elu", "exponential", "gelu", "glu", "hard_shrink", "hard_sigmoid", 
+#             #     "hard_silu", "hard_swish", "hard_tanh", "leaky_relu", "linear", "log_sigmoid", 
+#             #     "log_softmax", "mish", "relu", "relu6", "selu", "sigmoid", "silu", "swish", 
+#             #     "soft_shrink", "softmax", "softplus", "softsign", "squareplus", "tanh", "tanh_shrink"
+#             #     ],
+#             "--activation": ["relu"],
+#             # "--alpha_dropout": [True],
+#             # "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup")],
+#             # "--batch_size": [16],
+#             # "--bias_regularizer": [0],
+#             # "--conv_type": ["ds"],
+#             # "--dataloader_workers": [0],
+#             "--decay": ["cosine"],
+#             "--depth": [1, 2, 3, 4, 5, 6],
+#             # "--dropout": [0.0, 0.2],
+#             # "---spatial_dropout": [0.0, 0.2],
+#             "--epochs": [30],
+#             "--fag": ["GAP"],
+#             "--filters": [16, 32, 64],
+#             # "--ffm": [False],
+#             # "--head": ["sigmoid"],
+#             # "--kernel_regularizer": [0],
+#             # "--kernel_size": [3],
+#             # "--label_smoothing": 0.0,
+#             # "--learning_rate": [0.001],
+#             # "--learning_rate_final": 0.001,
+#             "--logdir_suffix": ["softmax-GAP"],
+#             "--loss": ["CCE"],
+#             "--model": ["model5"],
+#             # "--optimizer": ["AdamW"],
+#             # "--padding": ["same"],
+#             # "--pooling": ["average"],
+#             # "--seed": [42],
+#             # "--save_model": False,
+#             # "--stochastic_depth": [0.0],
+#             # "--stride": [1, 2],
+#             # "--threads": [1],
+#             # "--weight_decay": [1e-5],
+#             # "--width": [1]
+#         }
+#     )
+# )
 
-# Define the argument combinations
-args_combinations = {
-    # "--activation": [
-    #     "celu", "elu", "exponential", "gelu", "glu", "hard_shrink", "hard_sigmoid", 
-    #     "hard_silu", "hard_swish", "hard_tanh", "leaky_relu", "linear", "log_sigmoid", 
-    #     "log_softmax", "mish", "relu", "relu6", "selu", "sigmoid", "silu", "swish", 
-    #     "soft_shrink", "softmax", "softplus", "softsign", "squareplus", "tanh", "tanh_shrink"
-    #     ],
-    # "--augment": [("cutmix", "mixup")],
-    # "--batch_size": 16,
-    # "--bias_regularizer": 1e-5,
-    "--conv_type": ["standard"],
-    # "--dataloader_workers": 0,
-    "--decay": ["cosine"],
-    "--depth": [4],
-    # "--dropout": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
-    "--epochs": [24],
-    "--filters": [32],
-    # "--ffm": False,
-    "--head": ["sigmoid"],
-    # "--kernel_regularizer": 1e-4,
-    # "--kernel_size": [3],
-    # "--label_smoothing": 0.0,
-    # "--learning_rate": 0.1,
-    # "--learning_rate_final": 0.001,
-    "--logdir_suffix": ["presentation_model_comparison"],
-    "--model": ["model5"],
-    "--optimizer": ["SGD"],
-    # "--padding": "same",
-    # "--pooling": ["max", "average"],
-    # "--seed": [42],
-    # "--save_model": False,
-    # "--stochastic_depth": 0.0,
-    # "--stride": [1, 2],
-    # "--threads": 1,
-    # "--weight_decay": 0.004,
-    # "--width": 1
-}
+runs.append(
+    RUN(
+        name="sigmoid",
+        args_combinations={
+            "--activation": ["relu", "gelu"],
+            "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup")],
+            "--decay": ["cosine"],
+            "--depth": [4],
+            "--epochs": [80],
+            "--fag": ["GAP"],
+            "--filters": [32],
+            "--head": ["sigmoid"],
+            "--logdir_suffix": ["sigmoid-long"],
+            "--loss": ["KLD"],
+            "--model": ["model5"],
+        }
+    )
+)
 
-def run_command(config):
-    """Run skyrmion.py with given configuration"""
-    command = ["python3", os.path.join(os.environ["SKYRMION_BASE_PATH"], "skyrmion.py")]
-    
-    for arg, value in config.items():
-        command.append(arg)
-        if isinstance(value, tuple):
-            command.extend(map(str, value))
-        else:
-            command.append(str(value))
+runs.append(
+    RUN(
+        name="softmax",
+        args_combinations={
+            "--activation": ["relu", "gelu"],
+            "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup")],
+            "--decay": ["cosine"],
+            "--depth": [4],
+            "--epochs": [80],
+            "--fag": ["GAP"],
+            "--filters": [32],
+            "--head": ["softmax"],
+            "--logdir_suffix": ["softmax-long"],
+            "--loss": ["KLD"],
+            "--model": ["model5"],
+        }
+    )
+)
 
-    subprocess.run(command)
-    gc.collect()
-    
-# generate all combinations of arguments
-all_combinations = [dict(zip(args_combinations.keys(), values)) 
-                        for values in itertools.product(*args_combinations.values())]
+runs.append(
+    RUN(
+        name="cbam",
+        args_combinations={
+            "--activation": ["relu", "gelu"],
+            "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup")],
+            "--decay": ["cosine"],
+            "--depth": [1],
+            "--epochs": [80],
+            "--fag": ["GAP"],
+            "--filters": [32],
+            "--head": ["sigmoid"],
+            "--logdir_suffix": ["sigmoid-long"],
+            "--loss": ["KLD"],
+            "--model": ["cbam"],
+        }
+    )
+)
 
-# gun skyrmion.py with each combination localy (serially)
-if ON_LOCAL:
-    for config in all_combinations:
-        run_command(config)
-else: 
-    # run in parallel
-    with multiprocessing.Pool(processes=N_THREADS) as pool:
-        pool.map(run_command, all_combinations)
+# runs.append(
+#     RUN(
+#         name="ffn",
+#         args_combinations={
+#             "--activation": ["sigmoid"],
+#             # "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup")],
+#             "--decay": ["cosine"],
+#             "--epochs": [100],
+#             "--filters": [32, 64, 128],
+#             "--head": ["sigmoid"],
+#             "--logdir_suffix": ["base"],
+#             "--learning_rate": [0.01],
+#             "--loss": ["MSE"],
+#             "--model": ["ffn"],
+#         }
+#     )
+# )
+
+
+if __name__ == "__main__":
+    for run in runs:
+        run.run()

@@ -1,53 +1,77 @@
+\chapter{Skyrmion}
+
+The term skyrmion originates from the particle theory in 1961, when Tony Skyrme introduced it as a model of the nucleon. Although this model turned out not to be correct, skyrmions as topological objects, emerged later in many other fields. In this thesis we will be dealing with \emph{magnetic skyrmions}. They are topologically stable field configurations with particle-like properties. Magnetic skyrmions were first experimentally discovered in 2009 \cite{mühlbauer2009skyrmion} in magnetic materials. Magnetic skyrmions are characteristic by rotationaly symmetric, continuosly changing spin vectors from it's middle towards it's edges. 
+
+The essential role in the formation of magnetic skyrmions plays Dzyaloshinskii–Moriya (DM) interaction (DMI), also called antisymetric exchange. It is a magnetic exchange interaction between neighbouring patricles with spin. It can be charecterized by hamiltonian:
+
+\begin{equation}
+	\label{DM-interaction-hamiltonian}
+	H^{\text{DM}_ij} = \bm{D}_ij \dot (\bm{S}_i \times \bm{S}_j),
+\end{equation}
+
+where $\bm{D}_ij$ is a Dzyaloshinskii–Moriya vector characterizing the interaction, and $\bm{S}_i$, $\bm{S}_j$ are spin vectors. 
+
+This means that the DM interaction prefers perpendicular orientation of neighboring spins. The vector $\bm{D}_ij$ is given by the symmetry of the system. DMI mediates also one other stable magnetic arrangement which is a \emph{spin spiral}. 
+
+The direction of vector $\bm{D}_ij$ is dictated by the system symmetry, and it influences the topology of skyrmions and spirals.
+
+Main source \cite{li2023magnetic}
+
+\todo{Some condensed matter physics}
+
+\todo{Dzyaloshinskii-Moriya interaction}
+
+\todo{Potential use in spintronics}
+
+\section{Dataset}
+
+\todo{how do we get our data}
+
+Defining part of any machine learning problem is the dataset we are working with. Our dataset consists of in total 9840 images of magnetic configurations created by Monte-Carlo simulations for 
+
+\todo{Whole dataset}
+
+\todo{chalenges of this dataset}
+
+\todo{train dataset}
+
+\todo{one-hot encoding for labels}
+
+
 \chapter{Introduction to neural networks}
-\section{Training of neural networks}
-
-\chapter{Regularization}
-
 \todo{
 terms to describe:
 training error
 underfitting and overfitting
 trainable parameter and hyperparameter
-objective function
 describe the model we are using
-describe the dataset we have
 }
 
-The main source for this chapter is \cite{bengio2017deep}
+The main source for this chapter is \cite{bengio2017deep}.
 
-The key concept for this thesis is the term generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean single phase images and want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
+\todo{some general categorization of neural networks, state that our task is classification}
 
-There are many strategies how to improve generalization (often with the cost of increasing training error). Some of these strategies relies on putting constrains on the model parameters, some modify the objective function. Some strategies modify the training data, some interfere with the training process, model's architecture and many other things. We will describe strategies that are relevant for us in the following section.
+\todo{activation functions}
 
-\subsection{Parameter-norm penalties}
-A common way to regularize, used long before deeplearning, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x}; \bm{\theta})$
+\todo{we are using CNN with dense layer and classification head}
 
-\begin{equation}
-	\label{eq:loss-parameter-norm}
-	\tilde{L(\bm{x}; \bm{\theta})} = L(\bm{x}; \bm{\theta}) + \alpha \Omega(\bm{\theta}),
-\end{equation}
-where $\alpha \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
+\todo{loss (objective) function}
 
-This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting.
+\todo{neural nets as maximum likelihood estimators}
 
 
-The most common parameter norms are $L^2$:
-\begin{equation}
- 	\label{eq:l2-regularization}
- 	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_2^2,
-\end{equation} a
-nd $L^1$:
-\begin{equation}
-	\label{eq:l1-regularization}
-	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_1.
-\end{equation} 
+\section{Training of neural networks}
 
+\subsection{Gradient descent}
 
-\subsection{Weight decay}
-A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss function, it just modifies the weight update rule in minimization. 
+\todo{GD, SGD, batch-SGD}
 
+\todo{optimizers: }
 
-......
+\subsection{Backpropagation}
+
+\todo{chalenges in machine learning: underfitting, overfitting, (maybe mention double descend??)}
+
 
 
 \chapter{Important first chapter}

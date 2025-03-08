@@ -6,6 +6,9 @@ from pathlib import Path
 from skyrmion_dataset import SKYRMION
 import keras
 import torch
+from pytorch_grad_cam import GradCAM
+from pytorch_grad_cam.utils.image import preprocess_image
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 
 class TorchTensorBoardCallback(keras.callbacks.Callback):
     def __init__(self, args:argparse.Namespace, transition_datasets: Optional[Dict[str, SKYRMION]]=None, 
@@ -168,6 +171,45 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
         writer.flush()
 
+    def log_gradcam(self, epoch):
+
+        if not self.model:
+            return
+        
+        if epoch < self.args.epochs:
+            return
+
+        writer = self.writer("grad_cam")
+
+        # using just one picture from the fm_dataset
+        image_tensor = torch.tensor(self.fm_dataset.dataset[10]["image"]).float().to(self.device)
+        target_category = [ClassifierOutputTarget(2)]
+
+        # take last convolutional layer
+        target_layer = None
+        for layer in reversed(self.model.layers):
+            if isinstance(layer, keras.layers.Conv2D) or isinstance(layer, keras.layers.SeparableConv2D):
+                target_layer = layer
+                break
+        if target_layer is None:
+            raise ValueError("No convolutional layer found for Grad-CAM.")
+
+        cam = GradCAM(model=self.model, target_layers=[target_layer])
+
+        input_tensor = preprocess_image(image_tensor.cpu().numpy(), mean=[0.5], std=[0.5]).reshape(1, 200, 200, 1)
+
+        # generate Grad-CAM heatmap
+        grayscale_cam = cam(input_tensor=input_tensor, targets=[target_category])[0]
+
+        # overlay heatmap on the original image
+        fig, ax = plt.subplots()
+        ax.imshow(image_tensor[0].cpu().detach().numpy().squeeze(), cmap="gray")
+        ax.imshow(grayscale_cam, cmap="jet", alpha=0.5)
+        ax.axis("off")
+
+        writer.add_figure(f"grad_cam_epoch_{epoch}", fig, epoch)
+        writer.flush()
+
     def on_epoch_end(self, epoch, logs=None):
         if logs:
             if isinstance(getattr(self.model, "optimizer", None), keras.optimizers.Optimizer):
@@ -186,3 +228,6 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
             if self.fm_dataset is not None and self.args.ffm:
                 self.log_filters_and_features(epoch + 1)
+
+            if self.fm_dataset is not None and self.args.grad_cam:
+                self.log_gradcam(epoch + 1)

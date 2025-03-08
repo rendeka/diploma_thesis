@@ -10,3 +10,4 @@ scikit-learn==1.6.1
 matplotlib==3.10.0
 tqdm==4.67.1
 requests==2.32.3
+grad-cam==1.5.4

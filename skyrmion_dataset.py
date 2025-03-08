@@ -31,6 +31,14 @@ class SKYRMION:
 
         def __getitem__(self, index: int) -> "SKYRMION.Element":
             return {key.removesuffix("s"): value[index] for key, value in self._data.items()}
+        
+        def to_torch(self):
+            images = self._data["images"]
+            labels = self._data["labels"]
+
+            images, labels = torch.from_numpy(images), torch.from_numpy(labels).long().squeeze()
+            return images, torch.nn.functional.one_hot(labels, len(SKYRMION.LABELS))
+
 
         def transform(self, transform: Callable[["SKYRMION.Element"], Any]) -> "SKYRMION.TransformedDataset":
             return SKYRMION.TransformedDataset(self, transform)
@@ -77,7 +85,7 @@ class SKYRMION:
                 setattr(self, dataset, self.Dataset(data))
 
     @staticmethod
-    def visualize_images(images: np.ndarray, labels: np.ndarray, row_size: int = 1) -> None:
+    def visualize_images(images: np.ndarray, labels: np.ndarray, row_size: int = 1, base_size:int = 3) -> None:
         """
         Visualize a grid of images with their corresponding labels.
 
@@ -92,7 +100,7 @@ class SKYRMION:
 
         fig, axs = plt.subplots(
             n_rows, row_size, 
-            figsize=(3 * row_size, 3 * n_rows), 
+            figsize=(base_size * row_size, base_size * n_rows), 
             sharey=True
         )
 

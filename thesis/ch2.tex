@@ -1,3 +1,49 @@
+
+\chapter{Regularization}
+
+\todo{consider exploring double decent phenomenon in our usecase (beware of possible counteraction with augmentation)}
+
+The main source for this chapter is \cite{bengio2017deep}
+
+The key concept for this thesis is the term generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean single phase images and want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
+
+There are many strategies how to improve generalization (often with the cost of increasing training error). Some of these strategies relies on putting constrains on the model parameters, some modify the objective function. Some strategies modify the training data, some interfere with the training process, model's architecture and many other things. We will describe strategies that are relevant for us in the following section.
+
+\subsection{Parameter-norm penalties}
+A common way to regularize, used long before deeplearning, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x}; \bm{\theta})$
+
+\begin{equation}
+	\label{eq:loss-parameter-norm}
+	\tilde{L(\bm{x}; \bm{\theta})} = L(\bm{x}; \bm{\theta}) + \alpha \Omega(\bm{\theta}),
+\end{equation}
+where $\alpha \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
+
+This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting.
+
+
+The most common parameter norms are $L^2$:
+\begin{equation}
+ 	\label{eq:l2-regularization}
+ 	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_2^2,
+\end{equation} a
+nd $L^1$:
+\begin{equation}
+	\label{eq:l1-regularization}
+	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_1.
+\end{equation} 
+
+
+\subsection{Weight decay}
+A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss function, it modifies the weight update rule during minimization. 
+
+
+......
+
+\subsection{Data augmentation}
+
+The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always practical, but we can help ourselves by modifying data we already have. For our advantage, this approach is easy to apply in image classification tasks. We can rotate by 90 degrees, reflext and due to periodical boundary conditions also translate the images. These tranformations in no way change the information, and they add additional variability to our data, making it effectivelly larger. Yet this is not the biggest leverage data augmentation brings for our usecase. We can also combine images from different classes in order to help our model recognize phase transitions. There are two common approaches for such data augmentation, CutMix and MixUp. CutMix works by taking a portion of image 1 (usually rectangular segment) and pasting it onto an image 2. Resulting image will get label that is a weighted sum of original one-hot encoded labels, with weights proportional to number of pixels contributed by each image. MixUp works again by taking two images, generating random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). Label is then created in same manner.
+
+
 \chapter{More complicated chapter}
 \label{chap:math}
 
