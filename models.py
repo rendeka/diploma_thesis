@@ -98,19 +98,6 @@ class ModelBase(keras.Model):
                 kernel_size=self.args.kernel_size,
                 strides=self.args.stride,
                 padding=self.args.padding,
-                # # depth_multiplier=self.args.depth_multiplier,
-                # activation=self.activation(),
-                # # use_bias=self.args.use_bias,
-                # depthwise_initializer=keras.initializers.GlorotUniform(),
-                # pointwise_initializer=keras.initializers.GlorotUniform(),
-                # bias_initializer=keras.initializers.Zeros(),
-                # depthwise_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
-                # pointwise_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
-                # bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer),
-                # activity_regularizer=keras.regularizers.l2(self.args.bias_regularizer),
-                # # depthwise_constraint=self.args.depthwise_constraint,
-                # # pointwise_constraint=self.args.pointwise_constraint,
-                # # bias_constraint=self.args.bias_constraint
             )
         else:
             raise AttributeError("Non-valid conv_type specified")
@@ -190,17 +177,15 @@ class ModelBase(keras.Model):
         output = self.activation()(hidden)
 
         return output
-    
 
     def head(self, inputs):
         if self.args.head == "softmax":
             outputs = self.dense(units=self.num_classes, activation="softmax")(inputs)
-        if self.args.head == "sigmoid":
-            hidden = self.dense(units=self.num_classes, activation="sigmoid")(inputs)
+        else:
+            hidden = self.dense(units=self.num_classes, activation=self.args.head)(inputs)
             outputs = hidden / keras.ops.sum(hidden, axis=1, keepdims=True)
 
-        return outputs
-        
+        return outputs     
     
     def cbam_block(self, inputs, ratio=8):
         filters = inputs.shape[-1]
@@ -255,8 +240,6 @@ class ModelBase(keras.Model):
         
         elif "Flatten" in self.args.fag:
             return keras.layers.Flatten()(inputs)
-        
-
 
     def get_config(self):
             """Serialize the model configuration."""

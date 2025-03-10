@@ -21,8 +21,8 @@ def choose_augmentation(labels, augment):
     
     augment_set = set(augment) if isinstance(augment, list) else set([augment])
 
-    if "custom" in augment_set:
-        batch_aug = CustomAug()
+    if "tailored" in augment_set:
+        batch_aug = TailoredAug()
     
     else:
         probs = labels.float().mean(dim=0)
@@ -114,7 +114,52 @@ class AUGMENT(v2.Transform):
         
         return torch.cat([mixed_batch_1, mixed_batch_2]), torch.cat([mixed_labels_1, mixed_labels_2])
     
-class CustomAug(AUGMENT):
+    def rotate_fm_state(self, images: torch.Tensor) -> torch.Tensor:
+        """Applies a random coherent rotation to each image in a batch.
+        
+        Args:
+            images (torch.Tensor): A tensor of shape (B, 1, H, W) representing a batch of spin configurations.
+            
+        Returns:
+            torch.Tensor: Rotated spin configuration tensor of the same shape.
+        """
+        batch_size = images.shape[0]
+
+        random_rotations = torch.cos(2. * torch.pi * torch.rand(batch_size, device=images.device))
+        
+        random_rotations = random_rotations.view(batch_size, 1, 1, 1)
+
+        spin_z = torch.cos(images * torch.pi)
+        rotated_spin_z = random_rotations * spin_z
+
+        return torch.arccos(rotated_spin_z) / torch.pi
+    
+
+    def roll_and_rotate_images(self, images: torch.Tensor) -> torch.Tensor:
+        """Randomly rolls each image in both axes and applies a random 90-degree rotation.
+        
+        Args:
+            images (torch.Tensor): A tensor of shape (B, 1, H, W) representing a batch of images.
+            
+        Returns:
+            torch.Tensor: Transformed batch with random rolling and 90-degree rotations.
+        """
+        _, _, height, width = images.shape
+
+        shift_h = torch.randint(0, height, (1,), device=images.device)
+        shift_w = torch.randint(0, width, (1,), device=images.device)
+
+        images = torch.roll(images, shifts=(shift_h, shift_w), dims=(2, 3))
+
+        rotation = torch.randint(0, 4, (1,), device=images.device).item()
+
+        images = torch.rot90(images, k=rotation, dims=(2, 3))
+
+        return images
+        
+class TailoredAug(AUGMENT):
+    """This augmentation rotates fe configurations, creates cutmixes between fe and sk phases and createx cutmixes between sk and sp phases. 
+    It also rolls and rantom 90 degree rotate the images."""
     def __init__(self):
         super().__init__()
 
@@ -139,6 +184,9 @@ class CustomAug(AUGMENT):
         idx_sk = (labels[:, 1] == 1).nonzero(as_tuple=True)[0]
         idx_sp = (labels[:, 2] == 1).nonzero(as_tuple=True)[0]
 
+        images = self.roll_and_rotate_images(images)
+        images[idx_fe] = self.rotate_fm_state(images[idx_fe]) 
+
         images_fe_sk, labels_fe_sk = self.pair_augment(images, labels, idx_fe, idx_sk, augment=self.cutmix)
         images_sk_sp, labels_sk_sp = self.pair_augment(images, labels, idx_sk, idx_sp, augment=self.mixup)
 
@@ -152,18 +200,9 @@ class CustomAug(AUGMENT):
         return self.forward(images, labels)
 
 ##### SOME OLD IDEAS TODO: check and maybe implement some
-# # Rotating an image by 90 degrees with the chance 1/2
-# def rotate90(image):
-#     if np.random.rand() < 0.5:
-#         return v2.functional.rotate(image, angle=90)
-#     else:
-#         return image
 
 # # Augmentations
-# augmentations = []
-# if args.augment:
-#     augmentations.append(v2.RandomHorizontalFlip())
-#     augmentations.append(rotate90)
+
         
 #     # augmentations.append(v2.RandomCrop((SKYRMION.H, SKYRMION.W), padding=4, fill=127))
 # # if "autoaugment" in args.augment:

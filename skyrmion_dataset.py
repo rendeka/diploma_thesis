@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-
 class SKYRMION:
     H: int = 200
     W: int = 200
@@ -39,10 +38,8 @@ class SKYRMION:
             images, labels = torch.from_numpy(images), torch.from_numpy(labels).long().squeeze()
             return images, torch.nn.functional.one_hot(labels, len(SKYRMION.LABELS))
 
-
         def transform(self, transform: Callable[["SKYRMION.Element"], Any]) -> "SKYRMION.TransformedDataset":
-            return SKYRMION.TransformedDataset(self, transform)
-        
+            return SKYRMION.TransformedDataset(self, transform)    
 
     class TransformedDataset(torch.utils.data.Dataset):
         def __init__(self, dataset: torch.utils.data.Dataset, transform: Callable[..., Any]) -> None:
@@ -82,10 +79,10 @@ class SKYRMION:
             for dataset in ["train", "dev", "test"]:
                 data = {key[len(dataset) + 1:]: skyrmion[key][:size.get(dataset, None)]
                         for key in skyrmion if key.startswith(dataset)}
-                setattr(self, dataset, self.Dataset(data))
+                setattr(self, dataset, self.Dataset(data)) 
 
     @staticmethod
-    def visualize_images(images: np.ndarray, labels: np.ndarray, row_size: int = 1, base_size:int = 3) -> None:
+    def visualize_images(images: np.ndarray, labels: Optional[np.ndarray] = None, row_size: int = 1, base_size:int = 3) -> None:
         """
         Visualize a grid of images with their corresponding labels.
 

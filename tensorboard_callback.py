@@ -106,6 +106,85 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
         return performance_metrics
     
+    def log_phase_transition_probs(self, group_size: int = 5) -> Dict[str, Dict[str, float]]:
+        """Evaluate how smoothly the model's predictions transition across ranks."""
+        if self._transition_datasets is None:
+            return None
+
+        model = self.model
+        model.eval()
+
+        writer = self.writer("phase_trans_probs")
+        
+        for trans_type, skyrmion_trans_dataset in self._transition_datasets.items():
+            
+            transition_attributes = [attr for attr in skyrmion_trans_dataset.__dict__ if "transition" in attr]
+            
+            for attr in transition_attributes:
+                D = float(attr.split("-")[-1])
+                ordered_dataset = getattr(skyrmion_trans_dataset, attr)[:]
+            
+                images = torch.tensor(ordered_dataset["image"]).float().to(self.device)
+                
+                # labels are now ranks ordering images through phase transitions
+                labels = np.array(ordered_dataset["label"])
+                b_values = np.array(ordered_dataset["b_value"])
+                b_unique = np.unique(b_values)
+                num_groups = len(b_unique)
+                
+                with torch.no_grad():
+                    preds = model(images).cpu().numpy()
+
+                preds = preds.reshape(num_groups, group_size, -1)
+                b_values = b_values.reshape(num_groups, group_size)
+                labels = labels.reshape(num_groups, group_size)
+
+                mean_preds = preds.mean(axis=1)
+                var_preds = preds.var(axis=1)
+
+                labels = ["fe", "sk", "sp"]
+                colors = ['r', 'g', 'b']
+
+                fig = plt.figure(figsize=(14, 8))
+                gs = fig.add_gridspec(2, num_groups, height_ratios=[1, 1])
+
+                ax1 = fig.add_subplot(gs[0, :num_groups // 2])
+                ax2 = fig.add_subplot(gs[0, num_groups // 2:])
+
+                axes = [fig.add_subplot(gs[1, i]) for i in range(num_groups)]
+
+                fig.suptitle(f"Transition: {trans_type.replace('_', '-')}, D: {D}")
+
+                for i, (color, label) in enumerate(zip(colors, labels)):
+                    ax1.plot(b_unique, mean_preds[:, i], marker='o', linestyle='-', color=color, label=label)
+
+                ax1.set_title("Average Probabilities")
+                ax1.set_xlabel("B")
+                ax1.set_ylabel("Mean Prediction")
+                ax1.grid(True)
+                ax1.legend()
+
+                for i, (color, label) in enumerate(zip(colors, labels)):
+                    ax2.plot(b_unique, var_preds[:, i], marker='o', linestyle='-', color=color, label=label)
+
+                ax2.set_title("Variances")
+                ax2.set_xlabel("B")
+                ax2.set_ylabel("Variance of Prediction")
+                ax2.grid(True)
+                ax2.legend()
+
+                sample_images = images[::group_size]
+                for i in range(num_groups):
+                    axes[i].imshow(sample_images[i].cpu().numpy(), vmin=0.0, vmax=1.0, cmap="RdBu")
+                    axes[i].axis('off')
+
+                plt.tight_layout(rect=[0, 0, 1, 0.95])  # Adjust spacing
+
+                writer.add_figure(str(Path('transition probabilities') / f"{trans_type.replace('_', '-')}" / f"D: {D}"), fig)
+        writer.flush()             
+
+        return None
+    
     def log_filters_and_features(self, epoch):
         """Logs convolutional filters and feature maps to TensorBoard at given milestones of training."""
         if not self.model:
@@ -218,13 +297,18 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
             self.add_logs("val", {k[4:]: v for k, v in logs.items() if k.startswith("val_")}, epoch + 1)
 
             # Log phase transition evaluation if applicable
-            phase_transition_scores = self.evaluate_phase_transition()
+
+            group_size = 20 if self.args.scope else 5
+            phase_transition_scores = self.evaluate_phase_transition(group_size=group_size)
             if phase_transition_scores is not None:
                 for trans_type, metrics in phase_transition_scores.items():
                     for metric, score in metrics.items():
                         metric_category = Path(trans_type) / metric
                         self.writer(metric_category).add_scalar(metric, score, epoch + 1)
                         self.writer(metric_category).flush()
+            
+            if epoch + 1 == self.args.epochs:
+                self.log_phase_transition_probs(group_size=group_size)
 
             if self.fm_dataset is not None and self.args.ffm:
                 self.log_filters_and_features(epoch + 1)
