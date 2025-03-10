@@ -307,7 +307,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                         self.writer(metric_category).add_scalar(metric, score, epoch + 1)
                         self.writer(metric_category).flush()
             
-            if epoch + 1 == self.args.epochs:
+            if self.args.trans_probs and (epoch + 1 == self.args.epochs):
                 self.log_phase_transition_probs(group_size=group_size)
 
             if self.fm_dataset is not None and self.args.ffm:
