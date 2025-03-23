@@ -238,7 +238,9 @@ def main(args: argparse.Namespace) -> None:
     model.fit(train, epochs=args.epochs, validation_data=dev, callbacks=[tb_callback])
 
     if args.save_model:
-        model.save((base_path / "saved_models" / ("sub" if args.scope else "full") / (f"{args.model}-{timestamp}-{args_str}")).with_suffix(".keras"))
+        save_dir = base_path / "saved_models" / ("sub" if args.scope else "full")
+        save_dir.mkdir(parents=True, exist_ok=True)
+        model.save((save_dir / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
 
     if skyrmion.test.__len__() > 0:
         with open((Path(args.logdir) / "skyrmion_test").with_suffix(".txt"), "w", encoding="utf-8") as predictions_file:

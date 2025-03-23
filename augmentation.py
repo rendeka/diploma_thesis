@@ -1,3 +1,4 @@
+import random
 import torch
 import torchvision.transforms.v2 as v2
 from skyrmion_dataset import SKYRMION
@@ -7,7 +8,7 @@ def is_none(augment):
     if augment is None:
         return True
     elif isinstance(augment, list):
-        if None in augment:
+        if None in augment and "tailored" not in augment:
             return True
     return False
     
@@ -22,7 +23,7 @@ def choose_augmentation(labels, augment):
     augment_set = set(augment) if isinstance(augment, list) else set([augment])
 
     if "tailored" in augment_set:
-        batch_aug = TailoredAug()
+        batch_aug = TailoredAug(augment)
     
     else:
         probs = labels.float().mean(dim=0)
@@ -160,10 +161,31 @@ class AUGMENT(v2.Transform):
 class TailoredAug(AUGMENT):
     """This augmentation rotates fe configurations, creates cutmixes between fe and sk phases and createx cutmixes between sk and sp phases. 
     It also rolls and rantom 90 degree rotate the images."""
-    def __init__(self):
+    def __init__(self, augment):
         super().__init__()
 
+        if not (isinstance(augment, str) or (isinstance(augment, list) and len(augment) == 5)):
+            raise ValueError("augment must be either a string or a list with exactly 5 elements.")
+        
+        augment = augment[1:]
+
+        self.fe_sk = set([aug for aug in augment[:2] if aug != "None"])
+        self.sk_sp = set([aug for aug in augment[2:] if aug != "None"])
+
+    def get_trans_augment(self, trans_set):
+        if len(trans_set) == 0:
+            return None
+        elif len(trans_set) == 2:
+            return [self.cutmix, self.mixup][random.randint(0, 1)]
+        elif "cutmix" in trans_set:
+            return self.cutmix
+        elif "mixup" in trans_set:
+            return self.mixup
+
     def pair_augment(self, images, labels, idx_1, idx_2, augment):
+
+        if augment is None:
+            return images, labels
         
         images_1, labels_1 = images[idx_1], labels[idx_1]
         images_2, labels_2 = images[idx_2], labels[idx_2]
@@ -187,8 +209,8 @@ class TailoredAug(AUGMENT):
         images = self.roll_and_rotate_images(images)
         images[idx_fe] = self.rotate_fm_state(images[idx_fe]) 
 
-        images_fe_sk, labels_fe_sk = self.pair_augment(images, labels, idx_fe, idx_sk, augment=self.cutmix)
-        images_sk_sp, labels_sk_sp = self.pair_augment(images, labels, idx_sk, idx_sp, augment=self.mixup)
+        images_fe_sk, labels_fe_sk = self.pair_augment(images, labels, idx_fe, idx_sk, augment=self.get_trans_augment(self.fe_sk))
+        images_sk_sp, labels_sk_sp = self.pair_augment(images, labels, idx_sk, idx_sp, augment=self.get_trans_augment(self.sk_sp))
 
         images = torch.cat((images_fe_sk, images_sk_sp), dim=0)
         labels = torch.cat((labels_fe_sk, labels_sk_sp), dim=0)

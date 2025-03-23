@@ -129,53 +129,65 @@ runs = []
 
 runs.append(
     RUN(
-        name="heads",
+        name="augment",
         args_combinations = {
             "--activation": ["relu"],
             # "--alpha_dropout": [True],
-            "--augment": ["tailored"],
+            "--augment": [
+                None,
+                "cutmix",
+                "mixup",
+                ("cutmix", "mixup"),
+                ("tailored", "cutmix", "mixup", "cutmix", "mixup"),
+                ("tailored", "cutmix", None, "cutmix", "mixup"),
+                ("tailored", "cutmix", "mixup", "cutmix", None),
+                ("tailored", "cutmix", None, "cutmix", None),
+                ("tailored", "cutmix", None, None, "mixup"),
+                ],
             "--decay": ["cosine"],
-            "--depth": [3],
+            "--depth": [2],
             # "--dropout": [0.0, 0.2],
             # "---spatial_dropout": [0.0, 0.2],
-            "--epochs": [40],
+            "--epochs": [50],
             "--fag": ["GAP"],
             "--filters": [32],
-            # "--ffm": [False],
-            "--head": ["softmax", "sigmoid", "relu"],
+            "--ffm": [True],
+            "--head": ["sigmoid"],
             # "--learning_rate": [0.001],
-            "--logdir_suffix": ["head"],
+            "--logdir_suffix": ["augment_test"],
             "--loss": ["KLD"],
             "--model": ["model5"],
+            "--save_model": [True],
             "--scope": ["sub"],
+            "--trans_probs": [True],
         }
     )
 )
 
-runs.append(
-    RUN(
-        name="heads",
-        args_combinations = {
-            "--activation": ["relu"],
-            # "--alpha_dropout": [True],
-            "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup"), "adaptive", "tailored"],
-            "--decay": ["cosine"],
-            "--depth": [3],
-            # "--dropout": [0.0, 0.2],
-            # "---spatial_dropout": [0.0, 0.2],
-            "--epochs": [40],
-            "--fag": ["GAP"],
-            "--filters": [32],
-            # "--ffm": [False],
-            "--head": ["sigmoid"],
-            # "--learning_rate": [0.001],
-            "--logdir_suffix": ["augment"],
-            "--loss": ["KLD"],
-            "--model": ["model5"],
-            "--scope": ["sub"],
-        }
-    )
-)
+# runs.append(
+#     RUN(
+#         name="heads",
+#         args_combinations = {
+#             "--activation": ["relu"],
+#             # "--alpha_dropout": [True],
+#             "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup"), "adaptive", "tailored"],
+#             "--decay": ["cosine"],
+#             "--depth": [3],
+#             # "--dropout": [0.0, 0.2],
+#             # "---spatial_dropout": [0.0, 0.2],
+#             "--epochs": [40],
+#             "--fag": ["GAP"],
+#             "--filters": [32],
+#             # "--ffm": [False],
+#             "--head": ["sigmoid"],
+#             # "--learning_rate": [0.001],
+#             "--logdir_suffix": ["augment"],
+#             "--loss": ["KLD"],
+#             "--model": ["model5"],
+#             "--scope": ["sub"],
+#         }
+#     )
+# )
 
 if __name__ == "__main__":
     for run in runs:

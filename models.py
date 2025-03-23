@@ -36,12 +36,12 @@ class ModelBase(keras.Model):
 
     # Get Input shape
     @property
-    def get_input_shape(self):
+    def input_shape(self):
         return [SKYRMION.H, SKYRMION.W, SKYRMION.C]
     
     # Get number of output classes
     @property
-    def get_num_classes(self):
+    def num_classes(self):
         return len(SKYRMION.LABELS)
     
     # Get filter scaling factor (definning how the number of filters increase in the conv layers)
@@ -256,8 +256,6 @@ class ModelBase(keras.Model):
 class Model5(ModelBase):
     def __init__(self, args, **kwargs):
         self.args = args 
-        self.input_shape = self.get_input_shape
-        self.num_classes = self.get_num_classes
         self.filter_scaling_factor = self.get_filter_scaling_factor
         self.build_model(**kwargs)
 
@@ -281,8 +279,6 @@ class Model5(ModelBase):
 class ModelCBAM(ModelBase):
     def __init__(self, args, **kwargs):
         self.args = args 
-        self.input_shape = self.get_input_shape
-        self.num_classes = self.get_num_classes
         self.filter_scaling_factor = self.get_filter_scaling_factor
         self.build_model(**kwargs)
 
@@ -330,8 +326,6 @@ class ModelFFN(ModelBase):
 
     def __init__(self, args, **kwargs):
         self.args = args
-        self.input_shape = self.get_input_shape
-        self.num_classes = self.get_num_classes
         self.build_model(**kwargs)
 
     def build_model(self, **kwargs):

@@ -1,29 +1,31 @@
-
 \chapwithtoc{Introduction}
 
 
-Expected length of the introduction is between 1--4 pages. Longer introductions may require sub-sectioning with appropriate headings --- use \texttt{\textbackslash{}section*} to avoid numbering (with section names like `Motivation' and `Related work'), but try to avoid lengthy discussion of anything specific. Any ``real science'' (definitions, theorems, methods, data) should go into other chapters.
-\todo{You may notice that this paragraph briefly shows different ``types'' of `quotes' in TeX, and the usage difference between a hyphen (-), en-dash (--) and em-dash (---).}
+\section{What are skyrmions}
+\citet{chen2020nanoscale}
 
-It is very advisable to skim through a book about scientific English writing before starting the thesis. I can recommend `\citetitle{glasman2010science}' by \citet{glasman2010science}.
+\todo{briefly about history}
+The term skyrmion originates from the particle theory in 1961, when Tony Skyrme introduced it as a model of the nucleon. Although this model turned out not to be correct, skyrmions as topological objects, emerged later in many other fields. In this thesis we will be dealing with \emph{magnetic skyrmions}. They are topologically stable field configurations with particle-like properties. Magnetic skyrmions were first experimentally discovered in 2009 \cite{mühlbauer2009skyrmion} in magnetic materials. Magnetic skyrmions are characteristic by rotationaly symmetric, continuosly changing spin vectors from it's middle towards it's edges.
 
+\todo{where can we find them}
 
-\section{Motivation}
-
-I feel like starting this thesis with the introduction into skyrmions. Lets keep it very non-specific just say what they are, why are they interesting and what are their potential use in spintronics and SNN and ANN \citet{chen2020nanoscale}...
-
-\section{What is the nature of the problem the thesis is addressing?}
-
-We are building a tool for 
+\todo{potential applications in spintronics}
 
 
-The deeplearning models are often look upon as black boxes, but it doesn't have to be that way. We choose relatively CNN architecture with a clear interpretability and we will study the effects of different choises in both model architecture and it's training. Therefore this thesis won't only give us a solution for the problem of classification to different magnetic phases, but also provides a general insight into how different choices effect the model we are using. With such insight we are then able to make rational choices in model architecture and have more power in interpretation of the results. 
 
-\section{What is the common approach for solving that problem now?}
+\section{Problem statement}
+\todo{classification for continuous phase transitions}
 
-Convolutional neural networks.
+\todo{Approach from article Mazurenko}
+
+\todo{How do we want to improve on Mazurenko}
+\citet{iakovlev2018supervised} has used the simplest machine learning architecture. With the rise of deeplearning in recent years and development of different techniques to improve the statistical models, we have many options how to try to improve on this basic architecture.
+
+
 
 \section{How this thesis approaches the problem?}
+
+The machine learning models are often looked upon as black boxes, but it doesn't have to be that way. We choose relatively CNN architecture with a clear interpretability and we will study the effects of different choises in both model architecture and it's training. Therefore this thesis won't only give us a solution for the problem of classification to different magnetic phases, but also provides a general insight into how different choices effect the model we are using. With such insight we are then able to make rational choices in model architecture and have more power in interpretation of the results.
 
 We are exploring different ways of regularization in order to help the neural network to learn the specific things that we want from her. Namely we want to improve the classification around phase changes where the images contains a combination of two different phases.
 
@@ -31,16 +33,11 @@ We are exploring different ways of regularization in order to help the neural ne
 
 We will see
 
-\section{What can the reader expect in the individual chapters of the thesis?}
+\section{Overview of next chapters}
 
+In \ref{chap1} we will properly introduce magnetic skyrmions with the physical background. We will continue by description an element definning our problem, which is our dataset.
 
+In \ref{chap2} we will explain important machine learning concepts and define model architectures used in our numerical experiments. Then we bring special attention to different kinds of regularization techniques used in our models.
 
-\todo{think about what are the necessary chapters}
-Chapters
-\begin{itemize}
-	\item What are skyrmions why they are interesting
-	\item what are neural networks and how they work, how are they trained
-	\item What is regularization 
-		
-\end{itemize}
+In \ref{chap3} we present the results comparing different model architectures and different regularization techniques.
 

@@ -6,6 +6,7 @@ from pathlib import Path
 from skyrmion_dataset import SKYRMION
 import keras
 import torch
+from torch.utils.data import DataLoader, TensorDataset
 from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import preprocess_image
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
@@ -58,8 +59,18 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 # labels are now ranks ordering images through phase transitions
                 labels = np.array(ordered_dataset["label"])
                 
+                # make predictions in batches
+                dataset = TensorDataset(images)
+                dataloader = DataLoader(dataset, batch_size=self.args.batch_size, shuffle=False)
+
+                all_preds = []
                 with torch.no_grad():
-                    preds = model(images).cpu().numpy()
+                    for batch in dataloader:
+                        batch_images = batch[0].to(self.device)
+                        preds = model(batch_images).cpu().numpy()
+                        all_preds.append(preds)
+
+                preds = np.concatenate(all_preds, axis=0)
 
                 ## Evaluate out-of-order metric
 
@@ -127,17 +138,25 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 images = torch.tensor(ordered_dataset["image"]).float().to(self.device)
                 
                 # labels are now ranks ordering images through phase transitions
-                labels = np.array(ordered_dataset["label"])
                 b_values = np.array(ordered_dataset["b_value"])
                 b_unique = np.unique(b_values)
                 num_groups = len(b_unique)
-                
+
+                # make predictions in batches
+                dataset = TensorDataset(images)
+                dataloader = DataLoader(dataset, batch_size=self.args.batch_size, shuffle=False)
+
+                all_preds = []
                 with torch.no_grad():
-                    preds = model(images).cpu().numpy()
+                    for batch in dataloader:
+                        batch_images = batch[0].to(self.device)
+                        preds = model(batch_images).cpu().numpy()
+                        all_preds.append(preds)
+
+                preds = np.concatenate(all_preds, axis=0)
 
                 preds = preds.reshape(num_groups, group_size, -1)
                 b_values = b_values.reshape(num_groups, group_size)
-                labels = labels.reshape(num_groups, group_size)
 
                 mean_preds = preds.mean(axis=1)
                 var_preds = preds.var(axis=1)
@@ -180,7 +199,10 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
                 plt.tight_layout(rect=[0, 0, 1, 0.95])  # Adjust spacing
 
-                writer.add_figure(str(Path('transition probabilities') / f"{trans_type.replace('_', '-')}" / f"D: {D}"), fig)
+                # writer.add_figure(str(Path('transition probabilities') / f"{trans_type.replace('_', '-')}" / f"D: {D}"), fig) # old version 
+                # new version
+                base_path = f"tran-{Path(self.args.logdir).name[18:]}"
+                writer.add_figure(str(Path(base_path) / f"D: {D}"), fig) 
         writer.flush()             
 
         return None
