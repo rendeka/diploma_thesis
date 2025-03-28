@@ -5,11 +5,11 @@
 
 Magnetic skyrmions are 2-D topologically stable spin formations
 
-The essential role in the formation of magnetic skyrmions plays Dzyaloshinskii–Moriya (DM) interaction (DMI), also called antisymetric exchange. 
+The essential role in forming magnetic skyrmions plays Dzyaloshinskii–Moriya (DM) interaction (DMI), also called antisymetric exchange. 
 
-\xxx{Wiki: The discovery of antisymmetric exchange originated in the early 20th century from the controversial observation of weak ferromagnetism in typically antiferromagnetic Fe2O3 crystals.[1] In 1958, Igor Dzyaloshinskii provided evidence that the interaction was due to the relativistic spin lattice and magnetic dipole interactions based on Lev Landau's theory of phase transitions of the second kind.[2] In 1960, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism of the antisymmetric exchange interaction.[1] Moriya referred to this phenomenon specifically as the "antisymmetric part of the anisotropic superexchange interaction." The simplified naming of this phenomenon occurred in 1962, when D. Treves and S. Alexander of Bell Telephone Laboratories simply referred to the interaction as antisymmetric exchange. Because of their seminal contributions to the field, antisymmetric exchange is sometimes referred to as the Dzyaloshinskii–Moriya interaction.}
+\xxx{Wiki: The discovery of antisymmetric exchange originated in the early 20th century from the controversial observation of weak ferromagnetism in typically antiferromagnetic Fe2O3 crystals.[1] In 1958, Igor Dzyaloshinskii provided evidence that the interaction was due to the relativistic spin-lattice and magnetic dipole interactions based on Lev Landau's theory of phase transitions of the second kind.[2] In 1960, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism of the antisymmetric exchange interaction.[1] Moriya referred to this phenomenon specifically as the "antisymmetric part of the anisotropic superexchange interaction." The simplified naming of this phenomenon occurred in 1962, when D. Treves and S. Alexander of Bell Telephone Laboratories simply referred to the interaction as antisymmetric exchange. Because of their seminal contributions to the field, the antisymmetric exchange is sometimes referred to as the Dzyaloshinskii–Moriya interaction.}
 
-It is a magnetic exchange interaction between neighbouring patricles with spin. It can be charecterized by hamiltonian:
+It is a magnetic exchange interaction between neighboring particles with spin. It can be charecterized by the hamiltonian:
 
 \begin{equation}
 	\label{DM-interaction-hamiltonian}
@@ -18,19 +18,17 @@ It is a magnetic exchange interaction between neighbouring patricles with spin. 
 
 where $\bm{D}_{ij}$ is a Dzyaloshinskii–Moriya vector characterizing the interaction, and $\bm{S}_i$, $\bm{S}_j$ are spin vectors. 
 
-This means that the DM interaction prefers perpendicular orientation of neighboring spins. The vector $\bm{D}_{ij}$ is given by the symmetry of the system. DMI mediates also one other stable magnetic arrangement which is a \emph{spin spiral}. 
+This means that the DM interaction prefers the perpendicular orientation of neighboring spins. The Dzyaloshinskii–Moriya vector $\bm{D}_{ij}$ is given by the symmetry of the system. DMI also mediates one other non trivial stable magnetic arrangement, which is a \emph{spin spiral}. 
 
-The direction of vector $\bm{D}_{ij}$ is dictated by the system symmetry, and influences the topology of skyrmions and spirals.
+The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influences the topology of skyrmions and spirals.
 
 Main source \cite{li2023magnetic}
-
-
 
 \section{Dataset}
 
 \todo{how do we get our data}
 
-Defining part of any machine learning problem is the dataset we are working with. Our dataset consists of in total 9840 images of magnetic configurations created by Monte-Carlo simulations on discrete 200x200 square grid with periodic boundry conditions near absolute zero temperature. The simulations were done in conditions given be values of $D$ and $B$. Used values of $D$ ranged from We have 5 simulated different configurations for each pair of $D$ and $B$ values.
+A fundamental part of any machine learning problem is the dataset we have. Our dataset consists of 9840 images of magnetic configurations simulated via Monte-Carlo simulations on a discrete 200x200 square grid with periodic boundary conditions near absolute zero temperature. The simulations were done with the constant direction $\bm{D}_{ij}$ of in conditions given be values of $D$ and $B$. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $100$ to $200$ in similar manner, with the space of $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations.
 
 
 \todo{chalenges of this dataset}

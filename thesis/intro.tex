@@ -1,43 +1,32 @@
 \chapwithtoc{Introduction}
 
+\section*{What are skyrmions?}
 
-\section{What are skyrmions}
 \citet{chen2020nanoscale}
 
-\todo{briefly about history}
-The term skyrmion originates from the particle theory in 1961, when Tony Skyrme introduced it as a model of the nucleon. Although this model turned out not to be correct, skyrmions as topological objects, emerged later in many other fields. In this thesis we will be dealing with \emph{magnetic skyrmions}. They are topologically stable field configurations with particle-like properties. Magnetic skyrmions were first experimentally discovered in 2009 \cite{mühlbauer2009skyrmion} in magnetic materials. Magnetic skyrmions are characteristic by rotationaly symmetric, continuosly changing spin vectors from it's middle towards it's edges.
+Skyrmion originates from particle theory, describing topologically stable field configurations with particle-like properties. Tony Skyrme introduced it as a potential model of the nucleon in 1961. Although this model turned out incorrect, skyrmions, as topological objects, also re-emerged in various other fields. 
 
-\todo{where can we find them}
+This thesis deals with \emph{magnetic skyrmions}, first experimentally observed in 2009 \cite{mühlbauer2009skyrmion} in chiral magnets. They are 2-D vertex-like structures characterized by rotationally symmetric, continuously changing spin vectors from their middle toward their edges. Besides chiral magnets, magnetic skyrmions were observed in ultra-thin films and multilayer structures. The non-trivial topology of skyrmions makes them quite robust, meaning they can withstand small perturbations caused, for example, by thermal fluctuations or material defects. Stability, with their small size (nanometer scale) and very energy-efficient manipulation, makes them an interesting object for application, particularly in spintronics. They can be used as bits in next-generation magnetic memory devices with much higher density and lower energy requirements.
 
-\todo{potential applications in spintronics}
+The formation of magnetic skyrmions is typically conditional on two external fields: The first and most important is the so-called Dzyaloshinskii-Moriya (DM) interaction, which prefers an anti-parallel spin configuration. The second is the magnetic field (B), which is, in some cases, necessary to isolate and stabilize individual skyrmions.  
+
+\section*{Problem statement}
+
+Assuming a constant temperature, low enough to allow skyrmions to form, their size depends on the levels of the external fields. Also, with changing external fields, skyrmions undergo a continuous phase transition towards a ferromagnet or a degenerate skyrmion phase called a magnetic spiral. This nature makes it difficult to define strict phase boundaries, which is why a statistical approach can be beneficial. Our idea is based on two steps: First step is Monte Carlo simulation of spin configuration at different levels oiakovlev2018supervisedf external fields. We generate a number of configurations for all 3 phases, also capturing the continuous phase transitions. We take a projection to the $z$-axis for each spin in the configuration and treat this projection as image. The second step is a deployment a statistical model, where we use the images as its inputs. Later step counts on the proven ability of machine-learning (ML) models to recognize complex patterns in high-dimensional data. With this approach, we aim to achieve more precise classification, which would result in a deeper understanding of the phase diagram, providing useful insight for the general study of magnetic systems with topological structures.
+
+\section*{Approach to solve the problem}
+
+Multiple machine-learning approaches has already been applied to this problem in \citet{iakovlev2018supervised}, where is was proved that simple dense neural network is able to classify these 3-phases with reasonable accuracy. However, field of ML provides much richer options then were considered in the mentioned paper. We will build, and try to improve on these results by experimenting with various architectures and systematically exploring numerous options one has when defining and training a statistical model. We devote special attention to evaluating various regularization techniques such as data augmentation or dropout Monte Carlo.
+
+ML models are often looked upon as black boxes, which is often truth especially in result driven field. Therefore we prefer models with good interpretation and explore our options systematically. This way, we can gain a general insight into how the model behaves and why, and with such an insight we are then able to make rational choices in model architecture and have more power in interpretation of the results. Therefore, this thesis will also be a very useful resource for the application of ML models in this problem for real experimental data, obtained e.g. by Lorenz transmission electron microscopy or spin-polarized scanning tunneling microscopy.
+
+\section*{Overview of next chapters}
+
+In \autoref{chap1} we will introduce magnetic skyrmions in more depth focusing on the physical background. We will continue by detailed explanation of simulation of our dataset, and explore its difficulties.
 
 
-
-\section{Problem statement}
-\todo{classification for continuous phase transitions}
-
-\todo{Approach from article Mazurenko}
-
-\todo{How do we want to improve on Mazurenko}
-\citet{iakovlev2018supervised} has used the simplest machine learning architecture. With the rise of deeplearning in recent years and development of different techniques to improve the statistical models, we have many options how to try to improve on this basic architecture.
+In \autoref{chap2} we will explain important machine learning concepts and define model architectures used in our numerical experiments. Then we bring special attention to different kinds of regularization techniques used in our models.
 
 
-
-\section{How this thesis approaches the problem?}
-
-The machine learning models are often looked upon as black boxes, but it doesn't have to be that way. We choose relatively CNN architecture with a clear interpretability and we will study the effects of different choises in both model architecture and it's training. Therefore this thesis won't only give us a solution for the problem of classification to different magnetic phases, but also provides a general insight into how different choices effect the model we are using. With such insight we are then able to make rational choices in model architecture and have more power in interpretation of the results.
-
-We are exploring different ways of regularization in order to help the neural network to learn the specific things that we want from her. Namely we want to improve the classification around phase changes where the images contains a combination of two different phases.
-
-\section{What are the results? Did something improve?}
-
-We will see
-
-\section{Overview of next chapters}
-
-In \ref{chap1} we will properly introduce magnetic skyrmions with the physical background. We will continue by description an element definning our problem, which is our dataset.
-
-In \ref{chap2} we will explain important machine learning concepts and define model architectures used in our numerical experiments. Then we bring special attention to different kinds of regularization techniques used in our models.
-
-In \ref{chap3} we present the results comparing different model architectures and different regularization techniques.
+In \autoref{chap3} we present the results comparing different model architectures and different regularization techniques.
 
