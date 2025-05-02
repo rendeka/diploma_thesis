@@ -1,15 +1,15 @@
 \chapter{Skyrmion}
 \label{chap1}
 
-\section{Magnetic skyrmions}
+\section{Physics of skyrmions}
 
-Magnetic skyrmions are 2-D topologically stable spin formations
+In this section, we take a closer look at how skyrmions emerge and describe our dataset throughout, as this is an essential part of defining our problem.
 
-The essential role in forming magnetic skyrmions plays Dzyaloshinskii–Moriya (DM) interaction (DMI), also called antisymetric exchange. 
+Multiple distinct mechanisms can result in the emergence of magnetic skyrmions \cite{fert2017magnetic}. The more obscure one is facilitated solely through dipole interactions. Typically, skyrmions emerge due to antisymmetric exchange. The consequences of such an interaction were first observed as weak ferromagnetism in antiferromagnetic crystals in the early 20th century. A theoretical understanding of this phenomenon was provided by the work of Igor Dzyaloshinskii, who showed that the interaction was due to the relativistic spin-lattice and magnetic dipole interactions. Later, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism behind this interaction. In acknowledgment of their contribution, the antisymmetric exchange is commonly referred to as Dzyaloshinskii-Moriya interaction \emph{(DMI)}. It can be present in thin films with broken inversion symmetry or in on-centrosymmetric magnetic materials due to chiral interactions between atomic spins. 
 
-\xxx{Wiki: The discovery of antisymmetric exchange originated in the early 20th century from the controversial observation of weak ferromagnetism in typically antiferromagnetic Fe2O3 crystals.[1] In 1958, Igor Dzyaloshinskii provided evidence that the interaction was due to the relativistic spin-lattice and magnetic dipole interactions based on Lev Landau's theory of phase transitions of the second kind.[2] In 1960, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism of the antisymmetric exchange interaction.[1] Moriya referred to this phenomenon specifically as the "antisymmetric part of the anisotropic superexchange interaction." The simplified naming of this phenomenon occurred in 1962, when D. Treves and S. Alexander of Bell Telephone Laboratories simply referred to the interaction as antisymmetric exchange. Because of their seminal contributions to the field, the antisymmetric exchange is sometimes referred to as the Dzyaloshinskii–Moriya interaction.}
+\subsection{Dzyaloshinskii–Moriya interaction}
 
-It is a magnetic exchange interaction between neighboring particles with spin. It can be charecterized by the hamiltonian:
+Dzyaloshinskii–Moriya interaction (DMI), also called antisymmetric exchange, plays an essential role in forming magnetic skyrmions. It is a magnetic exchange interaction between particles with non-zero spin,  charecterized by the hamiltonian:
 
 \begin{equation}
 	\label{DM-interaction-hamiltonian}
@@ -18,22 +18,97 @@ It is a magnetic exchange interaction between neighboring particles with spin. I
 
 where $\bm{D}_{ij}$ is a Dzyaloshinskii–Moriya vector characterizing the interaction, and $\bm{S}_i$, $\bm{S}_j$ are spin vectors. 
 
-This means that the DM interaction prefers the perpendicular orientation of neighboring spins. The Dzyaloshinskii–Moriya vector $\bm{D}_{ij}$ is given by the symmetry of the system. DMI also mediates one other non trivial stable magnetic arrangement, which is a \emph{spin spiral}. 
+This means that the DM interaction prefers the perpendicular orientation of neighboring spins. The Dzyaloshinskii–Moriya vector $\bm{D}_{ij}$ is given by the symmetry of the system. DMI also mediates one other non-trivial stable magnetic arrangement, which is a \emph{spin spiral}. 
 
 The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influences the topology of skyrmions and spirals.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.9\textwidth}
+        \centering
+        \begin{tikzpicture}[scale=1]
+            \draw[->, very thick] (0, 0.5) -- (1, 0.5);
+            \draw[->, very thick] (2, 1) -- (2, 0);
+            \draw[->, very thick] (4, 0.5) -- (3, 0.5);
+            \draw[->, very thick] (5, 0) -- (5, 1);
+            \draw[->, very thick] (6, 0.5) -- (7, 0.5);
+        \end{tikzpicture}
+        \caption{}
+        \label{fig:spin-bloch}
+    \end{subfigure}
+    
+    \vspace{1cm}
+
+    \begin{subfigure}[b]{0.9\textwidth}
+        \centering
+        \begin{tikzpicture}[scale=1]
+            \pgfmathsetmacro{\s}{0.2 / sqrt(2)}
+            \draw[->, very thick] (0, 0.5) -- (1, 0.5);
+            
+            \draw[very thick] (2, 0.5) circle(0.2);
+            \draw[very thick] (2 - \s, 0.5 - \s) -- (2 + \s, 0.5 + \s);
+            \draw[very thick] (2 + \s, 0.5 - \s) -- (2 - \s, 0.5 + \s);
+            
+            \draw[->, very thick] (4, 0.5) -- (3, 0.5);
+            
+            \draw[very thick] (5 , 0.5) circle(0.2);
+            \fill (5, 0.5) circle(0.05);
+            
+            \draw[->, very thick] (6, 0.5) -- (7, 0.5);
+        \end{tikzpicture}
+        \caption{}
+        \label{fig:spin-neel}
+    \end{subfigure}
+
+    \caption{Preferred configuration of neighbouring spins in one plane, depending on the direction of DM vector. Subfigure \textbf{\subref{fig:spin-bloch}} shows the case when DM vector is perpendicular to the spin plane. This configuration results in a formation of Bloch-type skyrmions. In \textbf{\subref{fig:spin-neel}}, the DM vector lies in the spin plane, leading to the emergence of Néel-type skyrmions.}
+    \label{fig:spin}
+\end{figure}
+
+\subsection{Skyrmion properties}
+
+Skyrmions can be characterized by topological number $S$ defined in $2$ dimensions as:
+\begin{equation}
+    \label{eq:topological-number}
+    S = \frac{1}{4\pi} \int \bm{m} \dot (\partial_x \bm{m} \times \partial_y \bm{m})dx dy.
+\end{equation}
+
+Skyrmions have value of $S=\pm1$. This topological property is very important as it gives stability to skyrmions as continuous transformation to a spin configuration with different value of $S$ would require passing through a potential barrier.
+
 
 Main source \cite{li2023magnetic}
 
 \section{Dataset}
 
-\todo{how do we get our data}
+\subsection{Monta-Carlo simulation}
 
-A fundamental part of any machine learning problem is the dataset we have. Our dataset consists of 9840 images of magnetic configurations simulated via Monte-Carlo simulations on a discrete 200x200 square grid with periodic boundary conditions near absolute zero temperature. The simulations were done with the constant direction $\bm{D}_{ij}$ of in conditions given be values of $D$ and $B$. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $100$ to $200$ in similar manner, with the space of $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations.
+Firstly, I would like to acknowledge that the simulation of this dataset was done by \xxx{...}, and wasn't direct concern of this thesis. 
 
+A fundamental part of any machine learning problem is the dataset we have. Our dataset consists of 9840 images of magnetic configurations simulated via Monte-Carlo simulations on a discrete $200\times200$ square grid with periodic boundary conditions near absolute zero temperature. The simulations were done with the constant direction $\bm{D}_{ij}$ of in conditions given be values of $D$ and $B$. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $100$ to $200$ in similar manner, with the space of $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations.
 
-\todo{chalenges of this dataset}
+\subsection{Topological charge, magnetization}
 
-\todo{train dataset}
+\xxx{Magnetic configurations can described by different physical properties. The two most useful ones in our context are the \emph{topological charge} and the \emph{magnetization}. While magnetization is a relatively straightforward global characteristic of a magnetic configuration, the topological charge captures deeper structural properties.
 
-\todo{one-hot encoding for labels}
+Let us start with the simpler of the two, the total magnetization. Suppose we are given a two-dimensional lattice where each site carries a spin vector $\mathbf{S}_i \in \mathbb{R}^3$ of unit length. The total magnetization is then defined as the average of all spins across the lattice:}
+
+\begin{equation}
+    \mathbf{M} = \frac{1}{N} \sum_{i} \mathbf{S}_i,
+\end{equation}
+
+\xxx{where $N$ is the total number of spins. The vector $\mathbf{M}$ encodes the global orientation and magnitude of the magnetic order. In the case of the ferromagnetic phase, all spins align in the same direction, and the magnetization vector has maximal norm, $|\mathbf{M}| \approx 1$. On the contrary, for more complex configurations such as spiral or skyrmion phases, the global alignment vanishes or significantly weakens, and $|\mathbf{M}|$ approaches zero.
+
+Topological charge, on the other hand, is more nuanced. It is a quantity that remains invariant under continuous deformations of the spin field — in other words, it is a topological invariant. For two-dimensional systems, the most commonly used version of the topological charge is defined via the skyrmion number:
+}
+
+\begin{equation}
+    Q = \frac{1}{4\pi} \int \mathbf{S} \cdot \left( \frac{\partial \mathbf{S}}{\partial x} \times \frac{\partial \mathbf{S}}{\partial y} \right) \, dx\,dy.
+\end{equation}
+
+\xxx{This expression measures how many times the spin configuration wraps around the unit sphere. In discrete simulations, this integral is approximated numerically on a lattice using finite differences and summing over local contributions from neighboring spin vectors. A single skyrmion typically carries $Q = \pm 1$, depending on its chirality, while a ferromagnetic or spiral phase will have a topological charge close to zero.}
+
+\subsection{Challenges of this dataset}
+
+\subsection{Taking subset of this dataset}
+
+\subsection{Data preprocessing}
 
