@@ -49,6 +49,9 @@ saved_models/
 *.ps
 *.eps
 
+# un-ignore images for thesis
+!thesis/img/* 
+
 # Miscellaneous temporary files
 *.bak
 *.tmp
