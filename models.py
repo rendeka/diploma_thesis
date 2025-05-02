@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import keras
+import keras.backend as K
 import argparse
 from functools import partial
 from skyrmion_dataset import SKYRMION
@@ -33,7 +34,30 @@ class ModelBase(keras.Model):
 
         def call(self, inputs, training = False):
             return super().call(inputs, training=(training or self.mc_inference))
+        
+    class PeriodicPad(keras.layers.Layer):
+        def __init__(self, pad, **kwargs):
+            super().__init__(**kwargs)
+            if isinstance(pad, int):
+                self.pad = (pad, pad)
+            elif isinstance(pad, (tuple, list)) and len(pad) == 2:
+                self.pad = pad
+            else:
+                raise ValueError(f"Argument pad should be int or tuple of two integers, but is: {pad} instead.")
 
+        def call(self, inputs):
+            pad_h, pad_w = self.pad
+
+            left = inputs[:, :, -pad_w:, :]
+            right = inputs[:, :, :pad_w, :]
+            padded = keras.layers.Concatenate(axis=2)([left, inputs, right])
+
+            top = padded[:, -pad_h:, :, :]
+            bottom = padded[:, :pad_h, :, :]
+            padded = keras.layers.Concatenate(axis=1)([top, padded, bottom])
+
+            return padded
+    
     # Get Input shape
     @property
     def input_shape(self):
@@ -71,8 +95,8 @@ class ModelBase(keras.Model):
             keras.layers.Dense,
             activation=self.activation(),
             use_bias=True, 
-            kernel_initializer=keras.initializers.glorot_normal(), 
-            bias_initializer=keras.initializers.glorot_uniform(), 
+            kernel_initializer=keras.initializers.glorot_normal(seed=self.args.seed), 
+            bias_initializer=keras.initializers.glorot_uniform(seed=self.args.seed), 
             kernel_regularizer=keras.regularizers.l2(self.args.kernel_regularizer), 
             bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer)
         )
@@ -80,27 +104,41 @@ class ModelBase(keras.Model):
     # Convolutional layer
     @property
     def conv(self):
-        if self.args.conv_type == "standard":
-            return partial(
-                keras.layers.Conv2D,
-                kernel_size=self.args.kernel_size,
-                activation=self.activation(),
-                strides=self.args.stride,
-                padding=self.args.padding,
-                kernel_initializer=keras.initializers.he_normal(), 
-                bias_initializer=keras.initializers.he_uniform(),
-                kernel_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
-                bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer)
+        def conv_layer(filters):
+            layers = []
+            
+            # optional periodic padding
+            if self.args.periodic_pad:
+                pad = self.args.kernel_size - 2 # Assuming only odd kernels
+                layers.append(self.PeriodicPad(pad))
+            
+            # either standard or depth-wise separable convolution
+            if self.args.conv_type == "standard":
+                conv_cls = partial(
+                    keras.layers.Conv2D,
+                    kernel_size=self.args.kernel_size,
+                    activation=self.activation(),
+                    strides=self.args.stride,
+                    padding=self.args.padding,
+                    kernel_initializer=keras.initializers.he_normal(seed=self.args.seed), 
+                    bias_initializer=keras.initializers.he_uniform(seed=self.args.seed),
+                    kernel_regularizer=keras.regularizers.l2(self.args.kernel_regularizer),
+                    bias_regularizer=keras.regularizers.l2(self.args.bias_regularizer),
                 )
-        elif self.args.conv_type == "ds":
-            return partial(
-                keras.layers.SeparableConv2D,
-                kernel_size=self.args.kernel_size,
-                strides=self.args.stride,
-                padding=self.args.padding,
-            )
-        else:
-            raise AttributeError("Non-valid conv_type specified")
+            elif self.args.conv_type == "ds":
+                conv_cls = partial(
+                    keras.layers.SeparableConv2D,
+                    kernel_size=self.args.kernel_size,
+                    strides=self.args.stride,
+                    padding=self.args.padding,
+                )
+            else:
+                raise ValueError(f"Unknown conv_type: {self.args.conv_type}")
+
+            layers.append(conv_cls(filters=filters))
+            return keras.Sequential(layers)
+
+        return conv_layer
 
     # Max pooling layer
     @property
@@ -130,9 +168,7 @@ class ModelBase(keras.Model):
             return self.average_pooling
         elif self.args.pooling == "max":
             return self.max_pooling
-        else:
-            raise AttributeError("Non-valid pooling type: 'max' or 'average' are valid types")
-    
+
     # Batch normalization layer
     @property
     def batch_norm(self):
@@ -336,6 +372,46 @@ class ModelFFN(ModelBase):
         outputs = self.head(hidden)
 
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
+
+class ModelRes(ModelBase):
+    def __init__(self, args, **kwargs):
+        self.args = args 
+        self.filter_scaling_factor = self.get_filter_scaling_factor
+        self.build_model(**kwargs)
+
+    def build_model(self, **kwargs):
+        inputs = keras.Input(shape=self.input_shape)
+
+        num_filters = self.args.filters
+        hidden = self.conv(num_filters)(inputs)
+        hidden = self.pooling()(hidden)
+
+        for i in range(self.args.depth):
+            num_filters = int(self.args.filters * (self.filter_scaling_factor ** i))
+            hidden = self.residual_block(hidden, num_filters)
+            hidden = self.pooling()(hidden)
+
+        hidden = self.feature_aggregation(hidden)
+        # hidden = self.dense_block(hidden, units=num_filters)
+        outputs = self.head(hidden)
+        
+        super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
+    
+    def residual_block(self, inputs, filters):
+        if inputs.shape[-1] == filters:
+            skip = inputs
+        else:
+            skip = keras.layers.Conv2D(filters=filters, kernel_size=1, strides=1, activation=None)(inputs)
+
+        hidden = self.conv(filters=filters)(inputs) 
+        hidden = self.batch_norm()(hidden)
+        hidden = self.activation()(hidden)
+        hidden = self.conv(filters=filters)(hidden)
+        hidden = keras.layers.Add()([hidden, skip])
+        outputs = self.activation()(hidden)
+
+        return outputs
+
 
 # I am not really testing this model at all (sofar)
 class ResNet(ModelBase):

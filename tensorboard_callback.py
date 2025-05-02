@@ -8,18 +8,70 @@ import keras
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.image import preprocess_image
+from pytorch_grad_cam.utils.image import preprocess_image, show_cam_on_image
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+import gc
+
+def get_callbacks(args, skyrmion_transitions, skyrmion_fm, test_dataset):
+    callbacks = []
+    
+    tb_callback = TorchTensorBoardCallback(
+        args, 
+        transition_datasets=skyrmion_transitions, 
+        fm_dataset=skyrmion_fm,
+        test_dataset=test_dataset
+    )
+    callbacks.append(tb_callback)
+    
+    if args.decay == "plateau":
+        reduce_on_plateau = keras.callbacks.ReduceLROnPlateau(
+            monitor='val_loss',
+            factor=0.1,
+            patience=10,
+            verbose=1,
+            min_lr=1e-8
+        )
+        callbacks.append(reduce_on_plateau)
+
+    early_stopping = keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=20,
+        restore_best_weights=True,
+        verbose=1
+    )
+    callbacks.append(early_stopping)
+
+    return callbacks
+
+
+class ClassifierOutputSoftTarget:
+    def __init__(self, label):
+        self.label = torch.tensor(label).float()
+
+    def __call__(self, model_output):
+        return torch.sum(model_output * self.label.to(model_output.device))
 
 class TorchTensorBoardCallback(keras.callbacks.Callback):
-    def __init__(self, args:argparse.Namespace, transition_datasets: Optional[Dict[str, SKYRMION]]=None, 
-                 fm_dataset: Optional[SKYRMION.Dataset]=None, device: str="cuda"):
+    def __init__(self, args:argparse.Namespace, 
+                 transition_datasets: Optional[Dict[str, SKYRMION]]=None, 
+                 fm_dataset: Optional[SKYRMION.Dataset]=None,
+                 test_dataset: Optional[SKYRMION.Dataset]=None, 
+                 device: str="cuda"):
         self.args = args
         self._writers = {}
         self._transition_datasets = transition_datasets
         self.fm_dataset = fm_dataset
+        self.test_dataset = test_dataset
         self.device = device
         self._logged_epochs = set()  # To track logged epochs
+
+        if self.args.scope == "sub":
+                self.group_size = 20
+        elif self.args.scope == "full":
+            self.group_size = 5
+        else:
+            self.group_size = 5
+            raise ValueError(f"args.scope == {self.args.scope}, does not have assigned group size, group_size == 5 will be used")
 
     def writer(self, writer):
         if writer not in self._writers:
@@ -33,7 +85,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 self.writer(writer).add_scalar(key, value, step)
             self.writer(writer).flush()
 
-    def evaluate_phase_transition(self, group_size: int = 5) -> Dict[str, Dict[str, float]]:
+    def evaluate_phase_transition(self) -> Dict[str, Dict[str, float]]:
         """Evaluate how smoothly the model's predictions transition across ranks."""
         if self._transition_datasets is None:
             return None
@@ -90,7 +142,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 # different (but for our purpose equivalent) pictures for the 
                 # simulated with same set of parameters B and D.
 
-                preds_ordering = np.ceil((preds_ordering + 1) / group_size).astype(int) - 1
+                preds_ordering = np.ceil((preds_ordering + 1) / self.group_size).astype(int) - 1
 
                 # Using Euclidean distance as out-of-order metric for given B-value (TODO: consider some other metric??)
                 ordering_metric = np.linalg.norm(preds_ordering - labels)
@@ -117,7 +169,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
         return performance_metrics
     
-    def log_phase_transition_probs(self, group_size: int = 5) -> Dict[str, Dict[str, float]]:
+    def log_phase_transition_probs(self) -> Dict[str, Dict[str, float]]:
         """Evaluate how smoothly the model's predictions transition across ranks."""
         if self._transition_datasets is None:
             return None
@@ -143,20 +195,16 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 num_groups = len(b_unique)
 
                 # make predictions in batches
-                dataset = TensorDataset(images)
-                dataloader = DataLoader(dataset, batch_size=self.args.batch_size, shuffle=False)
+                dataloader = DataLoader(TensorDataset(images), batch_size=self.args.batch_size, shuffle=False)
 
-                all_preds = []
+                preds = []
                 with torch.no_grad():
                     for batch in dataloader:
                         batch_images = batch[0].to(self.device)
-                        preds = model(batch_images).cpu().numpy()
-                        all_preds.append(preds)
+                        preds.extend(model(batch_images).cpu().numpy())
 
-                preds = np.concatenate(all_preds, axis=0)
-
-                preds = preds.reshape(num_groups, group_size, -1)
-                b_values = b_values.reshape(num_groups, group_size)
+                preds = np.array(preds).reshape(num_groups, self.group_size, -1)
+                b_values = b_values.reshape(num_groups, self.group_size)
 
                 mean_preds = preds.mean(axis=1)
                 var_preds = preds.var(axis=1)
@@ -192,12 +240,12 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 ax2.grid(True)
                 ax2.legend()
 
-                sample_images = images[::group_size]
+                sample_images = images[::self.group_size]
                 for i in range(num_groups):
                     axes[i].imshow(sample_images[i].cpu().numpy(), vmin=0.0, vmax=1.0, cmap="RdBu")
                     axes[i].axis('off')
 
-                plt.tight_layout(rect=[0, 0, 1, 0.95])  # Adjust spacing
+                plt.tight_layout(rect=[0, 0, 1, 0.95])
 
                 # writer.add_figure(str(Path('transition probabilities') / f"{trans_type.replace('_', '-')}" / f"D: {D}"), fig) # old version 
                 # new version
@@ -206,6 +254,61 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         writer.flush()             
 
         return None
+    
+    def evaluate_test(self, n_worst:int = 80):
+        "Evaluates the accuracy on the test set, and outputs `n_worst` images and predictions"
+
+        model = self.model
+        model.eval()
+
+        # dataset = self.test_dataset.data[:]
+
+        # images = torch.Tensor(dataset["image"]).float().to(self.device)
+        # labels = torch.nn.functional.one_hot(torch.Tensor(dataset["label"], dtype=torch.long), num_classes=len(SKYRMION.LABELS))
+
+        # dataloader = DataLoader(TensorDataset(images), batch_size=self.args.batch_size, shuffle=False)
+
+        dataloader = self.test_dataset
+
+        images, labels, preds = [], [], []
+        with torch.no_grad():
+            for batch in dataloader:
+                batch_images = batch[0].to(self.device)
+                preds.extend(model(batch_images).cpu().numpy())
+                images.extend(batch[0])
+                labels.extend(batch[1])
+
+        preds = np.array(preds)
+        images = np.array(images)
+        labels = np.array(labels)
+
+        errors = np.abs(preds - labels).sum(axis=1)
+        total_err = np.sum(errors)
+        worst_idcs = np.argsort(errors)[-n_worst:]
+
+        worst_samples = {
+            "images": images[worst_idcs],
+            "labels": labels[worst_idcs],
+            "preds": preds[worst_idcs]
+        }
+
+        return total_err, worst_samples
+
+    def log_test_results(self, epoch):
+        total_err, samples = self.evaluate_test()
+
+        writer = self.writer("test_error")
+        writer.add_scalar("Test Absolute error", total_err, epoch)
+        writer.flush()
+        
+        # Log worst images with predictions
+        if self.args.grad_cam:
+            fig = self.get_gradcam(samples)
+        else:
+            fig = SKYRMION.visualize_images(samples["images"].squeeze(-1), labels=samples["preds"], row_size=8, base_size=3, show_images=False)
+        if fig:
+            writer.add_figure("Worst Predictions", fig, epoch)
+            writer.flush()
     
     def log_filters_and_features(self, epoch):
         """Logs convolutional filters and feature maps to TensorBoard at given milestones of training."""
@@ -225,13 +328,40 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         images = torch.tensor(self.fm_dataset.dataset[:]["image"]).float().unsqueeze(1).unsqueeze(-1).to(self.device)
         labels = np.array(self.fm_dataset.dataset[:]["label"])
 
-        # Retrieve the first convolutional layer and filters
+        # Retrieve convolutional layers and filters
+        # def get_all_conv_layers(model):
+        #     conv_layers = []
+        #     filters = []
+
+        #     def recurse_layers(layer):
+        #         if isinstance(layer, (keras.layers.Conv2D, keras.layers.SeparableConv2D)):
+        #             conv_layers.append(layer)
+        #             weights = layer.get_weights()
+        #             if weights:
+        #                 filters.append(weights[0])
+        #         elif hasattr(layer, 'layers'):
+        #             for sublayer in layer.layers:
+        #                 recurse_layers(sublayer)
+
+        #     recurse_layers(model)
+        #     return filters, conv_layers
+        
+        # filters, conv_layers = get_all_conv_layers(self.model)
+
         filters = []
         conv_layers = []
+
         for layer in self.model.layers:
-            if isinstance(layer, keras.layers.Conv2D) or isinstance(layer, keras.layers.SeparableConv2D):
-                filters.append(layer.get_weights()[0])
+            # Conv2D or SeparableConv2D
+            if isinstance(layer, (keras.layers.Conv2D, keras.layers.SeparableConv2D)):
                 conv_layers.append(layer)
+                filters.append(layer.get_weights()[0])
+            
+            # Sequential - padding + conv
+            elif isinstance(layer, keras.models.Sequential):
+                if layer.layers and isinstance(layer.layers[-1], (keras.layers.Conv2D, keras.layers.SeparableConv2D)):
+                    conv_layers.append(layer)
+                    filters.append(layer.layers[-1].get_weights()[0])
 
         num_rows = len(filters) # Same for plotting feature maps
         num_cols = min(8, filters[0].shape[-1])
@@ -272,46 +402,106 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
         writer.flush()
 
-    def log_gradcam(self, epoch):
+    def get_gradcam(self, data, row_size=4):
+
+        class NCHWModelWrapper(torch.nn.Module):
+            def __init__(self, keras_model):
+                super().__init__()
+                self.keras_model = keras_model
+            
+            def forward(self,x):
+                x_nchw = x.permute(0, 2, 3, 1).contiguous()
+                return self.keras_model(x_nchw)
 
         if not self.model:
             return
         
-        if epoch < self.args.epochs:
-            return
+        torch.cuda.empty_cache()
+        gc.collect()
+                
+        # model = NCHWModelWrapper(self.model)
 
-        writer = self.writer("grad_cam")
+        # self.model.eval()
+        # model.eval()
 
-        # using just one picture from the fm_dataset
-        image_tensor = torch.tensor(self.fm_dataset.dataset[10]["image"]).float().to(self.device)
-        target_category = [ClassifierOutputTarget(2)]
+        images = data["images"]
+        labels = data["labels"]
 
-        # take last convolutional layer
+        # Convert to torch tensor
+        images_tensor = torch.tensor(images).float().to(self.device)
+        labels_tensor = torch.tensor(labels).float()
+
+        # Prepare targets
+        targets = [ClassifierOutputSoftTarget(label.tolist()) for label in labels_tensor]
+        # targets = [ClassifierOutputTarget(label.argmax()) for label in labels_tensor]
+
+        # Find last convolutional layer
         target_layer = None
+        # for layer in reversed(self.model.layers):
         for layer in reversed(self.model.layers):
-            if isinstance(layer, keras.layers.Conv2D) or isinstance(layer, keras.layers.SeparableConv2D):
+            if isinstance(layer, (keras.layers.Conv2D, keras.layers.SeparableConv2D)):
                 target_layer = layer
                 break
+            elif isinstance(layer, keras.models.Sequential):
+                if layer.layers and isinstance(layer.layers[-1], (keras.layers.Conv2D, keras.layers.SeparableConv2D)):
+                    target_layer = layer
+                    break
+
         if target_layer is None:
             raise ValueError("No convolutional layer found for Grad-CAM.")
+        
+        model_wrapped = NCHWModelWrapper(self.model)
 
-        cam = GradCAM(model=self.model, target_layers=[target_layer])
+        grayscale_cams = []
 
-        input_tensor = preprocess_image(image_tensor.cpu().numpy(), mean=[0.5], std=[0.5]).reshape(1, 200, 200, 1)
+        for img, target in zip(images_tensor.permute(0, 3, 1, 2), targets):
+            with GradCAM(model=model_wrapped, target_layers=[target_layer]) as cam:
+                grayscale_cams.append(cam(input_tensor=img.unsqueeze(0), targets=[target]))
 
-        # generate Grad-CAM heatmap
-        grayscale_cam = cam(input_tensor=input_tensor, targets=[target_category])[0]
+        # Prepare images for visualization (convert to RGB and normalize per image)
+        img_rgb = np.repeat(images[..., np.newaxis], 3, axis=-1)  # shape: (N, H, W, 3)
+        img_rgb = img_rgb / (np.max(img_rgb, axis=(1, 2), keepdims=True) + 1e-8)  # normalize
 
-        # overlay heatmap on the original image
-        fig, ax = plt.subplots()
-        ax.imshow(image_tensor[0].cpu().detach().numpy().squeeze(), cmap="gray")
-        ax.imshow(grayscale_cam, cmap="jet", alpha=0.5)
-        ax.axis("off")
+        # Plotting
+        N = len(images)
+        cols = min(row_size, N)
+        rows = (N + cols - 1) // cols
+        fig, axs = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows))
 
-        writer.add_figure(f"grad_cam_epoch_{epoch}", fig, epoch)
-        writer.flush()
+        if rows == 1:
+            axs = np.expand_dims(axs, axis=0)
+        if cols == 1:
+            axs = np.expand_dims(axs, axis=1)
+
+
+        for i in range(rows * cols):
+            ax = axs[i // cols, i % cols]
+            if i >= N:
+                ax.axis("off")
+                continue
+
+            grayscale_cam = grayscale_cams[i]
+            if grayscale_cam.ndim == 3:
+                if grayscale_cam.shape[-1] == 1:
+                    grayscale_cam = grayscale_cam.squeeze(-1)
+                if grayscale_cam.shape[0] == 1:
+                    grayscale_cam = grayscale_cam.squeeze(0)
+
+            cam_image = show_cam_on_image(img_rgb[i].squeeze(2), grayscale_cam, image_weight=0.8, use_rgb=True)
+
+            ax.text(
+                100, 15, f"{np.round(data['preds'][i], 2)}",
+                color="black", size=12, ha="center", va="top",
+                bbox=dict(facecolor="yellow", edgecolor="black", alpha=0.7),
+            )
+            ax.imshow(cam_image)
+            ax.axis("off")
+
+        fig.tight_layout()
+        return fig
 
     def on_epoch_end(self, epoch, logs=None):
+        self.last_epoch = epoch + 1
         if logs:
             if isinstance(getattr(self.model, "optimizer", None), keras.optimizers.Optimizer):
                 logs = logs | {"learning_rate": keras.ops.convert_to_numpy(self.model.optimizer.learning_rate)}
@@ -320,8 +510,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
             # Log phase transition evaluation if applicable
 
-            group_size = 20 if self.args.scope else 5
-            phase_transition_scores = self.evaluate_phase_transition(group_size=group_size)
+            phase_transition_scores = self.evaluate_phase_transition()
             if phase_transition_scores is not None:
                 for trans_type, metrics in phase_transition_scores.items():
                     for metric, score in metrics.items():
@@ -329,11 +518,13 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                         self.writer(metric_category).add_scalar(metric, score, epoch + 1)
                         self.writer(metric_category).flush()
             
-            if self.args.trans_probs and (epoch + 1 == self.args.epochs):
-                self.log_phase_transition_probs(group_size=group_size)
-
             if self.fm_dataset is not None and self.args.ffm:
                 self.log_filters_and_features(epoch + 1)
 
-            if self.fm_dataset is not None and self.args.grad_cam:
-                self.log_gradcam(epoch + 1)
+    def on_train_end(self, logs=None):
+
+        if self.args.trans_probs:
+            self.log_phase_transition_probs()
+
+        if self.test_dataset is not None:
+            self.log_test_results(self.last_epoch)

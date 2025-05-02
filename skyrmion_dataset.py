@@ -46,6 +46,10 @@ class SKYRMION:
             self._dataset = dataset
             self._transform = transform
 
+        @property
+        def data(self) -> torch.utils.data.Dataset:
+            return self._dataset
+
         def __len__(self) -> int:
             return len(self._dataset)
 
@@ -82,7 +86,13 @@ class SKYRMION:
                 setattr(self, dataset, self.Dataset(data)) 
 
     @staticmethod
-    def visualize_images(images: np.ndarray, labels: Optional[np.ndarray] = None, row_size: int = 1, base_size:int = 3) -> None:
+    def visualize_images(
+        images: np.ndarray,
+        labels: Optional[np.ndarray] = None,
+        row_size: int = 1,
+        base_size:int = 3,
+        show_images:bool = True
+        ) -> Optional[plt.Figure]:
         """
         Visualize a grid of images with their corresponding labels.
 
@@ -111,7 +121,7 @@ class SKYRMION:
             axs[n].set_ylim((0.0, 200.0))
 
             axs[n].text(
-                100, 185, f"{np.round(np.array(labels[num_sample]), 2)}",
+                100, 185, f"{np.round(np.array(labels[num_sample]), 2)}" if labels is not None else "",
                 color="black", size=12, ha="center", va="top",
                 bbox=dict(facecolor="yellow", edgecolor="black", alpha=0.7),
             )
@@ -123,7 +133,12 @@ class SKYRMION:
             axs[n].axis("off")
 
         fig.subplots_adjust(wspace=0.03)
-        plt.show()
+
+        if show_images:
+            plt.show()
+            return None
+        else:
+            return fig
 
     train: Dataset
     dev: Dataset

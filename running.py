@@ -9,9 +9,8 @@ import os
 class RUN:
     SKYRMION_BASE_PATH: str = os.environ.get("SKYRMION_BASE_PATH")
     ON_LOCAL: bool = SKYRMION_BASE_PATH == "/home/rothals/dev/school/diploma_thesis/dev"
-    N_THREADS: int = 4  # Number of parallel processes
     
-    def __init__(self, name, args_combinations):
+    def __init__(self, name, args_combinations: dict[str, list], n_threads: int = 4):
         """
         Initialize an experiment with a given name and hyperparameter combinations.
 
@@ -23,6 +22,7 @@ class RUN:
             dict(zip(args_combinations.keys(), values))
             for values in itertools.product(*args_combinations.values())
         ]
+        self.N_THREADS = n_threads
     
     def run_command(self, config):
         """Run skyrmion.py with the given configuration."""

@@ -127,65 +127,181 @@ runs = []
 
 ############## SUB-data runs
 
+# runs.append(
+#     RUN(
+#         name="padding",
+#         args_combinations = {
+#             "--activation": ["relu"],
+#             # "--alpha_dropout": [True],
+#             "--augment": [
+#                 None,
+#                 "cutmix",
+#                 ("tailored", "cutmix", None, "cutmix", None),
+#                 ],
+#             "--decay": ["cosine"],
+#             "--depth": [3],
+#             # "--dropout": [0.0, 0.2],
+#             # "---spatial_dropout": [0.0, 0.2],
+#             "--epochs": [1],
+#             "--fag": ["GAP"],
+#             "--filters": [32],
+#             "--ffm": [True],
+#             "--head": ["sigmoid"],
+#             # "--learning_rate": [0.001],
+#             "--logdir_suffix": ["padding"],
+#             "--loss": ["KLD"],
+#             "--model": ["model5"],
+#             "--padding": ["periodic", "same", "valid"],
+#             "--phase_augment": [
+#                 # (None, None, None),
+#                 (None, "cutmix", "cutmix"),
+#                 ],
+#             "--seed": [1, 2, 3],
+#             "--save_model": [True],
+#             "--scope": ["sub"],
+#             # "--trans_probs": [True],
+#         },
+#         n_threads = 3
+#     )
+# )
+
 runs.append(
     RUN(
-        name="augment",
+        name="decay",
         args_combinations = {
             "--activation": ["relu"],
             # "--alpha_dropout": [True],
             "--augment": [
-                None,
-                "cutmix",
-                "mixup",
-                ("cutmix", "mixup"),
-                ("tailored", "cutmix", "mixup", "cutmix", "mixup"),
-                ("tailored", "cutmix", None, "cutmix", "mixup"),
-                ("tailored", "cutmix", "mixup", "cutmix", None),
                 ("tailored", "cutmix", None, "cutmix", None),
-                ("tailored", "cutmix", None, None, "mixup"),
                 ],
-            "--decay": ["cosine"],
-            "--depth": [2],
+            "--batch_size": [32],
+            "--decay": ["plateau"],
+            "--depth": [3],
             # "--dropout": [0.0, 0.2],
             # "---spatial_dropout": [0.0, 0.2],
-            "--epochs": [50],
+            "--epochs": [400],
             "--fag": ["GAP"],
             "--filters": [32],
             "--ffm": [True],
-            "--head": ["sigmoid"],
+            "--head": ["sigmoid", "softmax"],
             # "--learning_rate": [0.001],
-            "--logdir_suffix": ["augment_test"],
-            "--loss": ["KLD"],
+            "--logdir_suffix": ["head-loss"],
+            "--loss": ["KLD", "CCE"],
             "--model": ["model5"],
+            # "--padding": ["periodic", "same"],
+            "--phase_augment": [
+                # (None, None, None),
+                (None, None, "cutmix"),
+                ],
+            "--seed": [5, 6, 7],
             "--save_model": [True],
             "--scope": ["sub"],
-            "--trans_probs": [True],
-        }
+            # "--trans_probs": [True],
+        },
+        n_threads = 4
     )
 )
 
 # runs.append(
 #     RUN(
-#         name="heads",
+#         name="head",
 #         args_combinations = {
 #             "--activation": ["relu"],
 #             # "--alpha_dropout": [True],
-#             "--augment": [None, "cutmix", "mixup", ("cutmix", "mixup"), "adaptive", "tailored"],
+#             "--augment": [
+#                 ("tailored", "cutmix", None, "cutmix", None),
+#                 ],
 #             "--decay": ["cosine"],
 #             "--depth": [3],
 #             # "--dropout": [0.0, 0.2],
 #             # "---spatial_dropout": [0.0, 0.2],
-#             "--epochs": [40],
+#             "--epochs": [200],
 #             "--fag": ["GAP"],
 #             "--filters": [32],
-#             # "--ffm": [False],
+#             "--ffm": [True],
 #             "--head": ["sigmoid"],
 #             # "--learning_rate": [0.001],
-#             "--logdir_suffix": ["augment"],
+#             "--logdir_suffix": ["head"],
 #             "--loss": ["KLD"],
 #             "--model": ["model5"],
+#             "--phase_augment": [
+#                 # (None, None, None),
+#                 (None, None, "cutmix"),
+#                 ],
+#             "--seed": [1, 2],
+#             "--save_model": [True],
 #             "--scope": ["sub"],
-#         }
+#             # "--trans_probs": [True],
+#         },
+#         n_threads = 2   
+#     )
+# )
+
+# runs.append(
+#     RUN(
+#         name="head",
+#         args_combinations = {
+#             "--activation": ["relu"],
+#             # "--alpha_dropout": [True],
+#             "--augment": [
+#                 ("tailored", "cutmix", None, "cutmix", None),
+#                 ],
+#             "--decay": ["cosine"],
+#             "--depth": [3],
+#             # "--dropout": [0.0, 0.2],
+#             # "---spatial_dropout": [0.0, 0.2],
+#             "--epochs": [200],
+#             "--fag": ["GAP"],
+#             "--filters": [32],
+#             "--ffm": [True],
+#             "--head": ["softmax"],
+#             # "--learning_rate": [0.001],
+#             "--logdir_suffix": ["head"],
+#             "--loss": ["CCE"],
+#             "--model": ["model5"],
+#             "--phase_augment": [
+#                 # (None, None, None),
+#                 (None, None, "cutmix"),
+#                 ],
+#             "--seed": [1, 2],
+#             "--save_model": [True],
+#             "--scope": ["sub"],
+#             # "--trans_probs": [True],
+#         },
+#         n_threads = 2
+#     )
+# )
+
+
+
+
+# runs.append(
+#     RUN(
+#         name="new_augment",
+#         args_combinations = {
+#             "--activation": ["relu"],
+#             # "--alpha_dropout": [True],
+#             "--augment": [
+#                 None,
+#                 "cutmix",
+#                 "mixup",
+#                 ("tailored", "cutmix", None, None, "mixup"),
+#                 ],
+#             "--decay": ["cosine"],
+#             # "--dropout": [0.0, 0.2],
+#             # "---spatial_dropout": [0.0, 0.2],
+#             "--epochs": [150],
+#             "--filters": [64],
+#             "--head": ["sigmoid"],
+#             "--learning_rate": [0.01],
+#             "--logdir_suffix": ["new_augment"],
+#             "--loss": ["KLD", "MSE"],
+#             "--model": ["ffn"],
+#             "--save_model": [True],
+#             "--scope": ["sub"],
+#             "--trans_probs": [True],
+#         },
+#         n_threads = 4
 #     )
 # )
 

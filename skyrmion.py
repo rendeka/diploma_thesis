@@ -2,41 +2,38 @@
 import argparse
 import datetime
 import os
-# import re
-# import sys
-# import time
-# import matplotlib.pyplot as plt
-# from typing import Optional, Dict, List
-from pathlib import Path
+
 os.environ.setdefault("KERAS_BACKEND", "torch")
 
 import keras
 import numpy as np
 import torch
 
+from pathlib import Path
 from skyrmion_dataset import SKYRMION
-from tensorboard_callback import TorchTensorBoardCallback
+from tensorboard_callback import TorchTensorBoardCallback, get_callbacks
 from augmentation import choose_augmentation
 import models
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--activation", default="relu", type=str, help="Activation type (see keras.activations.__dict__ to see all options)")
 parser.add_argument("--alpha_dropout", default=False, type=bool, help="True to use alpha dropout (iff selu activations is used)")
-parser.add_argument("--augment", default="tailored", type=str, choices=["None", "cutmix", "mixup", "adaptive", "tailored"], nargs="+", help="Augmentation type")
+parser.add_argument("--augment", default=["tailored", "cutmix", "None", "cutmix", "None"], type=str, choices=["None", "cutmix", "mixup", "adaptive", "tailored"], nargs="+", help="Augmentation type")
 parser.add_argument("--batch_norm", default=True, type=bool, help="True to use batch normalization")
 parser.add_argument("--batch_size", default=16, type=int, help="Batch size.")
 parser.add_argument("--bias_regularizer", default=1e-5, type=float, help="Parameter for L2 regularization of bias in convolutional kernel")
 parser.add_argument("--conv_type", default="standard", type=str, choices=["standard", "ds"], help="Convolution type ('ds' stands for depthwise-separable)")
 parser.add_argument("--dataloader_workers", default=0, type=int, help="Dataloader workers")
-parser.add_argument("--decay", default=None, type=str, choices=["None", "linear", "exponential", "cosine", "piecewise"], help="Decay type")
+parser.add_argument("--decay", default=None, type=str, choices=["None", "linear", "exponential", "cosine", "piecewise", "plateau"], help="Learning rate decay type")
 parser.add_argument("--depth", default=3, type=int, help="Model depth (use default=56 for ResNet)")
 parser.add_argument("--dropout", default=0.0, type=float, help="Dropout rate for dense layers or pixelwise")
 parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--fag", default="GAP", type=str, choices=["GAP", "Flatten", "SE"], nargs="+", help="feature-aggregation: going from CONV to DENSE layer")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
-parser.add_argument("--ffm", default=False, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
-parser.add_argument("--grad_cam", default=False, type=bool, help="True to generage grad-CAM images in callback")
+parser.add_argument("--ffm", default=True, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
+parser.add_argument("--grad_cam", default=True, type=bool, help="True to generage grad-CAM images in callback")
 parser.add_argument("--head", default="softmax", type=str, help="Activation function for the classification head (use any valid keras activation)")
+parser.add_argument("--keep_batch_size", default=True, type=bool, help="If False, batch size will vary (typically will be larger while using Tailored augmentations)")
 parser.add_argument("--kernel_regularizer", default=1e-4, type=float, help="Parameter for L2 regularization of convolutional kernel")
 parser.add_argument("--kernel_size", default=3, type=int, help="Kernel size")
 parser.add_argument("--label_smoothing", default=0., type=float, help="Label smoothing")
@@ -46,16 +43,17 @@ parser.add_argument("--logdir_suffix", default=None, type=str, help="Creates sub
 parser.add_argument("--loss", default="CCE", type=str, choices=["CCE", "KLD", "MSE"], help="Loss function")
 parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn"], help="Model of choice")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam", "AdamW"], help="Optimizer type")
-parser.add_argument("--padding", default ="same", type=str, choices=["same", "valid"], help="Padding in convolutional layers")
+parser.add_argument("--padding", default ="periodic", type=str, choices=["same", "valid", "periodic"], help="Padding in convolutional layers")
+parser.add_argument("--phase_augment", default=["None", "cutmix", "cutmix"], type=str, choices=["cutmix", "mixup", "None"], nargs="+", help="Combining images within the same phase")
 parser.add_argument("--pooling", default="max", type=str, choices=["max", "average", "no"], help="Pooling type") # TRY None
 parser.add_argument("--save_model", default=False, type=bool, help="If True, trained model will be saved in'saved_models/' directory")
-parser.add_argument("--scope", default="sub", type=str, choices=["", "sub"])
+parser.add_argument("--scope", default="sub", type=str, choices=["full", "sub"])
 parser.add_argument("--seed", default=42, type=int, help="Random seed.")
 parser.add_argument("--spatial_dropout", default=0.0, type=float, help="Spatial dropout rate for feature maps")
 parser.add_argument("--stochastic_depth", default=0., type=float, help="Stochastic depth")
 parser.add_argument("--stride", default=1, type=int, help="Stride in convolutional layers")
 parser.add_argument("--threads", default=1, type=int, help="Maximum number of threads to use")
-parser.add_argument("--trans_probs", default=False, type=bool, help="Whether to create transitional probs images")
+parser.add_argument("--trans_probs", default=True, type=bool, help="Whether to create transitional probs images")
 parser.add_argument("--weight_decay", default=0.004, type=float, help="Weight decay")
 parser.add_argument("--width", default=1, type=int, help="Model width")
 
@@ -94,7 +92,7 @@ def main(args: argparse.Namespace) -> None:
 
     # Format arguments
     # Unnecessary args to have in the args_str 
-    no_log_args = ("epochs", "model", "save_model", "ffm", "logdir_suffix", "logdir", "scope", "trans_probs")
+    no_log_args = ("epochs", "model", "save_model", "ffm", "logdir_suffix", "logdir", "scope", "trans_probs", "keep_batch_size")
     # Taking only the descriptive subset of non-default arguments for args string
     log_args = {arg: value for arg, value in vars(args).items() 
                         if parser.get_default(arg) != vars(args)[arg] and arg not in no_log_args}
@@ -133,16 +131,16 @@ def main(args: argparse.Namespace) -> None:
     dev = skyrmion.dev.transform(process_element)
     test = skyrmion.test.transform(process_element)
 
-    def augmented_collate_fn(examples, augment=args.augment):
+    def augmented_collate_fn(examples, args=args):
         images, labels = torch.utils.data.default_collate(examples)
-        if np.random.rand() < 0.1: # Do batch augmentation in 90% of the time
+        if np.random.rand() < 0.05: # Do batch augmentation in 95% of the time
             return images, labels
 
-        batch_aug, labels = choose_augmentation(labels, augment)
+        batch_aug, labels = choose_augmentation(labels, args)
 
         images, labels = batch_aug(images.permute(0, 3, 1, 2), labels)
         # #########
-        # SKYRMION.visualize_images(images.squeeze(), labels, row_size=args.batch_size, base_size=8)
+        # SKYRMION.visualize_images(images.squeeze(), labels, row_size=4, base_size=8)
         # #########                           
         return images.permute(0, 2, 3, 1), labels
 
@@ -184,15 +182,18 @@ def main(args: argparse.Namespace) -> None:
             return keras.optimizers.schedules.PiecewiseConstantDecay(
                 [int(0.5 * training_batches), int(0.75 * training_batches)],
                 [args.learning_rate, args.learning_rate / 10, args.learning_rate / 100])
+        
+        elif args.decay == "plateau":
+            return args.learning_rate            
 
         else:
             raise ValueError("Uknown decay '{}'".format(args.decay))
         
     # Optimizer
+    #TODO: try rmsprob
     if args.optimizer == "SGD":
         optimizer = keras.optimizers.SGD(learning_rate=get_schedule(args), weight_decay=args.weight_decay, momentum=0.9, nesterov=True, clipnorm=1.0)
     elif args.optimizer.startswith("Adam"):
-        # beta2, epsilon = map(float, args.optimizer.split(":")[1:]) # Let's use default values instead
         optimizer = keras.optimizers.AdamW(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=1.0)#, beta_2=beta2, epsilon=epsilon)
     else:
         raise ValueError("Uknown optimizer '{}'".format(args.optimizer))
@@ -202,7 +203,7 @@ def main(args: argparse.Namespace) -> None:
     if args.model == "model5":
         model = models.Model5(args)
     elif args.model == "resnet":
-        model = models.ResNet(args)
+        model = models.ModelRes(args)
     elif args.model == "cbam":
         model = models.ModelCBAM(args)
     elif args.model == "ffn":
@@ -233,23 +234,26 @@ def main(args: argparse.Namespace) -> None:
         # keras.metrics.MeanSquaredError(name="mse_accuracy")        
         ])
 
-    tb_callback = TorchTensorBoardCallback(args, transition_datasets=skyrmion_transitions, fm_dataset=skyrmion_fm)
+    callbacks = get_callbacks(args, skyrmion_transitions, skyrmion_fm, test)
 
-    model.fit(train, epochs=args.epochs, validation_data=dev, callbacks=[tb_callback])
+    model.fit(
+        train, 
+        epochs=args.epochs, 
+        validation_data=dev, 
+        callbacks=callbacks
+        )
 
     if args.save_model:
-        save_dir = base_path / "saved_models" / ("sub" if args.scope else "full")
+        save_dir = base_path / "saved_models" / args.scope / (args.logdir_suffix or "")
         save_dir.mkdir(parents=True, exist_ok=True)
         model.save((save_dir / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
 
-    if skyrmion.test.__len__() > 0:
-        with open((Path(args.logdir) / "skyrmion_test").with_suffix(".txt"), "w", encoding="utf-8") as predictions_file:
-            for probs in model.predict(skyrmion.test.data["images"], batch_size=args.batch_size):
-                print(np.argmax(probs), file=predictions_file)
-    else:
-        print(f"No test data provided. File 'skyrmion_test.txt' won't be created.") 
-
 if __name__ == "__main__":
+    # parse args
     args = parser.parse_args([] if "__file__" not in globals() else None)
     args = replace_none_strings(vars(args))
+    args["periodic_pad"] = args.get("padding") == "periodic"
+    if args.get("periodic_pad"):
+        args["padding"] = "valid"
+
     main(argparse.Namespace(**args))
