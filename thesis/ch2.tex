@@ -5,12 +5,12 @@
 The primary source for this chapter is \cite{bengio2017deep}.
 
 \section{Machine learning}
-Many problems are challenging to define or solve using classical mathematical tools. Imagine going back to the early 2000s, when you were given a set of images represented by a grid of real numbers, and your task was to devise a rule to decide whether there was a dog, a cat, or an elephant in a given picture. At first glance, it doesn't seem the mathematical framework is well-suited to tackle such questions. You may try to develop some distinct geometrical features, for example, cats have pointy ears, and elephants have a trunk. Then, you can try to find these shapes in the images, and you may have some success with such an approach. If I ask you to do the same, not with $3$ categories, but with $1000$ different classes, the problem seems impossible to solve. Today, we know such things are possible, mainly due to the rapid advancement in the field of \emph{Machine learning (ML)}. At its core, machine learning looks at such a problem from a probabilistic view. In this chapter, we aim to introduce the main theoretical concepts as well as practical ideas that lay the basis for the practical part of this thesis. We use the terms \textit{machine} and \textit{statistical} learning interchangeably in the spirit of Larry Wasserman's quote: "There are no machines, only statistics."
-Nevertheless, it is important to acknowledge the difference between these two fields. Even though these fields are identical in their intent (learning from the data) and their mathematical base, their history, culture, and future development direction set them apart quite substantially. While traditional statistics leans on interpretability, formal inference, and hypothesis testing, intending to most rigorously describe the data-generating process, the development in machine learning is highly driven by improvement in predictive performance. This nature allows the field of ML to evolve rapidly, with the application to various problems. To name a few, we can mention classification, regression, transcription, translation, anomaly detection, density estimation, etc. The development in machine learning addresses ever more complex tasks, like image generation, protein folding, or large language models (LLMs) for context-appropriate, human-like text generation. These fields of application are, however, very remote in scale compared to our situation. For example, LLMs are often trained on any available digitized text, routinely using substantial parts of the whole internet content. Compared to that, our data options are much more limited, and our task is specialized and clearly defined. This also encourages us to adopt some ways of thinking closer to more traditional statistical approaches. Our setup allows us to use relatively simple statistical models and try to improve their performance with our understanding of their internal dynamics and interpretation of the inference.
+Many problems are challenging to define or solve using classical mathematical tools. Imagine going back to the early 2000s, when you were given a set of images represented by a grid of real numbers, and your task was to devise a rule to decide whether there was a dog, a cat, or an elephant in a given picture. At first glance, it doesn't seem the mathematical framework is well-suited to tackle such questions. You may try to develop some distinct geometrical features, for example, cats have pointy ears, and elephants have a trunk. Then, you can try to find these shapes in the images, and you may have some success with such an approach. If I ask you to do the same, not with $3$ categories, but with $1000$ different classes, the problem seems impossible to solve. Today, we know such things are possible, mainly due to the rapid advancement in the field of \emph{Machine learning (ML)} and \emph{Deep learning (DL)}. At its core, machine learning looks at such a problem from a probabilistic view. In this chapter, we aim to introduce the main theoretical concepts as well as practical ideas that lay the basis for the practical part of this thesis. We use the terms \textit{machine} and \textit{statistical} learning interchangeably in the spirit of Larry Wasserman's quote: "There are no machines, only statistics."
+Nevertheless, it is important to acknowledge the difference between these two fields. Even though these fields are identical in their intent (learning from the data) and their mathematical base, their history, culture, and future development direction set them apart quite substantially. While traditional statistics leans on interpretability, formal inference, and hypothesis testing, intending to most rigorously describe the data-generating process, the development in machine learning is highly driven by improvement in predictive performance. This nature allows the field of ML to evolve rapidly, with the application to various problems. To name a few, we can mention classification, regression, transcription, translation, anomaly detection, density estimation, and many more. The development in machine learning addresses ever more complex tasks, like image generation, protein folding, or large language models (LLMs) for context-appropriate, human-like text generation. These fields of application are, however, very remote in scale compared to our situation. For example, LLMs are often trained on any available digitized text, routinely using substantial parts of the whole internet content. Compared to that, our data options are much more limited, and our task is specialized and clearly defined. This also encourages us to adopt some ways of thinking closer to more traditional statistical approaches. Our setup allows us to use relatively simple statistical models and try to improve their performance with our understanding of their internal dynamics and interpretation of the inference.
 
 \section{Probability and information theory}
 
-Machine learning mainly uses the language of two closely related disciplines, probability and information theory. The reason can be evident from the example we gave at the beginning of this chapter. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to our example, no two cats are the same, and cats can be caught in pictures in various positions from different angles, distances, and backgrounds. Therefore, it is sensible to think about the image of a cat as an example from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label, like a cat. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. In the rest of this section, we will introduce the key concepts from probability and information theory that we will use in further sections. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
+Machine learning is grounded in the mathematical frameworks of probability theory and information theory, which provide the tools for modeling uncertainty and quantifying information. The reason can be evident from the example we gave at the beginning of this chapter. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to our example, no two cats are the same, and cats can be caught in pictures in various positions from different angles, distances, and backgrounds. Therefore, it is sensible to think about the image of a cat as an example from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label, like a cat. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. In the rest of this section, we will introduce the key concepts from probability and information theory that we will use in further sections. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
 
 \subsection{Sample space}
 An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
@@ -139,7 +139,8 @@ While the self-information deals only with the single example, we can use it to 
     \label{eq:shannon-entropy} 
     H(P) = \mathbb{E}_{x \sim P}[I(x)] = - \mathbb{E}_{x \sim P}[\ln(P)]. 
 \end{equation}
-In other words, Shannon entropy tells us the expected amount of information while observing an event drawn from a given distribution. When dealing with two probability distributions, say $P$ (true target distribution) and $Q$ (model output distribution), we eventually need to measure how "different" or "close" they are.
+
+Shannon entropy tells us the expected amount of information while observing an event drawn from a given distribution. When dealing with two probability distributions, say $P$ (true target distribution) and $Q$ (model output distribution), we eventually need to measure how different they are.
 
 A quantity that extends the idea of Shannon entropy to two distributions is the \emph{cross-entropy}. Cross-entropy measures how well the predicted distribution $Q$ matches the true distribution $P$. It can be seen as the expected amount of surprise when the true outcomes are sampled according to $P$ but are predicted using $Q$. It is defined as:
 
@@ -158,21 +159,17 @@ Another important quantity is the \emph{Kullback-Leibler divergence} (KL diverge
     \mathbb{E}_{x \sim P} \left[ \ln \frac{P(x)}{Q(x)} \right] = \sum_{x \in \mathcal{X}} P(x) \ln \frac{P(x)}{Q(x)}. 
 \end{equation}
 
-The KL divergence is always non-negative and equals zero if and only if $P = Q$ almost everywhere. Unlike true metrics, KL divergence is not symmetric, meaning that in general $D_{\mathrm{KL}}(P | Q) \neq D_{\mathrm{KL}}(Q | P)$.
-
-It is useful to observe the relationship between cross-entropy, Shannon entropy, and KL divergence:
+The KL divergence is always non-negative and equals zero if and only if $P = Q$ almost everywhere. Unlike true metrics, KL divergence is not symmetric, meaning that in general $D_{\mathrm{KL}}(P | Q) \neq D_{\mathrm{KL}}(Q | P)$. It is useful to observe the relationship between cross-entropy, Shannon entropy, and KL divergence:
 
 \begin{equation} 
     \label{eq:cross-entropy-kl} 
     H(P, Q) = H(P) + D_{\mathrm{KL}}(P | Q).
 \end{equation}
 
-Thus, minimizing the cross-entropy between $P$ and $Q$ is equivalent to minimizing the KL divergence, up to an additive constant independent of $Q$.
-
 In the practical setting of supervised classification, we do not know the full data distribution $P$ and instead observe samples. Thus, we typically minimize the empirical cross-entropy, treating the labels as samples from $P$ and the model outputs as the distribution $Q$.
 
 \section{Machine learning}
-Machine learning builds on the concepts mentioned in the previous section. In its essence, ML is trying to find a sufficiently accurate mapping between two distributions: the distribution of the input data and the distribution of their corresponding labels \textit{(sometimes referred to as targets)}. This mapping is a statistical model with its output distribution. In most practical cases, we expect the relationship between input and output distributions to be highly nonlinear, which needs to be reflected in the model's architecture. Training a statistical model is adjusting a subset of its parameters, such that the model's output distribution matches the true label distribution more closely. We will look closer at the model training in section \ref{subsec:training}.
+Machine learning builds on the concepts mentioned in the previous section. In its essence, ML is trying to find a sufficiently accurate mapping between two distributions: the distribution of the input data and the distribution of their corresponding labels \textit{(sometimes referred to as targets)}. This mapping is a statistical model with its output distribution. In practice, we often expect the relationship between input and output distributions to be highly nonlinear, which needs to be reflected in the model's architecture. Training a statistical model is adjusting a subset of its parameters, such that the model's output distribution matches the true label distribution more closely.
 
 \subsection{Model training}
 \label{subsec:training}
@@ -204,14 +201,18 @@ By dividing by the number of training examples, we can express the objective as 
 \end{align}
 
 We see that if the empirical data distribution $\hat{p}_{\text{data}}$ accurately represents the true data distribution, the following objectives become mathematically equivalent:
-maximizing the likelihood \eqref{eq:mle_expectation},
-minimizing the negative log-likelihood (NLL) \eqref{eq:mle_nll},
-minimizing the cross-entropy \eqref{eq:mle_cross_entropy},
-and minimizing the Kullback–Leibler (KL) divergence \eqref{eq:mle_kl}.
+\begin{itemize}
+    \item Maximizing the likelihood~\eqref{eq:mle_expectation},
+    \item Minimizing the negative log-likelihood (NLL)~\eqref{eq:mle_nll},
+    \item Minimizing the cross-entropy~\eqref{eq:mle_cross_entropy},
+    \item Minimizing the Kullback–Leibler (KL) divergence \eqref{eq:mle_kl}.
+\end{itemize}
 
 
 \subsubsection{Loss function}
 In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, it is often advantageous to incorporate additional heuristics or prior knowledge into the loss, as this can lead to improved model performance and better generalization.
+
+An example of a slightly more advanced loss function is so called \emph{focal loss}. This loss is useful when we have a class imbalance in the data, meaning that for example one category has significantly less samples than the other ones.
 
 Once the loss function is defined, the task becomes an optimization problem: finding the global minimum of the loss in the high-dimensional space of the model’s parameters. Training the model is typically an iterative process that updates these parameters step-by-step to minimize the loss. We typically require the loss function to be differentiable, in order to apply gradient-based methods during minimization.
 
@@ -232,6 +233,16 @@ Computing the gradient over the entire dataset can be very slow, if not impossib
     \item Mini-batch gradient descent: A compromise between full-batch and stochastic methods. The gradient is computed over a small batch of data points, typically ranging from 16 to 512 samples. This approach is the standard in most modern applications, offering both stability and computational efficiency.
 \end{itemize}
 It it well established that the mini-batch gradient descent is the way to go if applicable, and the most popular optimization algorithms used in ML are its different extensions.
+
+\subsubsection{Underfitting/overfitting}
+A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common failure modes are:
+\begin{itemize}
+    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
+    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise or spurious correlations. While training performance is excellent, test performance degrades.
+\end{itemize}
+These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. 
+
+In the rest of this chapter we introduce the various options that can be implemented in training as well as some straight forward \emph{regularization techniques}. It is important to know and understand these options because each of them can have impact on the resulting generalization of the model.
 
 \subsubsection{Optimizers}
 
@@ -311,15 +322,17 @@ Adam has become the optimizer of choice in many applications because of its robu
 \subsubsection{Decay scheduling}
 \label{subsec:decay-scheduling}
 
+Decay scheduling is task of assigning a learning rate during training. The general idea is that as the training progresses, we want to be more conservative with the weight updates, which can be achieved by lowering the learning rate.
+
 \paragraph{None}
-The simplest approach is to keep the learning rate constant throughout the training process. Although this is easy to implement, it usually leads to suboptimal results in more complex settings. Constant learning rate training can struggle with fine-tuning the model parameters toward convergence.
+The simplest approach is to keep the learning rate constant throughout the training process. However, this usually leads to suboptimal results in more complex settings.
 
 \paragraph{Linear decay}
-In linear decay, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies, and its intuition is clear: as training progresses, we become more conservative in updating model weights. Mathematically, if $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
+In linear decay, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
 
 \begin{equation} 
 	\label{eq:linear-decay} 
-	l(t) = l_0 \left(1 - \frac{t}{T}\right). 
+	l_t = l_0 \left(1 - \frac{t}{T}\right). 
 \end{equation}
 
 \paragraph{Exponential decay}
@@ -327,7 +340,7 @@ Exponential decay reduces the learning rate multiplicatively at each step, resul
 
 \begin{equation} 
 	\label{eq:exponential-decay} 
-	l(t) = l_0 , \gamma^{t}, 
+	l_t = l_0 , \gamma^{t}, 
 \end{equation}
 
 where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
@@ -337,7 +350,7 @@ Cosine annealing is a decay schedule that reduces the learning rate following a 
 
 \begin{equation} 
 	\label{eq:cosine-decay} 
-	l(t) = l_{\mathrm{min}} + \frac{1}{2}(l_0 - l_{\mathrm{min}}) \left(1 + \cos\left( \pi \frac{t}{T} \right) \right)
+	l_t = l_{\mathrm{min}} + \frac{1}{2}(l_0 - l_{\mathrm{min}}) \left(1 + \cos\left( \pi \frac{t}{T} \right) \right)
 \end{equation}
 
 where $l_{\mathrm{min}}$ is the final learning rate. Cosine decay is popular due to its smooth and natural shape and its empirical success in many modern applications.
@@ -346,22 +359,8 @@ where $l_{\mathrm{min}}$ is the final learning rate. Cosine decay is popular due
 Piecewise decay divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by a factor of $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
 
 \paragraph{Plateau-based decay}
-In some cases, it is preferable to adapt the learning rate dynamically based on the model's performance. \emph{Reduce on plateau} methods monitor a validation metric (e.g., validation loss) and reduce the learning rate by a factor whenever the metric stops improving for a certain number of epochs. This approach is highly adaptive and can significantly improve convergence, especially when the loss landscape is complex.
+Plateau-based methods are similar to piecewise decay, but they monitor some metric and reduce the learning rate by some factor whenever the metric stops improving for a certain number of epochs. Our implementation follows the validation loss, and if the loss doesn't improve in the last $10$ epochs, we divide the current learning rate by a factor of $10$.
 
-\subsubsection{Train/test split}
-To evaluate how well a trained model generalizes, we need to test it on data it has never seen. The most basic method for doing this is the \emph{train/test split}. The available dataset is split into two disjoint subsets: the \emph{training set}, used to update the model parameters, and the \emph{test set}, used solely to evaluate final performance.
-
-In some cases, an additional \emph{validation set} is used during training to tune hyperparameters or perform early stopping. This avoids leaking test set information into the training process, which would lead to overly optimistic estimates of performance.
-
-In our experiments, we consistently use a fixed split of the dataset into training, validation, and test sets, typically in the ratio $70\% : 15\% : 15\%$. This ensures that model performance can be reliably compared across different training runs, regularization settings, and loss functions.
-
-\subsubsection{Underfitting/overfitting}
-A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common failure modes are:
-\begin{itemize}
-    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
-    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise or spurious correlations. While training performance is excellent, test performance degrades.
-\end{itemize}
-These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high; in overfitting, the training loss continues to drop while the validation loss increases. Mitigating overfitting is one of the main motivations for various \emph{regularization} techniques, which are discussed in a later section.
 
 \subsubsection{Backpropagation}
 To efficiently compute gradients of the loss with respect to millions of model parameters, we use the \emph{backpropagation} algorithm. Backpropagation applies the chain rule of calculus to propagate the loss gradient from the output layer backward through the network. Each layer computes the gradient of the loss with respect to its parameters and passes the gradient with respect to its inputs to the preceding layer. This recursive process allows the entire gradient $\nabla_\theta \mathcal{L}$ to be computed in time linear in the number of layers.
@@ -372,7 +371,6 @@ While the mathematics of backpropagation is straightforward, its implementation 
 In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\mathbf{x}$, a neural network seeks to learn a function $f_\theta(\mathbf{x})$ parameterized by weights $\theta$, such that $f_\theta(\mathbf{x})$ yields the correct or meaningful output. The particular nature of this output defines the type of problem we are solving — either supervised, unsupervised, or reinforcement learning. In our case, we use supervised learning, where each input is paired with a known label, and the goal is to learn the mapping from inputs to outputs.
 
 Today’s collection of neural network architectures is very diverse, with each family offering distinct trade-offs. For instance, transformer-based models excel at capturing long-range dependencies and complex structures in data, but they typically require large-scale datasets and significant computational resources — conditions that are not met in our case. Given the nature of our task and the structure of our data, the most reasonable architectural choices are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}.
-
 
 \subsection{Fully connected network}
 
@@ -397,11 +395,11 @@ where $\mathbf{x}$ is the input vector, $\mathbf{W}$ is the weight matrix, $\mat
 
 In the context of classification, the final output layer typically applies a softmax activation function to produce a probability distribution over the possible classes.
 
-While fully connected networks are highly expressive and can, in principle, approximate any continuous function (according to the Universal Approximation Theorem), they tend to be inefficient for structured inputs like images. This inefficiency motivated the development of specialized architectures, such as convolutional neural networks.
+While fully connected networks can in principle approximate any continuous function, they tend to be inefficient for structured inputs like images. This inefficiency motivated the development of specialized architectures, such as convolutional neural networks.
 
 \subsection{Convolutional network}
 
-Convolutional neural networks (CNNs) are designed to process data with a grid-like structure, most notably images. Unlike fully connected networks, CNNs leverage the spatial structure of the data by applying convolutional operations, greatly reducing the number of parameters and improving generalization.
+Convolutional neural networks (CNNs) are designed to process data with a grid-like structure, for example 1-D sequences or 2-D images. Unlike fully connected networks, CNNs capture the spatial structure of the data while greatly reducing the number of parameters.
 
 \paragraph{Computation of convolution}
 
@@ -421,10 +419,6 @@ where $(i,j)$ are the spatial coordinates of the output, and the sums run over t
   \label{fig:conv2d}
 \end{figure}
 
-\paragraph{Backpropagation through convolution}
-
-Backpropagation in convolutional layers involves calculating the gradients of the loss function with respect to the filter weights and the input. The main difference compared to fully connected layers is that weight sharing must be properly accounted for: the same filter is applied across many locations, so gradients are accumulated over all positions where the filter is used.
-
 \paragraph{Pooling layers}
 
 To further reduce the spatial dimensions and promote invariance to small translations, CNNs often include pooling layers. The most common variant is \emph{max pooling}, which down-samples the input by taking the maximum value over non-overlapping regions. For example, a $2\times2$ max pooling operation reduces each $2\times2$ region to a single value:
@@ -437,17 +431,22 @@ where $\mathcal{R}(i,j)$ denotes the receptive field corresponding to output loc
 
 Standard convolutions are computationally expensive, especially when both the input and output have many channels. One way to alleviate this is by using \emph{depthwise separable convolutions}, which decompose a convolution into two simpler operations:
 
-\begin{itemize} \item \textbf{Depthwise convolution:} A spatial convolution is applied independently to each input channel. \item \textbf{Pointwise convolution:} A $1\times1$ convolution is applied across channels to mix the features. \end{itemize}
+\begin{itemize} 
+\item \textbf{Depthwise convolution:} A spatial convolution is applied independently to each input channel. 
+\item \textbf{Pointwise convolution:} A $1\times1$ convolution is applied across channels to mix the features. 
+\end{itemize}
 
-This decomposition significantly reduces computational cost and the number of parameters, while often maintaining competitive performance.
+This decomposition significantly reduces computational cost and the number of parameters, while often maintaining or  improving performance.
 
 \paragraph{Transition to fully connected layer}
 
-After several stages of convolutions and pooling, the high-level feature maps extracted by the CNN must be converted into a form suitable for classification. This is typically achieved by flattening the feature maps into a 1D vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
+After several stages of convolutions and pooling we end up with the high-level feature maps. We must convert these into a form suitable for classification. This is typically achieved by flattening the feature maps into a 1D vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
+
+Another popular way to transition from convolutional feature maps to dense layers is \emph{global average pooling (GAP)}. Instead of flattening the entire feature map, which can result in a large number of parameters and lead to overfitting, GAP computes the average of each feature map individually. This results in a single scalar value per feature map, significantly reducing the dimensionality while preserving spatially aggregated information. It has no trainable parameters and often improves generalization by enforcing a stronger correspondence between feature maps and categories.
 
 \subsubsection{Simple convolutional block}
 
-A simple convolutional block is the foundational building unit in convolutional neural networks (CNNs). It is a sequence of layers that work together to extract features from the input data in a hierarchical manner. 
+A simple convolutional block is the foundational building unit in CNNs. It is a sequence of layers that work together to extract features from the input data in a hierarchical manner. 
 
 A standard convolutional block usually contains the following components:
 
@@ -487,7 +486,7 @@ The SE block has two main stages:
 \begin{itemize}
 	\item \textbf{Squeeze:} The spatial information in each channel is aggregated into a single scalar value by global average pooling. This operation reduces the spatial dimensions. For a feature map of shape $H \times W \times C$, the output of the squeeze step is a vector of length $C$.
 	
-	\item \textbf{Excitation:} This squeezed vector is passed through a small bottleneck feedforward neural network (typically a two-layer MLP with a ReLU activation followed by a sigmoid). The output is a set of channel-wise importance weights, one per feature channel. These weights are then used to rescale the original feature map by simple channel-wise multiplication. In other words, the network learns to emphasize informative features and suppress less useful ones, in a data-driven manner.
+	\item \textbf{Excitation:} This squeezed vector is passed through a small bottleneck feedforward neural network (typically a two-layer MLP with a ReLU activation followed by a sigmoid). The output is a set of channel-wise importance weights, one per feature channel. These weights are then used to rescale the original feature map by simple channel-wise multiplication. The network learns to emphasize important features and suppress less useful ones.
 \end{itemize}
 
 \begin{figure}[h]
@@ -506,7 +505,7 @@ For a given input feature map $\mathbf{F} \in \mathbb{R}^{C \times H \times W}$,
 	\mathbf{F'} = M_c(\mathbf{F}) \cdot \mathbf{F},
 \end{equation}
 
-Next, the spatial attention module focuses on “where” to emphasize by applying a similar pooling and convolutional process to generate a spatial attention map $M_s \in \mathbb{R}^{1 \times H \times W}$. The final output is:
+Next, the spatial attention module focuses on where to emphasize by applying a similar pooling and convolutional process to generate a spatial attention map $M_s \in \mathbb{R}^{1 \times H \times W}$. The final output is:
 
 \begin{equation}
 	\mathbf{F''} = M_s(\mathbf{F'}) \cdot \mathbf{F'},
@@ -524,7 +523,7 @@ where $\cdot$ denotes element-wise multiplication.
 By incorporating both attention types in a lightweight and modular fashion, CBAM can be easily integrated into existing convolutional architectures to improve representational power and performance.
 
 
-\section{Regularization}
+\section{Regularization techniques}
 The main source for this chapter is \cite{bengio2017deep}.
 
 We have already mentioned the key concept for ML and that is generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean images containing only a single phase, and we want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
@@ -536,9 +535,9 @@ A common way to regularize, used long before deeplearning, is to limit the capac
 
 \begin{equation}
 	\label{eq:loss-parameter-norm}
-	\tilde{L(\bm{x} \mid \bm{\theta})} = L(\bm{x} \mid \bm{\theta}) + \alpha \Omega(\bm{\theta}),
+	\tilde{L(\bm{x} \mid \bm{\theta})} = L(\bm{x} \mid \bm{\theta}) + \lambda \Omega(\bm{\theta}),
 \end{equation}
-where $\alpha \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
+where $\lambda \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
 
 This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting.
 
@@ -556,10 +555,10 @@ nd $L^1$:
 
 
 \subsection{Weight decay}
-A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss function, it modifies the weight update rule during minimization. 
-
-
-......
+A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss function, it modifies the weight update rule during minimization. Specifically, the weights are updated as:
+\[
+\mathbf{w} \leftarrow \mathbf{w} - \eta \left( \nabla_{\mathbf{w}} \mathcal{L} + \lambda \mathbf{w} \right),
+\]  
 
 \subsection{Data augmentation}
 
@@ -640,6 +639,12 @@ Yet this is not the only benefit data augmentation brings for our usecase. We ca
   \label{fig:aug_sp}
 \end{figure}
 
+\subsection{Dropout}
+
+Dropout is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
+
+Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature.
+
 \subsection{Initialization}
 
 Deep networks can suffer from either exploding and vanishing gradients, which naturally results in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by proper initialization of the weights. For both dense and convolutional layers, a common strategy is to initialize weights from distributions that take into account the number of input and output units. In the mentioned paper, authors proposed so called Xavier (or Glorot) initialization. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in both dense and convolutional layers when the activation function is symmetric around zero.
@@ -648,8 +653,3 @@ For networks with ReLU activations, one widely adopted initialization method is 
 
 For convolutional layers, these principles are applied in a spatially-aware manner, where $n_{\text{in}}$ and $n_{\text{out}}$ correspond to the number of input and output channels multiplied by the kernel size.
 
-\subsection{Dropout}
-
-Dropout is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
-
-Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature.

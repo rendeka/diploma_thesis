@@ -11,9 +11,9 @@ import torch
 
 from pathlib import Path
 from skyrmion_dataset import SKYRMION
-from tensorboard_callback import TorchTensorBoardCallback, get_callbacks
+from tensorboard_callback import get_callbacks
 from augmentation import choose_augmentation
-from losses import WeightedSoftCrossEntropy
+from custom_losses import WeightedSoftCrossEntropy
 import models
 
 parser = argparse.ArgumentParser()
@@ -44,7 +44,7 @@ parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Fi
 parser.add_argument("--logdir_suffix", default=None, type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
 parser.add_argument("--loss", default="CCE", type=str, choices=["CCE", "KLD", "MSE", "weighted", "focal"], help="Loss function")
 parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn"], help="Model of choice")
-parser.add_argument("--normalize_input", default=False, type=bool, help="Whether to normalize")
+# parser.add_argument("--normalize_input", default=False, type=bool, help="Whether to normalize")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam", "AdamW", "RMSprop"], help="Optimizer type")
 parser.add_argument("--padding", default ="periodic", type=str, choices=["same", "valid", "periodic"], help="Padding in convolutional layers")
 parser.add_argument("--phase_augment", default=["None", "cutmix", "cutmix"], type=str, choices=["cutmix", "mixup", "None"], nargs="+", help="Combining images within the same phase")

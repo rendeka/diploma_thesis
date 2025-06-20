@@ -152,10 +152,11 @@ In the discrete case, this integral is approximated by approach described in \ci
   \caption{Magnetization and topological number across parameter space.}
   \label{fig:magnetization_topology}
 \end{figure}
+\todo{Increase tick/label sizes}
 
 \subsection{Challenges of this dataset}
 
-Looking at the single phase configurations in \ref{fig:phases}, the classification tasks may seem rather trivial, considering what are current image classification models capable of. However, the challenges of this dataset are multiple. Firstly, we want to predict the portion of each class in configurations where two phases are present without having any labels for such cases. Therefore it is a very non-trivial problem both to succesfully train and also evaluate the performance of a model on such cases. 
+Looking at the single phase configurations in \ref{fig:phases}, the classification tasks may seem rather trivial, especially considering what are current image classification models capable of. However, the challenges of this dataset are multiple. Firstly, we want to predict the portion of each class in configurations where two phases are present without having any labels for such cases. Therefore it is a very non-trivial problem both to succesfully train and also evaluate the performance of a model on such cases. 
 
 \begin{figure}[h]
   \centering
@@ -169,7 +170,7 @@ The second difficulty of this dataset is related to how the skyrmions and magnet
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.95\textwidth]{img/phase_map.pdf}
-  \caption{Magnetic configurations in different location within the phase diagram. Note that the axes are non linear, and the ranges of $B$ and $D$ are .}
+  \caption{Magnetic configurations in different location within the phase diagram. Note that the axes are non linear, and the ranges of $B$ and $D$ are not including the whole dataset.}
   \label{fig:phase_map}
 \end{figure}
 
@@ -189,16 +190,20 @@ In the figure \ref{fig:transitions_Q} we see the datapoint near the phase transi
 
 Before training any neural network, we need to process the data into a form that both reflects the underlying physics and makes the training procedure more effective. In our case, the raw data are $200 \times 200 \times 3$ vector fields representing spin configurations, and the proper preprocessing is straight forward. From each configuration, we take only the $z$-component, which significantly reduces the data size, while maintaining all relevant information. This choice is also favours practical considerations, because this way we treat the configurations as greyscale images, comparable to experimental images obtained via electron microscopy.
 
-Next, we normalize the pixel values of each image using min-max scaling to transform them into the range $[0, 1]$. This is known to improve convergence by reducing the risk of unnecessarily large or saturated gradients, especially during the early stages of training.
+In our case, each pixel value on any image is in the range $[0, 1]$, which is ideal for the model training. When dealing with typical images, the pixel values are integers from $[0 \cdots 255]$, in which case using for example min-max scaling for all images is a very important step. It is known to improve convergence by reducing the risk of unnecessarily large or saturated gradients, especially during the early stages of training.
 
 We also split the dataset into training, development, and testing sets. To do this, we utilize physical indicators: the average magnetization and the topological number. These quantities allow us to identify regions of the phase diagram where the configuration is clearly ferromagnetic, skyrmionic, or spiral. From these well-separated regions, we assign one-hot encoded labels: $(1, 0, 0)$ for ferromagnetic, $(0, 1, 0)$ for skyrmion, and $(0, 0, 1)$ for spiral phase. These cleanly labeled configurations are then randomly split into training, development, and test sets.
-
 
 
 \subsection{Taking subset of this dataset}
 
 To simplify our problem at first, we will restrict ourselves to a subset of the data, looking only at the strip of the original phase diagram. This way, we don't deal with the complications caused by the changing size of skyrmions and spirals. We focus on improving the performance of neural networks on the phase boudaries first, and can try so solve the problem of changing size later.
 
+
+\subsubsection{Train/test split}
+To evaluate how well a trained model generalizes, we need to test it on the previously unseen data. The most basic method for doing this is the \emph{train/test split}. The available dataset is split into two disjoint subsets: the \emph{training set}, used to update the model parameters, and the \emph{test set} to evaluate final performance.
+
+It is useful to have also a third data set, so called \emph{validation set} to use for tuning hyperparameters or to perform early stopping during training. 
 
 \begin{figure}[ht]
   \centering
@@ -219,3 +224,4 @@ To simplify our problem at first, we will restrict ourselves to a subset of the 
   \label{fig:sub_train_dev_test_split}
 \end{figure}
 
+We choose a relatively small number of skyrmion samples, however these configurations have just minimal deformations in the lattice. Then we picked a few blocks of configurations from ferromagnet and spiral phase, where in both cases, the blocks are relatively far from the skyrmion phase. This way we train the model on clean single phase configurations, utilizing various regularization techniques in order to generalize even on the configurations containing some defects or mixtures of two phases. 

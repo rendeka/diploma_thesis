@@ -43,7 +43,7 @@ A lower value of $S$ indicates smoother transitions and suggests that the model 
 \end{enumerate}
 
 \subsection{Feature Map Visualizations}
-We can gain insight into a trained model by visualizing its feature maps. We start with a given input image and pass it through the model. At each convolutional layer, the learned filters are applied to the input, producing a set of feature maps on the output. By visualizing these feature maps, we can get an idea of what kind of features the model is focusing on at different depths. This can help us make more informed decisions when designing or selecting model architectures.
+We can gain insight into a trained convolutional model by visualizing its feature maps. We start with a given input image and pass it through the model. At each convolutional layer, the learned filters are applied to the input, producing a set of feature maps on the output. By visualizing these feature maps, we can get an idea of what kind of features the model is focusing on at different depths. This can help us make more informed decisions when designing or selecting model architectures.
 
 We have also implemented the Grad-CAM method \cite{Selvaraju_2019}, which produces a coarse localization heatmap highlighting the regions in the input that contribute the most to the prediction. The idea is to compute the gradient of the output with respect to the feature maps in the last convolutional layer and use this information to weigh the feature maps. The result is a heatmap that can be overlaid on the input image to indicate important regions.
 
@@ -57,16 +57,68 @@ The output layer consisted of $3$ neurons with sigmoid activation. This output i
 
 They used mean squared error as the loss function and employed early stopping once a specific accuracy threshold was reached, while also monitoring validation loss to avoid overfitting. The optimizer used was stochastic gradient descent with momentum.
 
-\subsubsection{Results}
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/phase_diagram_mazurenko.pdf}
+    \caption{Dense neural network as specified in \cite{iakovlev2018supervised}.}
+    \label{fig:phase_diagram_mazurenko}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/phase_diagram_ffn_regularized.png}
+    \caption{Regularized dense neural network.}
+    \label{fig:phase_diagram_ffn_regularized}
+  \end{subfigure}
+  \caption{Reconstruction of phase diagram using dense neural networks.}
+  \label{fig:phase_diagram_ffn}
+\end{figure}
 
-The 
+The results of this network are best described by the reconstructed phase diagram \ref{fig:ffn_mazurenko}. We clearly see that the model overfits on the training data, and do not recongnize any skyrmions in the testing set. The model fails to generalize and interprets all skyrmion lattices as magnetic spirals. We can try to apply some regularization techniques and see if they improve the generalization. The resulting phase diagram is in \ref{fig:ffn_regularized}
+
 
 \subsection{Simple CNN}
+
+The best activation is gelu, achieving great results on the testing dataset.
+
+\todo{images not visible}
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cnn_fe_sk_transition.png}
+    \caption{Ferromagnet to skyrmion lattice transition}
+    \label{fig:cnn_fe_sk_trans}
+  \end{subfigure}
+  \vskip\baselineskip
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/cnn_sk_sp_transition.png}
+    \caption{Skyrmion lattice to magnetic spiral transition}
+    \label{fig:cnn_sk_sp_trans}
+  \end{subfigure}
+  \caption{Visualized prediction of CNN model with gelu activation on configurations near phase transitions.}
+  \label{fig:cnn_transitions}
+\end{figure}
+
+\todo{Dropout is probably not working but test again.}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/phase_diagram_cnn_gelu.pdf}
+  \caption{Reconstruction of phase diagram using CNN with gelu activation.}
+  \label{fig:phase_diagram_cnn_gelu}
+\end{figure}
+
+
+If we compare the reconstruction of phase diagram made by the CNN \ref{fig:phase_diagram_cnn_gelu} with the previous phase diagram obtain with dense neural networks \ref{fig:phase_diagram_ffn}, we see potentially great improvement. However, already from \ref{fig:cnn_transitions} we see that this model doesn't behave ideally on the phase transitions, because it isn't sensitive to it's continuous nature. We try to improve on this by using data augmentations.
+
+\todo{Add figure showing that augmentations improve transitions}
+
 \subsection{More sophisticated CNN}
+\todo{cbam, resnet and se-block results}
+
 \subsection{Discussion}
 
-\section{Results on the full dataset}
-\subsection{Fully connected network}
-\subsection{Simple CNN}
-\subsection{More sophisticated CNN}
-\subsection{Discussion}

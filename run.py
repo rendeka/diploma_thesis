@@ -327,79 +327,25 @@ runs = []
 # )
 
 
-# Convolution type
-runs.append(
-    RUN(
-        name="conv_type",
-        args_combinations={
-            "--activation": ["relu"],
-            # "--augment": [None],
-            "--conv_type": ["standard", "ds"],
-            "--decay": ["cosine"],
-            "--depth": [3],
-            "--early_stopping": [True],
-            "--epochs": [150],
-            "--filters": [32],
-            # "--head": ["sigmoid"],
-            "--logdir_suffix": ["conv_type"],
-            "--learning_rate": [0.1],
-            "--loss": ["KLD"],
-            "--model": ["model5"],
-            # "--optimizer": ["SGD", "Adam", "RMSprop"],
-            "--save_model": [True],
-            "--scope": ["sub"],
-            "--seed": [5, 6, 7, 8],
-        },
-        n_threads = 4    
-    )
-)
-
-# Depth
-runs.append(
-    RUN(
-        name="depth",
-        args_combinations={
-            "--activation": ["relu"],
-            # "--augment": [None],
-            # "--conv_type": ["standard", "ds"],
-            "--decay": ["cosine"],
-            "--depth": [2, 3, 4],
-            "--early_stopping": [True],
-            "--epochs": [150],
-            "--filters": [32],
-            # "--head": ["sigmoid"],
-            "--logdir_suffix": ["depth"],
-            "--learning_rate": [0.1],
-            "--loss": ["KLD"],
-            "--model": ["model5"],
-            # "--optimizer": ["SGD", "Adam", "RMSprop"],
-            "--save_model": [True],
-            "--scope": ["sub"],
-            "--seed": [5, 6, 7, 8],
-        },
-        n_threads = 4    
-    )
-)
-# Pooling
+# # Convolution type
 # runs.append(
 #     RUN(
-#         name="pooling",
+#         name="conv_type",
 #         args_combinations={
 #             "--activation": ["relu"],
 #             # "--augment": [None],
-#             # "--conv_type": ["standard", "ds"],
+#             "--conv_type": ["standard", "ds"],
 #             "--decay": ["cosine"],
 #             "--depth": [3],
 #             "--early_stopping": [True],
 #             "--epochs": [150],
 #             "--filters": [32],
 #             # "--head": ["sigmoid"],
-#             "--logdir_suffix": ["pooling"],
+#             "--logdir_suffix": ["conv_type"],
 #             "--learning_rate": [0.1],
 #             "--loss": ["KLD"],
 #             "--model": ["model5"],
 #             # "--optimizer": ["SGD", "Adam", "RMSprop"],
-#             "--pooling": ["max", "average", "no"],
 #             "--save_model": [True],
 #             "--scope": ["sub"],
 #             "--seed": [5, 6, 7, 8],
@@ -408,10 +354,93 @@ runs.append(
 #     )
 # )
 
-# Stride
+# # Depth
 # runs.append(
 #     RUN(
-#         name="stride",
+#         name="depth",
+#         args_combinations={
+#             "--activation": ["gelu"],
+#             # "--augment": [None],
+#             # "--conv_type": ["standard", "ds"],
+#             "--decay": ["cosine"],
+#             "--depth": [2, 3, 4],
+#             "--early_stopping": [True],
+#             "--epochs": [150],
+#             "--filters": [32],
+#             # "--head": ["sigmoid"],
+#             "--logdir_suffix": ["depth"],
+#             "--learning_rate": [0.1],
+#             "--loss": ["KLD"],
+#             "--model": ["model5"],
+#             # "--optimizer": ["SGD", "Adam", "RMSprop"],
+#             "--save_model": [True],
+#             "--scope": ["sub"],
+#             "--seed": [5, 6, 7, 8],
+#         },
+#         n_threads = 4    
+#     )
+# )
+# # Pooling
+# # runs.append(
+# #     RUN(
+# #         name="pooling",
+# #         args_combinations={
+# #             "--activation": ["relu"],
+# #             # "--augment": [None],
+# #             # "--conv_type": ["standard", "ds"],
+# #             "--decay": ["cosine"],
+# #             "--depth": [3],
+# #             "--early_stopping": [True],
+# #             "--epochs": [150],
+# #             "--filters": [32],
+# #             # "--head": ["sigmoid"],
+# #             "--logdir_suffix": ["pooling"],
+# #             "--learning_rate": [0.1],
+# #             "--loss": ["KLD"],
+# #             "--model": ["model5"],
+# #             # "--optimizer": ["SGD", "Adam", "RMSprop"],
+# #             "--pooling": ["max", "average", "no"],
+# #             "--save_model": [True],
+# #             "--scope": ["sub"],
+# #             "--seed": [5, 6, 7, 8],
+# #         },
+# #         n_threads = 4    
+# #     )
+# # )
+
+# # Stride
+# # runs.append(
+# #     RUN(
+# #         name="stride",
+# #         args_combinations={
+# #             "--activation": ["relu"],
+# #             # "--augment": [None],
+# #             # "--conv_type": ["standard", "ds"],
+# #             "--decay": ["cosine"],
+# #             "--depth": [3],
+# #             "--early_stopping": [True],
+# #             "--epochs": [150],
+# #             "--filters": [32],
+# #             # "--head": ["sigmoid"],
+# #             "--logdir_suffix": ["stride"],
+# #             "--learning_rate": [0.1],
+# #             "--loss": ["KLD"],
+# #             "--model": ["model5"],
+# #             # "--optimizer": ["SGD", "Adam", "RMSprop"],
+# #             # "--pooling": ["max", "average", "no"],
+# #             "--save_model": [True],
+# #             "--stride": [1, 2],
+# #             "--scope": ["sub"],
+# #             "--seed": [5, 6, 7, 8],
+# #         },
+# #         n_threads = 4    
+# #     )
+# # )
+
+# # FAG
+# runs.append(
+#     RUN(
+#         name="FAG",
 #         args_combinations={
 #             "--activation": ["relu"],
 #             # "--augment": [None],
@@ -420,16 +449,16 @@ runs.append(
 #             "--depth": [3],
 #             "--early_stopping": [True],
 #             "--epochs": [150],
+#             "--fag": ["GAP", "Flatten", "SE"],
 #             "--filters": [32],
 #             # "--head": ["sigmoid"],
-#             "--logdir_suffix": ["stride"],
+#             "--logdir_suffix": ["FAG"],
 #             "--learning_rate": [0.1],
 #             "--loss": ["KLD"],
 #             "--model": ["model5"],
 #             # "--optimizer": ["SGD", "Adam", "RMSprop"],
 #             # "--pooling": ["max", "average", "no"],
 #             "--save_model": [True],
-#             "--stride": [1, 2],
 #             "--scope": ["sub"],
 #             "--seed": [5, 6, 7, 8],
 #         },
@@ -437,64 +466,72 @@ runs.append(
 #     )
 # )
 
-# FAG
-runs.append(
-    RUN(
-        name="FAG",
-        args_combinations={
-            "--activation": ["relu"],
-            # "--augment": [None],
-            # "--conv_type": ["standard", "ds"],
-            "--decay": ["cosine"],
-            "--depth": [3],
-            "--early_stopping": [True],
-            "--epochs": [150],
-            "--fag": ["GAP", "Flatten", "SE"],
-            "--filters": [32],
-            # "--head": ["sigmoid"],
-            "--logdir_suffix": ["FAG"],
-            "--learning_rate": [0.1],
-            "--loss": ["KLD"],
-            "--model": ["model5"],
-            # "--optimizer": ["SGD", "Adam", "RMSprop"],
-            # "--pooling": ["max", "average", "no"],
-            "--save_model": [True],
-            "--scope": ["sub"],
-            "--seed": [5, 6, 7, 8],
-        },
-        n_threads = 4    
-    )
-)
-
-# Dropout
-runs.append(
-    RUN(
-        name="dropout",
-        args_combinations={
-            "--activation": ["relu"],
-            # "--augment": [None],
-            # "--conv_type": ["standard", "ds"],
-            "--decay": ["cosine"],
-            "--depth": [3],
-            "--dropout": [0, 0.1, 0.2],
-            "--early_stopping": [True],
-            "--epochs": [150],
-            "--filters": [32],
-            # "--head": ["sigmoid"],
-            "--logdir_suffix": ["dropout"],
-            "--learning_rate": [0.1],
-            "--loss": ["KLD"],
-            "--model": ["model5"],
-            # "--optimizer": ["SGD", "Adam", "RMSprop"],
-            "--save_model": [True],
-            "--scope": ["sub"],
-            "--seed": [5, 6, 7, 8],
-        },
-        n_threads = 4    
-    )
-)
+# # Dropout
+# runs.append(
+#     RUN(
+#         name="dropout",
+#         args_combinations={
+#             "--activation": ["relu"],
+#             # "--augment": [
+#             #     None,
+#             #     "cutmix",
+#             #     ("tailored", "cutmix", None, "cutmix", None),
+#             #     ],           
+#             "--decay": ["cosine"],
+#             "--depth": [3],
+#             "--dropout": [0, 0.1, 0.2],
+#             "--early_stopping": [True],
+#             "--epochs": [150],
+#             "--filters": [32],
+#             # "--head": ["sigmoid"],
+#             "--logdir_suffix": ["dropout"],
+#             "--learning_rate": [0.1],
+#             "--loss": ["KLD"],
+#             "--model": ["model5"],
+#             # "--optimizer": ["SGD", "Adam", "RMSprop"],
+#             "--save_model": [True],
+#             "--scope": ["sub"],
+#             "--seed": [5, 6, 7, 8],
+#         },
+#         n_threads = 4    
+#     )
+# )
 
 # New loss
+
+# Hope for the best
+
+runs.append(
+    RUN(
+        name="best",
+        args_combinations={
+            "--activation": ["relu"],
+            "--augment": [
+                None,
+                "cutmix",
+                ("tailored", "cutmix", None, "cutmix", None),
+                ],            
+            # "--conv_type": ["standard", "ds"],
+            "--decay": ["plateau"],
+            "--depth": [3],
+            "--dropout": [0.5],
+            "--early_stopping": [True],
+            "--epochs": [150],
+            "--filters": [32],
+            # "--head": ["sigmoid"],
+            "--logdir_suffix": ["best"],
+            "--learning_rate": [0.1],
+            "--loss": ["KLD"],
+            "--model": ["model5"],
+            # "--optimizer": ["SGD", "Adam", "RMSprop"],
+            "--save_model": [True],
+            "--scope": ["sub"],
+            "--seed": [5, 6, 7, 8],
+            "--spatial_dropout": [0.25],
+        },
+        n_threads = 4    
+    )
+)
 
 
 if __name__ == "__main__":
