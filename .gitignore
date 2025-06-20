@@ -7,6 +7,9 @@ __pycache__/
 # Ignore all files with "log" in their name (case-insensitive)
 *[lL][oO][gG]*
 
+# Ignore saved_models/ folder
+saved_models/
+
 # Ignore the entire 'old_code' folder
 old_code/
 

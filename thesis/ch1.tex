@@ -3,22 +3,18 @@
 
 \section{Physics of skyrmions}
 
-In this section, we take a closer look at how skyrmions emerge and describe our dataset throughout, as this is an essential part of defining our problem.
-
-Multiple distinct mechanisms can result in the emergence of magnetic skyrmions \cite{fert2017magnetic}. The more obscure one is facilitated solely through dipole interactions. Typically, skyrmions emerge due to antisymmetric exchange. The consequences of such an interaction were first observed as weak ferromagnetism in antiferromagnetic crystals in the early 20th century. A theoretical understanding of this phenomenon was provided by the work of Igor Dzyaloshinskii, who showed that the interaction was due to the relativistic spin-lattice and magnetic dipole interactions. Later, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism behind this interaction. In acknowledgment of their contribution, the antisymmetric exchange is commonly referred to as Dzyaloshinskii-Moriya interaction \emph{(DMI)}. It can be present in thin films with broken inversion symmetry or in on-centrosymmetric magnetic materials due to chiral interactions between atomic spins. 
+Multiple distinct mechanisms can result in the emergence of magnetic skyrmions \cite{fert2017magnetic}. In some cases, skyrmions can emerge solely due to dipole interactions, but typically they are facilitated through an antisymmetric exchange. The consequences of such interaction were first observed as weak ferromagnetism in antiferromagnetic crystals in the early 20th century. A theoretical understanding of this phenomenon was provided by Igor Dzyaloshinskii, who showed that the interaction was due to the relativistic spin-lattice and magnetic dipole interaction. Later, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism behind this interaction. In acknowledgment of their work, the antisymmetric exchange is referred to as \emph{Dzyaloshinskii–Moriya (DM) interaction}.
 
 \subsection{Dzyaloshinskii–Moriya interaction}
 
-Dzyaloshinskii–Moriya interaction (DMI), also called antisymmetric exchange, plays an essential role in forming magnetic skyrmions. It is a magnetic exchange interaction between particles with non-zero spin,  charecterized by the hamiltonian:
+DM interaction plays an essential role in forming magnetic skyrmions and magnetic spirals in chiral magnets. It is a magnetic exchange interaction between particles with non-zero spin, characterized by the hamiltonian:
 
 \begin{equation}
 	\label{DM-interaction-hamiltonian}
 	H^{\text{DM}}_{ij} = \bm{D}_{ij} \dot (\bm{S}_i \times \bm{S}_j),
 \end{equation}
 
-where $\bm{D}_{ij}$ is a Dzyaloshinskii–Moriya vector characterizing the interaction, and $\bm{S}_i$, $\bm{S}_j$ are spin vectors. 
-
-This means that the DM interaction prefers the perpendicular orientation of neighboring spins. The Dzyaloshinskii–Moriya vector $\bm{D}_{ij}$ is given by the symmetry of the system. DMI also mediates one other non-trivial stable magnetic arrangement, which is a \emph{spin spiral}. 
+where $\bm{D}_{ij}$ is a Dzyaloshinskii–Moriya vector, and $\bm{S}_i$, $\bm{S}_j$ are spins. From the hamiltonian we see that the DM interaction prefers the perpendicular orientation of neighboring spins. The Dzyaloshinskii–Moriya vector $\bm{D}_{ij}$ is given by the symmetry of the system. 
 
 The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influences the topology of skyrmions and spirals.
 
@@ -60,55 +56,166 @@ The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influenc
         \label{fig:spin-neel}
     \end{subfigure}
 
-    \caption{Preferred configuration of neighbouring spins in one plane, depending on the direction of DM vector. Subfigure \textbf{\subref{fig:spin-bloch}} shows the case when DM vector is perpendicular to the spin plane. This configuration results in a formation of Bloch-type skyrmions. In \textbf{\subref{fig:spin-neel}}, the DM vector lies in the spin plane, leading to the emergence of Néel-type skyrmions.}
+    \caption{Preferred configuration of neighbouring spins, depending on the direction of DM vector. Subfigure \textbf{\subref{fig:spin-bloch}} shows the case when DM vector is perpendicular to the spin plane. This configuration results in a formation of Bloch-type skyrmions. In \textbf{\subref{fig:spin-neel}}, the DM vector lies in the spin plane, leading to the emergence of Néel-type skyrmions.}
     \label{fig:spin}
 \end{figure}
 
-\subsection{Skyrmion properties}
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/skyrmion_bloch.png}
+    \caption{Bloch-type skyrmion.}
+    \label{fig:skyrmion_block}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/skyrmion_neel.png}
+    \caption{Néel-type skyrmion}
+    \label{fig:skyrmion_neel}
+  \end{subfigure}
+  \caption{Bloch and Néel-type skyrmions. Adapted from \cite{kang2016skyrmion}}
+  \label{fig:skyrmion_types}
+\end{figure}
 
-Skyrmions can be characterized by topological number $S$ defined in $2$ dimensions as:
-\begin{equation}
-    \label{eq:topological-number}
-    S = \frac{1}{4\pi} \int \bm{m} \dot (\partial_x \bm{m} \times \partial_y \bm{m})dx dy.
-\end{equation}
-
-Skyrmions have value of $S=\pm1$. This topological property is very important as it gives stability to skyrmions as continuous transformation to a spin configuration with different value of $S$ would require passing through a potential barrier.
-
-
-Main source \cite{li2023magnetic}
+Ilustation of Bloch and Néel-type skyrmions is in \ref{fig:skyrmion_types}.
 
 \section{Dataset}
+\subsection{Monte-Carlo simulation}
 
-\subsection{Monta-Carlo simulation}
+\todo{I would like to acknowledge that the simulation of this dataset wasn't a part of this thesis, but not sure what to cite.} 
 
-Firstly, I would like to acknowledge that the simulation of this dataset was done by \xxx{...}, and wasn't direct concern of this thesis. 
+Our dataset is based on $9840$ magnetic configurations simulated via Monte-Carlo simulations. The configuration is a discrete $200\times200$ grid, filled with $3-D$ magnetic spins with constant length $|\bm{S}| = 1$, simulated using periodic boundary conditions. The direction of $\bm{D}_{ij}$ was fixed and oriented in the spin plane, facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $0$ to $235$ in similar manner, with the spacing by $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations. The resulting magnetic configurations cover all 3 phases, as well as the transitions between these them. An example how a single-phase configurations look like, see \ref{fig:phases} 
 
-A fundamental part of any machine learning problem is the dataset we have. Our dataset consists of 9840 images of magnetic configurations simulated via Monte-Carlo simulations on a discrete $200\times200$ square grid with periodic boundary conditions near absolute zero temperature. The simulations were done with the constant direction $\bm{D}_{ij}$ of in conditions given be values of $D$ and $B$. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $100$ to $200$ in similar manner, with the space of $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations.
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/fe.pdf}
+    \caption{Ferromagnet}
+    \label{fig:ferromagnet}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/sk.pdf}
+    \caption{Skyrmion}
+    \label{fig:skyrmion}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/sp.pdf}
+    \caption{Spiral}
+    \label{fig:spiral}
+  \end{subfigure}
+  \caption{Example of magnetic configurations containing a single phase. In \textbf{\subref{fig:ferromagnet}} you can see a ferromagnet phase, in \textbf{\subref{fig:skyrmion}} skyrmion phase and in \textbf{\subref{fig:spiral}} the spiral phase.}
+  \label{fig:phases}
+\end{figure}
 
 \subsection{Topological charge, magnetization}
 
-\xxx{Magnetic configurations can described by different physical properties. The two most useful ones in our context are the \emph{topological charge} and the \emph{magnetization}. While magnetization is a relatively straightforward global characteristic of a magnetic configuration, the topological charge captures deeper structural properties.
+We can describe magnetic configurations by different physical properties \cite{li2023magnetic}. The two most useful ones in our context are the \emph{topological charge} and the \emph{magnetization}. While total magnetization is a well known and straightforward characteristic of a magnetic configuration, the topological charge is bit more nuanced, but captures deeper structural properties.
 
-Let us start with the simpler of the two, the total magnetization. Suppose we are given a two-dimensional lattice where each site carries a spin vector $\mathbf{S}_i \in \mathbb{R}^3$ of unit length. The total magnetization is then defined as the average of all spins across the lattice:}
+Having a 2-D lattice where each site carries a spin vector $\mathbf{S}_i \in \mathbb{R}^3$ of unit length. The total magnetization is then defined as the average of all spins across the lattice:
 
 \begin{equation}
-    \mathbf{M} = \frac{1}{N} \sum_{i} \mathbf{S}_i,
+    \mathbf{M} = \frac{1}{N} \sum_{i=1}^N \mathbf{S}_i,
 \end{equation}
 
-\xxx{where $N$ is the total number of spins. The vector $\mathbf{M}$ encodes the global orientation and magnitude of the magnetic order. In the case of the ferromagnetic phase, all spins align in the same direction, and the magnetization vector has maximal norm, $|\mathbf{M}| \approx 1$. On the contrary, for more complex configurations such as spiral or skyrmion phases, the global alignment vanishes or significantly weakens, and $|\mathbf{M}|$ approaches zero.
+where $N$ is the total number of spins. In the case of the ferromagnetic phase, all spins align in the same direction, and the magnetization vector has maximal norm, $||\mathbf{M}||_2 \approx 1$. On the contrary, for more complex configurations such as spiral or skyrmion phases, the global alignment vanishes or significantly weakens, and $||\mathbf{M}||_2$ is closer to zero.
 
-Topological charge, on the other hand, is more nuanced. It is a quantity that remains invariant under continuous deformations of the spin field — in other words, it is a topological invariant. For two-dimensional systems, the most commonly used version of the topological charge is defined via the skyrmion number:
-}
+A topological charge, also refered to as \emph{topological number} or \emph{skyrmion number}, measures how many times the spin configuration wraps around the unit sphere. For 2-D systems it is defined as:
 
 \begin{equation}
     Q = \frac{1}{4\pi} \int \mathbf{S} \cdot \left( \frac{\partial \mathbf{S}}{\partial x} \times \frac{\partial \mathbf{S}}{\partial y} \right) \, dx\,dy.
 \end{equation}
 
-\xxx{This expression measures how many times the spin configuration wraps around the unit sphere. In discrete simulations, this integral is approximated numerically on a lattice using finite differences and summing over local contributions from neighboring spin vectors. A single skyrmion typically carries $Q = \pm 1$, depending on its chirality, while a ferromagnetic or spiral phase will have a topological charge close to zero.}
+In the discrete case, this integral is approximated by approach described in \cite{berg1981definition, yin2016topological}. A single skyrmion carries $Q = \pm 1$, where the sign depends on chirality. Ferromagnetic or spiral phase will have a topological charge close to zero.
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/magnetization_full.pdf}
+    \caption{Magnetization}
+    \label{fig:magnetization}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_full.pdf}
+    \caption{Topological number}
+    \label{fig:topological_number}
+  \end{subfigure}
+  \caption{Magnetization and topological number across parameter space.}
+  \label{fig:magnetization_topology}
+\end{figure}
 
 \subsection{Challenges of this dataset}
 
-\subsection{Taking subset of this dataset}
+Looking at the single phase configurations in \ref{fig:phases}, the classification tasks may seem rather trivial, considering what are current image classification models capable of. However, the challenges of this dataset are multiple. Firstly, we want to predict the portion of each class in configurations where two phases are present without having any labels for such cases. Therefore it is a very non-trivial problem both to succesfully train and also evaluate the performance of a model on such cases. 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{img/difficult_cases.pdf}
+  \caption{Magnetic configurations near phase transitions.}
+  \label{fig:difficult_cases}
+\end{figure}
+
+The second difficulty of this dataset is related to how the skyrmions and magnetic spirals change their size and shape under different levels of external fields. To ilustrate this, as well as to help the reader understand different phases, we have compiled figure \ref{fig:phase_map}. For example we see that by increasing magnetic field, skyrmions get smaller. Also with the small DM interaction levels the magnetic spirals take various volatile shapes, whereas for higher levels spirals arrange themselves into parallel regions. These dependencies carry a significant complications to our problem, that isn't directly connected to the phase changes, which is our main concern. Therefore, we use work only subset of the whole simulated dataset,t that is bounded by the red rectanles in the figure \ref{fig:magnetization_topology}. In this region, skyrmions and spirals have similar sizes and spirals are arranged in the parallel segments. This way we can focus on the effects of regularization on the model's performance on examples near the phase transitions.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/phase_map.pdf}
+  \caption{Magnetic configurations in different location within the phase diagram. Note that the axes are non linear, and the ranges of $B$ and $D$ are .}
+  \label{fig:phase_map}
+\end{figure}
+
 
 \subsection{Data preprocessing}
+
+Our first non-trivial task is to clean the dataset, separating the single-phases comfigurations from the mixed ones. We have done it heuristically utilizing the values of total magnetization and topological number. 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/transitions_Q.pdf}
+  \caption{Configurations near the phase transitions.}
+  \label{fig:transitions_Q}
+\end{figure}
+
+In the figure \ref{fig:transitions_Q} we see the datapoint near the phase transitions, selected heuristically. These samples contain mostly the configuration with mixed magnetic phases, and we have no reliable way how to label them. Therefore, we can't use them easily during training, however our goal is to achieve reasonable predictions particularly on such data. 
+
+Before training any neural network, we need to process the data into a form that both reflects the underlying physics and makes the training procedure more effective. In our case, the raw data are $200 \times 200 \times 3$ vector fields representing spin configurations, and the proper preprocessing is straight forward. From each configuration, we take only the $z$-component, which significantly reduces the data size, while maintaining all relevant information. This choice is also favours practical considerations, because this way we treat the configurations as greyscale images, comparable to experimental images obtained via electron microscopy.
+
+Next, we normalize the pixel values of each image using min-max scaling to transform them into the range $[0, 1]$. This is known to improve convergence by reducing the risk of unnecessarily large or saturated gradients, especially during the early stages of training.
+
+We also split the dataset into training, development, and testing sets. To do this, we utilize physical indicators: the average magnetization and the topological number. These quantities allow us to identify regions of the phase diagram where the configuration is clearly ferromagnetic, skyrmionic, or spiral. From these well-separated regions, we assign one-hot encoded labels: $(1, 0, 0)$ for ferromagnetic, $(0, 1, 0)$ for skyrmion, and $(0, 0, 1)$ for spiral phase. These cleanly labeled configurations are then randomly split into training, development, and test sets.
+
+
+
+\subsection{Taking subset of this dataset}
+
+To simplify our problem at first, we will restrict ourselves to a subset of the data, looking only at the strip of the original phase diagram. This way, we don't deal with the complications caused by the changing size of skyrmions and spirals. We focus on improving the performance of neural networks on the phase boudaries first, and can try so solve the problem of changing size later.
+
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_train_sub.pdf}
+    \caption{Training dataset}
+    \label{fig:sub_train}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_dev_test_sub.pdf}
+    \caption{Development and testing data}
+    \label{fig:sub_dev_test}
+  \end{subfigure}
+  \caption{Data points in the selected region of phase space, divided into training and development/testing data.}
+  \label{fig:sub_train_dev_test_split}
+\end{figure}
 

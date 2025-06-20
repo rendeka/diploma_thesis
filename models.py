@@ -87,7 +87,7 @@ class ModelBase(keras.Model):
             keras.layers.Activation,
             self.args.activation
         )
-
+    
     # Dense layer
     @property
     def dense(self):
@@ -178,7 +178,13 @@ class ModelBase(keras.Model):
                 momentum=0.9
             ) 
         else:
-            return keras.layers.Identity  
+            return keras.layers.Identity 
+        
+    def normalize_input(self, input):
+        if self.args.normalize_input:
+            return input / keras.ops.sum(input, axis=1, keepdims=True)
+        else:
+            return input      
     
     def mc_dropout(self, rate):
         if self.args.activation == "selu" and self.args.alpha_dropout:
@@ -329,9 +335,6 @@ class ModelCBAM(ModelBase):
             num_filters = int(self.args.filters * (self.filter_scaling_factor ** i))
             hidden = self.residual_block_cbam(hidden, num_filters)
             hidden = self.pooling()(hidden)
-        
-        # hidden = keras.layers.GlobalAveragePooling2D()(hidden)
-        # hidden = keras.layers.Dense(num_filters, activation="relu")(hidden)
 
         hidden = self.feature_aggregation(hidden)
         # hidden = self.dense_block(hidden, units=num_filters)
@@ -366,14 +369,22 @@ class ModelFFN(ModelBase):
 
     def build_model(self, **kwargs):
         inputs = keras.Input(shape=self.input_shape)
+        
+        # hidden = self.pooling()(inputs)
+        # hidden = keras.layers.Flatten()(hidden)
+        
         hidden = keras.layers.Flatten()(inputs)
-        hidden = keras.layers.Dense(units=self.args.filters)(hidden)
-        hidden = self.activation()(hidden)
+
+        hidden = self.normalize_input(hidden)
+        for _ in range(self.args.depth):
+            hidden = keras.layers.Dense(units=self.args.filters)(hidden)
+            hidden = self.activation()(hidden)
         outputs = self.head(hidden)
 
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
 
 class ModelRes(ModelBase):
+
     def __init__(self, args, **kwargs):
         self.args = args 
         self.filter_scaling_factor = self.get_filter_scaling_factor

@@ -13,25 +13,27 @@ from pathlib import Path
 from skyrmion_dataset import SKYRMION
 from tensorboard_callback import TorchTensorBoardCallback, get_callbacks
 from augmentation import choose_augmentation
+from losses import WeightedSoftCrossEntropy
 import models
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--activation", default="relu", type=str, help="Activation type (see keras.activations.__dict__ to see all options)")
-parser.add_argument("--alpha_dropout", default=False, type=bool, help="True to use alpha dropout (iff selu activations is used)")
-parser.add_argument("--augment", default=["tailored", "cutmix", "None", "cutmix", "None"], type=str, choices=["None", "cutmix", "mixup", "adaptive", "tailored"], nargs="+", help="Augmentation type")
+parser.add_argument("--alpha_dropout", default=False, type=bool, help="True to use alpha dropout (iff selu activations is used)") #["tailored", "cutmix", "None", "cutmix", "None"]
+parser.add_argument("--augment", default=None, type=str, choices=[None, "None", "cutmix", "mixup", "adaptive", "tailored"], nargs="+", help="Augmentation type")
 parser.add_argument("--batch_norm", default=True, type=bool, help="True to use batch normalization")
 parser.add_argument("--batch_size", default=16, type=int, help="Batch size.")
 parser.add_argument("--bias_regularizer", default=1e-5, type=float, help="Parameter for L2 regularization of bias in convolutional kernel")
 parser.add_argument("--conv_type", default="standard", type=str, choices=["standard", "ds"], help="Convolution type ('ds' stands for depthwise-separable)")
 parser.add_argument("--dataloader_workers", default=0, type=int, help="Dataloader workers")
-parser.add_argument("--decay", default=None, type=str, choices=["None", "linear", "exponential", "cosine", "piecewise", "plateau"], help="Learning rate decay type")
+parser.add_argument("--decay", default=None, type=str, choices=[None, "None", "linear", "exponential", "cosine", "piecewise", "plateau"], help="Learning rate decay type")
 parser.add_argument("--depth", default=3, type=int, help="Model depth (use default=56 for ResNet)")
 parser.add_argument("--dropout", default=0.0, type=float, help="Dropout rate for dense layers or pixelwise")
+parser.add_argument("--early_stopping", default=False, type=bool, help="Early stopping.")
 parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--fag", default="GAP", type=str, choices=["GAP", "Flatten", "SE"], nargs="+", help="feature-aggregation: going from CONV to DENSE layer")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
 parser.add_argument("--ffm", default=True, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
-parser.add_argument("--grad_cam", default=True, type=bool, help="True to generage grad-CAM images in callback")
+parser.add_argument("--grad_cam", default=False, type=bool, help="True to generage grad-CAM images in callback")
 parser.add_argument("--head", default="softmax", type=str, help="Activation function for the classification head (use any valid keras activation)")
 parser.add_argument("--keep_batch_size", default=True, type=bool, help="If False, batch size will vary (typically will be larger while using Tailored augmentations)")
 parser.add_argument("--kernel_regularizer", default=1e-4, type=float, help="Parameter for L2 regularization of convolutional kernel")
@@ -40,9 +42,10 @@ parser.add_argument("--label_smoothing", default=0., type=float, help="Label smo
 parser.add_argument("--learning_rate", default=0.1, type=float, help="Learning rate")
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
 parser.add_argument("--logdir_suffix", default=None, type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
-parser.add_argument("--loss", default="CCE", type=str, choices=["CCE", "KLD", "MSE"], help="Loss function")
+parser.add_argument("--loss", default="CCE", type=str, choices=["CCE", "KLD", "MSE", "weighted", "focal"], help="Loss function")
 parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn"], help="Model of choice")
-parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam", "AdamW"], help="Optimizer type")
+parser.add_argument("--normalize_input", default=False, type=bool, help="Whether to normalize")
+parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam", "AdamW", "RMSprop"], help="Optimizer type")
 parser.add_argument("--padding", default ="periodic", type=str, choices=["same", "valid", "periodic"], help="Padding in convolutional layers")
 parser.add_argument("--phase_augment", default=["None", "cutmix", "cutmix"], type=str, choices=["cutmix", "mixup", "None"], nargs="+", help="Combining images within the same phase")
 parser.add_argument("--pooling", default="max", type=str, choices=["max", "average", "no"], help="Pooling type") # TRY None
@@ -190,11 +193,12 @@ def main(args: argparse.Namespace) -> None:
             raise ValueError("Uknown decay '{}'".format(args.decay))
         
     # Optimizer
-    #TODO: try rmsprob
     if args.optimizer == "SGD":
         optimizer = keras.optimizers.SGD(learning_rate=get_schedule(args), weight_decay=args.weight_decay, momentum=0.9, nesterov=True, clipnorm=1.0)
     elif args.optimizer.startswith("Adam"):
         optimizer = keras.optimizers.AdamW(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=1.0)#, beta_2=beta2, epsilon=epsilon)
+    elif args.optimizer == "RMSprop":
+        optimizer = keras.optimizers.RMSprop(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=1.0)
     else:
         raise ValueError("Uknown optimizer '{}'".format(args.optimizer))
     optimizer.exclude_from_weight_decay(var_names=["bias"])
@@ -223,6 +227,10 @@ def main(args: argparse.Namespace) -> None:
             raise Warning("Label smoothing is not implemented for KL-divergence loss.")
     elif args.loss == "MSE":
         loss = keras.losses.MeanSquaredError()
+    elif args.loss == "weighted":
+        loss = WeightedSoftCrossEntropy()
+    elif args.loss == "focal":
+        loss = keras.losses.CategoricalFocalCrossentropy()
 
     model.compile(
         optimizer=optimizer,

@@ -33,13 +33,14 @@ def get_callbacks(args, skyrmion_transitions, skyrmion_fm, test_dataset):
         )
         callbacks.append(reduce_on_plateau)
 
-    early_stopping = keras.callbacks.EarlyStopping(
-        monitor='val_loss',
-        patience=20,
-        restore_best_weights=True,
-        verbose=1
-    )
-    callbacks.append(early_stopping)
+    if args.early_stopping:
+        early_stopping = keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            patience=20,
+            restore_best_weights=True,
+            verbose=1
+        )
+        callbacks.append(early_stopping)
 
     return callbacks
 
@@ -312,7 +313,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
     
     def log_filters_and_features(self, epoch):
         """Logs convolutional filters and feature maps to TensorBoard at given milestones of training."""
-        if not self.model:
+        if self.model.__class__.__name__ == "ModelFFN":
             return
 
         total_epochs = self.args.epochs

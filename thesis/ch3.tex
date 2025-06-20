@@ -2,16 +2,65 @@
 \label{chap3}
 
 \todo{General introduction}
-This is the practical part of the thesis. We aim to understand how different machine-learning techniques, architectures, and regularization influence the behavior of a statistical model on our dataset. 
+This is the practical part of the thesis. We aim to understand how different architectures and regularization influence the behavior of a statistical model on our dataset. We start by implementing the dense neural network as specified in \cite{iakovlev2018supervised} for our data. Then implement various regularizations and different architectures described in the previous chapter, with an aim to achieve better classification and to accurately reconstruct the phase diagram.
 
-I also want to acknowledge the approach that is quite popular is the recent development of deep learning models heavily influenced by \cite{belkin2019reconciling} in 2019, showing unexpected phenomenon called \emph{Double Descent}. 
+%I also want to acknowledge the approach that is quite popular is the recent development of deep learning models heavily influenced by \cite{belkin2019reconciling} in 2019, showing an interesting phenomenon called \emph{Double Descent}. 
+
 \section{Perfomance evaluation}
-We evaluate the performance of our models in multiple different ways. The first thing we monitor is the accuracy on the training and validation datasets. We need to 
+We evaluate the performance of our models in multiple ways. The first metric we monitor is accuracy on the training and validation datasets. The accuracy is defined as the proportion of correctly predicted dominant phases. On the other hand, on the test set we accumulate the absolute value of error across the whole set. Meaning  Once we reach a reasonable accuracy on these clean samples, our focus shifts to how well it handles the cases near phase transitions. Since there are no true labels for these data, we introduce additional evaluation metrics, in order to quantitatively compare models on these data. We describe these in the section \ref{metric-definition}.
+
+Finally, we visualize the models' predictions near phase transitions to qualitatively compare their behavior. We also use the best models from each architectural family to reconstruct the phase diagram, while visually checking the configurations whether the reconstructed phase diagrams correspond to reality.
+
 \subsection{Metrics definition}
-\subsection{Feature map and grad-cam visualization}
+\label{metric-definition}
+
+In this subsection, we define metrics to evaluate model performance on data near the phase transitions between ferromagnetic $\rightarrow$ skyrmion and skyrmion $\rightarrow$ spiral phases. These configurations typically exhibit a mixture of phases within a single image, and we do not have a reliable way to assign ground truth labels to them. Usually, one part of the image is in one phase, while another part is in a different phase.
+
+The goal is to define metrics that help us evaluate models even without labeled data. One useful idea is to penalize out-of-order predictions—based on known physical behavior across parameter sweeps. Since for each $(B, D)$ pair we always have five generated images, we can also include consistency-based terms in the metric. Additionally, we want to encourage smooth transitions in predicted probabilities as we move through the phase space.
+
+The key observation we use is the following: for a fixed value of magnetic field $B$, increasing $D$ should lead to a continuous and monotonic transition from the ferromagnetic phase to the skyrmion phase, and with further increase of $D$, to the spiral phase. This gives us a way to evaluate predictions against the physically expected ordering of phase transitions.
+
+To capture these ideas, we define three metrics: out-of-order error, in-group variance, and transition smoothness.
+
+\begin{enumerate}
+\item \textbf{Out-of-order error} measures how well the predicted ordering of phase transitions matches the expected progression. For a fixed $B$, we sort the images by increasing $D$ to define a reference order $r$. We then use the model to predict the dominant phase probabilities and sort the images according to these predictions to get the predicted order $\hat{r}$. We compare $\hat{r}$ and $r$ using the Euclidean norm:
+\begin{equation}
+O = \left| \hat{r} - r \right|.
+\end{equation}
+A lower value of $O$ indicates better alignment with the expected phase transition ordering.
+
+\item \textbf{In-group variance} quantifies the consistency of predictions within groups of five equivalent images simulated under the same $(B, D)$ parameters. For each rank $r$, we compute the variance of the predicted probability vectors $p_i$ within the group and sum over all ranks:
+\begin{equation}
+V = \sum_r \mathrm{Var}(p_i \mid \hat{r}_i = r).
+\end{equation}
+A lower value of $V$ means the model consistently predicts similar probabilities for physically identical inputs.
+
+\item \textbf{Transition smoothness} measures how smoothly the predicted probabilities evolve as we move across the ranks. For each rank $r$, we compute the mean predicted probability vector $\mu_r$, and then calculate the average absolute change between successive means:
+\begin{equation}
+S = \frac{1}{N - 1} \sum_{r=1}^{N-1} \left\| \mu_{r+1} - \mu_r \right\|.
+\end{equation}
+A lower value of $S$ indicates smoother transitions and suggests that the model is sensitive to subtle, continuous changes in the spin configurations.
+\end{enumerate}
+
+\subsection{Feature Map Visualizations}
+We can gain insight into a trained model by visualizing its feature maps. We start with a given input image and pass it through the model. At each convolutional layer, the learned filters are applied to the input, producing a set of feature maps on the output. By visualizing these feature maps, we can get an idea of what kind of features the model is focusing on at different depths. This can help us make more informed decisions when designing or selecting model architectures.
+
+We have also implemented the Grad-CAM method \cite{Selvaraju_2019}, which produces a coarse localization heatmap highlighting the regions in the input that contribute the most to the prediction. The idea is to compute the gradient of the output with respect to the feature maps in the last convolutional layer and use this information to weigh the feature maps. The result is a heatmap that can be overlaid on the input image to indicate important regions.
+
+However, in our case, Grad-CAM did not provide any particularly useful information. This is because the method requires labeled data and works best when specific regions in the image are responsible for the prediction. In our dataset, especially in the clean, single-phase configurations, the relevant features are distributed uniformly across the image, and no single region carries dominant information. As a result, the generated heatmaps were mostly uniform and did not help us interpret the model's behavior in a meaningful way.
 
 \section{Results on the subset of data}
 \subsection{Fully connected network}
+In the paper \cite{iakovlev2018supervised}, the largest lattice authors used was $128 \times 128$. Their best-performing model consisted of a single hidden layer with $64$ neurons and no activation function applied to that layer. They normalized the input by the total magnetization, stating that this step was especially important at the beginning of training, as without it the model would often output only $0$ or $1$. However, this kind of normalization is non-standard and potentially risky for configurations with magnetization close to zero, which can occur in both skyrmion and spiral phases.
+
+The output layer consisted of $3$ neurons with sigmoid activation. This output is not automatically normalized to sum to $1$. Since we want the outputs to represent class probabilities summing to $1$, we manually normalize them, and we will also experiment with a more standard classification activation softmax, which enforces the normalization automatically.
+
+They used mean squared error as the loss function and employed early stopping once a specific accuracy threshold was reached, while also monitoring validation loss to avoid overfitting. The optimizer used was stochastic gradient descent with momentum.
+
+\subsubsection{Results}
+
+The 
+
 \subsection{Simple CNN}
 \subsection{More sophisticated CNN}
 \subsection{Discussion}

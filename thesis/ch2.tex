@@ -1,4 +1,4 @@
-\chapter{Machine learning}
+\chapter{Theoretical background}
 \label{chap2}
 
 
@@ -10,16 +10,16 @@ Nevertheless, it is important to acknowledge the difference between these two fi
 
 \section{Probability and information theory}
 
-Machine learning mainly uses the language of two closely related disciplines, probability and information theory. The reason can be evident from the example we gave at the beginning of this chapter. Machine learning deals with problems containing inherited uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to our example, no two cats are the same, and cats can be caught in pictures in various positions from different angles, distances, and backgrounds. Therefore, it is sensible to think about the image of a cat as an example from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label, like a cat. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. In the rest of this section, we will introduce the key concepts from probability and information theory that we will use in further sections. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts. The reader may refer to this text for more thorough and rigorous explanations.
+Machine learning mainly uses the language of two closely related disciplines, probability and information theory. The reason can be evident from the example we gave at the beginning of this chapter. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to our example, no two cats are the same, and cats can be caught in pictures in various positions from different angles, distances, and backgrounds. Therefore, it is sensible to think about the image of a cat as an example from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label, like a cat. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. In the rest of this section, we will introduce the key concepts from probability and information theory that we will use in further sections. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
 
 \subsection{Sample space}
-An important concept in probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
+An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
 
 \subsection{Random variable}
 A random variable is an important concept in ML because it provides a valid mathematical framework to represent noisy, real-world data. Random variable $X$ is a mapping from the sample space $\Omega$ into some target space (typically $\mathbb{R}$ or $\mathbb{Z}$). We can treat an example from the data as a realization of a random variable. Following the single coin toss example, we can define $X$ simply by $X(\text{head}) = 0$ and $X(\text{tail}) = 1$. The instance of a random variable is denoted by $x$ and equals $x = X(\omega)$ for some $\omega \in \Omega$, in our case $x \in \{0, 1\}$.
 
 \subsection{Probability distribution}
-Every random variable is closely tied to some probability distribution. Probability distribution quantifies the probability of each state a random variable can take. In the case of a fair coin, it would give both outcomes the same probability $\nicefrac{1}{2}$. Probability distribution can be either continuous or discrete. Both cases are relevant in most ML applications. Let us briefly introduce both of them.
+Every random variable is closely tied to some probability distribution. Probability distribution quantifies the probability of each state a random variable can take. In the case of a fair coin, it would give both outcomes the same probability $\nicefrac{1}{2}$. Probability distribution can be either continuous or discrete. Both cases are relevant in most ML applications. Let us briefly introduce both of them \cite{bengio2017deep}.
 
 \subsubsection{Discrete probability distribution}
 The discrete probability distribution is characterized by a finite (or countably infinite) set of states. We usually describe it by a \emph{probability mass function} (PMF), denoted by $P$. It assigns a probability to each state of a random variable. We denote $P(X = x) \equiv P(x)$ a probability that a random variable $X$ takes a value $x$. There are three natural properties a proper PMF has to follow:
@@ -38,7 +38,9 @@ Continuous probability distribution is described by \emph{probability density fu
 3.\quad&\int_{\mathcal{X}} p(\bm{x}) d\bm{x} = 1.
 \end{align}
 
-All the previously introduced concepts extend naturally to multiple dimensions, with the notion of \emph{random vector}. A random vector is a vector-valued function, where each component is a random variable defined on the same underlying sample space. We often need to work with multiple random vectors, each representing different but potentially related parts of the data. We often need \emph{conditional probability} to model these relationships properly.
+All the previously introduced concepts extend naturally to multiple dimensions, with the notion of \emph{random vector}. A random vector is a vector-valued function, where each component is a random variable defined on the same underlying sample space. 
+
+%We often need to work with multiple random vectors, each representing different but potentially related parts of the data. We often need \emph{conditional probability} to model these relationships properly.
 
 % \subsection{Marginal probability} Marginal probability describes the probability of a single event occurring, without considering any other variables. It is obtained by summing (or integrating, in the continuous case) over the possible values of the other variables. For discrete random variables $X$ and $Y$, the marginal probability of $X$ is given by:
 
@@ -49,7 +51,7 @@ All the previously introduced concepts extend naturally to multiple dimensions, 
 % In other words, marginalization allows us to "ignore" other variables by aggregating over them. In machine learning, we often marginalize out latent variables that are not directly observable.
 
 \subsection{Conditional probability}
-Suppose we have two random variables $(\mathbf{X}$ and $(\mathbf{Y}$. Conditional probability measures the probability of an event given that another event has occurred. Formally, the conditional probability of $X$ given $Y$ is defined as:
+Suppose we have two random variables $X$ and $Y$. Conditional probability represents the probability of one event given that another event has already occurred. The conditional probability of $X$ given $Y$ is defined as:
 
 \begin{equation} 
     P(X=x \mid Y=y) = \frac{P(X=x, Y=y)}{P(Y=y)}, 
@@ -85,11 +87,11 @@ Two random variables $X$ and $Y$ are said to be statistically independent if kno
 \end{equation}
 
 for all possible values of $x$ and $y$.
-When this condition does not hold, $X$ and $Y$ are dependent. Understanding (in)dependence is crucial when designing machine learning models, especially when modeling joint distributions or assuming factorization in probabilistic models.
+When this condition does not hold, $X$ and $Y$ are dependent. Statistical (in)dependence is important when deffining machine learning models, where we assume that our data are independent.
 
 \subsection{Likelihood}
 
-In statistics and machine learning, \emph{likelihood} is a function that tells us how probable a given set of observed data is, under a particular set of model parameters.
+The \emph{likelihood} tells us how probable a given set of observed data is, under a particular set of model parameters.
 
 Let us consider a statistical model, represented as a probability distribution $p(x \mid \theta)$, where:
 \begin{itemize}
@@ -102,14 +104,14 @@ While $p(x \mid \theta)$ is a function of $x$ for fixed $\theta$, likelihood tre
     \mathcal{L}(\theta \mid x) = p(x \mid \theta)
 \end{equation}
 
-If we observe multiple independent samples $x^{(1)}, \dots, x^{(m)}$, the total likelihood becomes a product of individual likelihoods:
+If we observe multiple independent samples $x_1, \dots, x_m$, the total likelihood becomes a product of individual likelihoods:
 \begin{equation}
-    \mathcal{L}(\theta) \equiv \mathcal{L}(\theta \mid x^{(1)}, \dots, x^{(m)}) = \prod_{i=1}^{m} p(x^{(i)} \mid \theta).
+    \mathcal{L}(\theta) \equiv \mathcal{L}(\theta \mid x_1, \dots, x_m) = \prod_{i=1}^{m} p(x_i \mid \theta).
 \end{equation}
 
 This product can be numerically unstable, hence we usually work with the \emph{log-likelihood}, which transforms the product into a sum:
 \begin{equation}
-    \log \mathcal{L}(\theta) = \sum_{i=1}^{m} \log p(x^{(i)} \mid \theta),
+    \log \mathcal{L}(\theta) = \sum_{i=1}^{m} \log p(x_i \mid \theta),
 \end{equation}
 
 This transformation preserves the extremal points and makes likelihood easier to deal with, especially when taking derivatives. 
@@ -119,14 +121,14 @@ The main task of information theory is to quantify the amount of information in 
 \begin{itemize}
     \item Likely events should carry low information content. For example, if an event $x$ occurs with high probability, it is not surprising, and thus $I(x)$ should be small. In the extreme case of a certain event (i.e., $p(x) = 1$), we expect $I(x) = 0$.
     \item Unlikely events should carry high information content, reflecting that rare events are more surprising and hence more informative.
-    \item Independent events should have additive information content. Meaning, for two independent events $x$ and $y$ (i.e., $p(x, y) = p(x)p(y)$), the information of their joint occurrence should satisfy$ I(x, y) = I(x) + I(y)$.
+    \item Independent events should have additive information content. Meaning, for two independent events $x$ and $y$ (i.e., $p(x, y) = p(x)p(y)$), the information of their joint occurrence should satisfy $I(x, y) = I(x) + I(y)$.
 \end{itemize}
 
 To satisfy all the above properties, self-information for a discrete variable is defined as:
 
 \begin{equation}
-\label{eq:self-information}
-I(x) = - \ln P(x).
+	\label{eq:self-information}
+	I(x) = - \ln P(x).
 \end{equation}
 
 For the continuous random variable, self-information is defined analogously; the practical difference is that self-information can also be negative. Note that the logarithm in the above definition can have a different base. Using the natural logarithm implies that self-information is measured in \emph{nats}, whereas using the \textit{(from an information theory perspective, more traditional)} base 2 means the unit of self-information is \emph{bits}.
@@ -176,43 +178,58 @@ Machine learning builds on the concepts mentioned in the previous section. In it
 \label{subsec:training}
 
 \subsubsection{Maximum likelihood estimation}
-One of the fundamental principles for training statistical models is called \emph{maximum likelihood estimation} (MLE). The core idea is simple: given a set of independent training examples $X = {x^{(1)}, \ldots, x^{(m)}}$, we seek model parameters $\theta$ that maximize the likelihood of the observed data under the model distribution $p_{\text{model}}(x; \theta)$. Formally, the maximum likelihood estimator is defined as:
+One of the most widely adopted and statistically grounded principles for training models is \emph{maximum likelihood estimation (MLE)}. The idea is that given a set of independent training examples $X = x_1, \dots, x_m$, we want to find the model parameters $\theta$ that maximize the likelihood of the observed data under the model distribution $p_{\text{model}}(x \mid \theta)$. Formally, the maximum likelihood estimator is defined as:
 
-\begin{equation} 
-    \theta_{\text{ML}} = \arg\max_{\theta} p_{\text{model}}(X; \theta) = \arg\max_{\theta} \prod_{i=1}^{m} p_{\text{model}}(x^{(i)}; \theta). 
-\end{equation}
+\begin{align}
+\theta_{\text{MLE}} 
+&= \arg\max_{\theta} p_{\text{model}}(X \mid \theta) \label{eq:mle}\\
+&= \arg\max_{\theta} \prod_{i=1}^{m} p_{\text{model}}(x_i \mid \theta)
+\end{align}
 
-Since optimizing a product of many probabilities can be numerically unstable, it is standard to maximize the log-likelihood instead, transforming the objective into a sum:
+Since optimizing a product of many probabilities can be numerically unstable, but we can use injectivity of the logarithm and maximize the log-likelihood instead:
 
-\begin{equation} 
-    \theta_{\text{ML}} = \arg\max_{\theta} \sum_{i=1}^{m} \log p_{\text{model}}(x^{(i)}; \theta). 
-\end{equation}
+\begin{align}
+\theta_{\text{MLE}} 
+&= \arg\max_{\theta} \sum_{i=1}^{m} \log p_{\text{model}}(x_i \mid \theta)
+\end{align}
 
 By dividing by the number of training examples, we can express the objective as an expectation over the empirical distribution $\hat{p}_{\text{data}}$ defined by the training set:
 
-\begin{equation} 
-    \theta_{\text{ML}} = \arg\max_{\theta} \mathbb{E}{x \sim \hat{p}_{\text{data}}} [\log p_{\text{model}}(x; \theta)]. 
-\end{equation}
+\begin{align}
+\theta_{\text{MLE}} 
+&= \arg\max_{\theta} \mathbb{E}_{x \sim \hat{p}_{\text{data}}} \left[ \log p_{\text{model}}(x \mid \theta) \right] \\
+&= \arg\min_{\theta} \mathbb{E}_{x \sim \hat{p}_{\text{data}}} \left[- \log p_{\text{model}}(x \mid \theta) \right] \label{eq:mle_nll} \\
+&= \arg\min_{\theta} H\left(\hat{p}_{\text{data}}(x), p_{\text{model}}(x \mid \theta) \right) \label{eq:mle_cross_entropy} \\
+&= \arg\min_{\theta} D_{\text{KL}}\left(\hat{p}_{\text{data}}(x) \,\|\, p_{\text{model}}(x \mid \theta) \right) \label{eq:mle_kl}
+\end{align}
 
-An alternative interpretation of maximum likelihood is minimizing the Kullback-Leibler (KL) divergence between the empirical data distribution $\hat{p}{\text{data}}$ and the model distribution $p{\text{model}}$. Because the KL divergence measures how much one distribution differs from another, minimizing it aligns the model predictions as closely as possible to the data. This leads to the equivalent objective of minimizing the negative log-likelihood, commonly referred to as the \emph{loss function} in machine learning practice.
+We see that if the empirical data distribution $\hat{p}_{\text{data}}$ accurately represents the true data distribution, the following objectives become mathematically equivalent:
+maximizing the likelihood \eqref{eq:mle_expectation},
+minimizing the negative log-likelihood (NLL) \eqref{eq:mle_nll},
+minimizing the cross-entropy \eqref{eq:mle_cross_entropy},
+and minimizing the Kullback–Leibler (KL) divergence \eqref{eq:mle_kl}.
+
 
 \subsubsection{Loss function}
-To meaningfully adjust the model's parameters, we need a way to compare its output distribution with the distribution of the true labels. ML defines such a metric as \emph{loss} or \emph{loss function}.
+In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, it is often advantageous to incorporate additional heuristics or prior knowledge into the loss, as this can lead to improved model performance and better generalization.
 
-Once we have a defined loss function that quantifies how wrong the model’s predictions are, we are facing the optimization problem of finding a global minimum of a loss function in a high dimensional space of model's parameters. Model training is typically an iterative process of updating the model parameters to minimize this loss.
+Once the loss function is defined, the task becomes an optimization problem: finding the global minimum of the loss in the high-dimensional space of the model’s parameters. Training the model is typically an iterative process that updates these parameters step-by-step to minimize the loss. We typically require the loss function to be differentiable, in order to apply gradient-based methods during minimization.
+
 \subsubsection{Gradient descent}
 Most optimization methods used in training neural networks, are based on \emph{gradient descent}. The idea is to compute the gradient of the loss function with respect to the model parameters and take a step in the direction that most decreases the loss. If $\theta$ denotes the current parameters and $\mathcal{L}(\theta)$ the loss, then a single update step is given by:
-\begin{equation}`
+
+\begin{equation}
     \theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta),
 \end{equation}
+
 where $\alpha > 0$ is a hyperparameter called \emph{learning rate}, that controls the step size. 
 
 The choice of the learning rate is one of the most critical hyperparameters for the successful training of neural networks. A learning rate that is too high can cause the optimization to diverge, while a learning rate that is too small can result in very slow convergence or getting stuck in suboptimal regions. In practice, it is beneficial not only to choose a good initial learning rate but also to adjust it during training. This approach is known as \emph{learning rate scheduling} or \emph{learning rate decay} and we discuss it further in \ref{subsec:decay-scheduling}.
 
 Computing the gradient over the entire dataset can be very slow, if not impossible due to high memory requirements. Instead, we use an approximation based on randomly selected subsets of data. This leads to two widely used variants:
 \begin{itemize}
-    \item[Stochastic gradient descent (SGD)]: The gradient is computed using a single randomly selected data point. While this is very efficient per update, the variance of the updates is high, which can make training unstable.
-    \item[Mini-batch gradient descent]: A compromise between full-batch and stochastic methods. The gradient is computed over a small batch of data points, typically ranging from 16 to 512 samples. This approach is the standard in most modern applications, offering both stability and computational efficiency.
+    \item Stochastic gradient descent (SGD): The gradient is computed using a single randomly selected data point. While this is very efficient per update, the variance of the updates is high, which can make training unstable.
+    \item Mini-batch gradient descent: A compromise between full-batch and stochastic methods. The gradient is computed over a small batch of data points, typically ranging from 16 to 512 samples. This approach is the standard in most modern applications, offering both stability and computational efficiency.
 \end{itemize}
 It it well established that the mini-batch gradient descent is the way to go if applicable, and the most popular optimization algorithms used in ML are its different extensions.
 
@@ -220,21 +237,29 @@ It it well established that the mini-batch gradient descent is the way to go if 
 
 While mini-batch gradient descent is a powerful and general optimization method, several enhancements have been developed to address its practical shortcomings, such as slow convergence, sensitivity to learning rate, and getting stuck in poorly conditioned regions of the loss landscape. These enhancements form the basis of modern optimizers used in training neural networks. In this subsection, we briefly outline the key ideas that lead to the widely used \emph{Adam} optimizer.
 
-\paragraph{Momentum.}
+\paragraph{Momentum}
 
-One of the earliest improvements over vanilla gradient descent is the introduction of \emph{momentum}. Instead of updating parameters purely based on the current gradient, momentum accumulates an exponentially decaying moving average of past gradients. The update rule becomes:
+One of the earliest improvements over vanilla gradient descent was the introduction of \emph{momentum}. Instead of updating parameters purely based on the current gradient, momentum accumulates an exponentially decaying moving average of past gradients. The update rule becomes:
 
-\begin{equation} v_t = \beta v_{t-1} + (1 - \beta) \nabla_\theta \mathcal{L}(\theta), \label{eq:momentum_velocity} \end{equation}
+\begin{equation} 
+	v_t = \beta v_{t-1} + (1 - \beta) \nabla_\theta \mathcal{L}(\theta), 			\label{eq:momentum_velocity} 
+\end{equation}
 
-\begin{equation} \theta \leftarrow \theta - \alpha v_t, \label{eq:momentum_update} \end{equation}
+\begin{equation} 
+	\theta \leftarrow \theta - \alpha v_t, 
+	\label{eq:momentum_update} 
+\end{equation}
 
 where $v_t$ is the velocity vector at iteration $t$ and $\beta \in [0,1)$ controls the contribution of previous gradients. Momentum helps accelerate updates along directions with persistent gradients and dampens oscillations in directions with high curvature.
 
-\paragraph{Adaptive learning rates.}
+\paragraph{Adaptive learning rates}
 
 Another major challenge in optimization is choosing a good learning rate. To address this, \emph{adaptive learning rate methods} adjust the learning rate individually for each parameter based on past gradients. One early method is Adagrad, which scales the learning rate inversely proportional to the square root of the sum of historical squared gradients:
 
-\begin{equation} \theta_i \leftarrow \theta_i - \frac{\alpha}{\sqrt{G_{i,i} + \epsilon}} \nabla_{\theta_i} \mathcal{L}(\theta), \label{eq:adagrad_update} \end{equation}
+\begin{equation} 
+	\theta_i \leftarrow \theta_i - \frac{\alpha}{\sqrt{G_{i,i}} + \epsilon} \nabla_{\theta_i} \mathcal{L}(\theta), 
+	\label{eq:adagrad_update} 
+\end{equation}
 
 where $G$ is the matrix accumulating the squared gradients, and $\epsilon$ is a small constant added for numerical stability. This approach makes larger updates for infrequently updated parameters and smaller updates for frequently updated ones.
 
@@ -246,11 +271,11 @@ However, Adagrad can suffer from aggressively shrinking learning rates. Later me
 \end{equation}
 
 \begin{equation} 
-    \theta \leftarrow \theta - \frac{\alpha}{\sqrt{E[g^2]t + \epsilon}} \nabla\theta \mathcal{L}(\theta). 
+    \theta \leftarrow \theta - \frac{\alpha}{\sqrt{E[g^2]t + \epsilon}} \nabla_\theta \mathcal{L}(\theta). 
     \label{eq:rmsprop_update} 
 \end{equation}
 
-\paragraph{Adam optimizer.}
+\paragraph{Adam optimizer}
 
 The \emph{Adam} (Adaptive Moment Estimation) optimizer combines the ideas of momentum and adaptive learning rates into a single method. It maintains two moving averages:
 \begin{itemize}
@@ -292,19 +317,28 @@ The simplest approach is to keep the learning rate constant throughout the train
 \paragraph{Linear decay}
 In linear decay, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies, and its intuition is clear: as training progresses, we become more conservative in updating model weights. Mathematically, if $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
 
-\begin{equation} \label{eq:linear-decay} l(t) = l_0 \left(1 - \frac{t}{T}\right). \end{equation}
+\begin{equation} 
+	\label{eq:linear-decay} 
+	l(t) = l_0 \left(1 - \frac{t}{T}\right). 
+\end{equation}
 
 \paragraph{Exponential decay}
 Exponential decay reduces the learning rate multiplicatively at each step, resulting in a faster decay than linear scheduling. It can be particularly useful when rapid early convergence is desired. The formula is:
 
-\begin{equation} \label{eq:exponential-decay} l(t) = l_0 , \gamma^{t}, \end{equation}
+\begin{equation} 
+	\label{eq:exponential-decay} 
+	l(t) = l_0 , \gamma^{t}, 
+\end{equation}
 
 where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
 
 \paragraph{Cosine decay}
 Cosine annealing is a decay schedule that reduces the learning rate following a cosine function, usually without any abrupt jumps. It starts at the maximum learning rate and gradually decays to the minimum value. The form is:
 
-\begin{equation} \label{eq:cosine-decay} l(t) = l_{\mathrm{min}} + \frac{1}{2}(l_0 - l_{\mathrm{min}}) \left(1 + \cos\left( \pi \frac{t}{T} \right)\right), \end{equation}
+\begin{equation} 
+	\label{eq:cosine-decay} 
+	l(t) = l_{\mathrm{min}} + \frac{1}{2}(l_0 - l_{\mathrm{min}}) \left(1 + \cos\left( \pi \frac{t}{T} \right) \right)
+\end{equation}
 
 where $l_{\mathrm{min}}$ is the final learning rate. Cosine decay is popular due to its smooth and natural shape and its empirical success in many modern applications.
 
@@ -324,8 +358,8 @@ In our experiments, we consistently use a fixed split of the dataset into traini
 \subsubsection{Underfitting/overfitting}
 A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common failure modes are:
 \begin{itemize}
-    \item [Underfitting]: The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
-    \item[Overfitting]: The model is too complex or trained for too long and starts to memorize the training data, including noise or spurious correlations. While training performance is excellent, test performance degrades.
+    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
+    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise or spurious correlations. While training performance is excellent, test performance degrades.
 \end{itemize}
 These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high; in overfitting, the training loss continues to drop while the validation loss increases. Mitigating overfitting is one of the main motivations for various \emph{regularization} techniques, which are discussed in a later section.
 
@@ -335,9 +369,9 @@ To efficiently compute gradients of the loss with respect to millions of model p
 While the mathematics of backpropagation is straightforward, its implementation benefits greatly from modern automatic differentiation frameworks such as TensorFlow or PyTorch, which handle all the necessary bookkeeping and gradient computations automatically.
 
 \section{Model architecture}
-\xxx{In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\mathbf{x}$, a neural network seeks to learn a function $f_\theta(\mathbf{x})$ parameterized by weights $\theta$, such that $f_\theta(\mathbf{x})$ yields the correct or meaningful output. The particular nature of this output defines the type of problem we are solving — either supervised, unsupervised, or reinforcement learning. In our case, we use supervised learning, where each input is paired with a known label, and the goal is to learn the mapping from inputs to outputs.
+In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\mathbf{x}$, a neural network seeks to learn a function $f_\theta(\mathbf{x})$ parameterized by weights $\theta$, such that $f_\theta(\mathbf{x})$ yields the correct or meaningful output. The particular nature of this output defines the type of problem we are solving — either supervised, unsupervised, or reinforcement learning. In our case, we use supervised learning, where each input is paired with a known label, and the goal is to learn the mapping from inputs to outputs.
 
-\xxx{Today’s collection of neural network architectures is very diverse, with each family offering distinct trade-offs. For instance, transformer-based models excel at capturing long-range dependencies and complex structures in data, but they typically require large-scale datasets and significant computational resources — conditions that are not met in our case. Given the nature of our task and the structure of our data, the most reasonable architectural choices are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}.}
+Today’s collection of neural network architectures is very diverse, with each family offering distinct trade-offs. For instance, transformer-based models excel at capturing long-range dependencies and complex structures in data, but they typically require large-scale datasets and significant computational resources — conditions that are not met in our case. Given the nature of our task and the structure of our data, the most reasonable architectural choices are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}.
 
 
 \subsection{Fully connected network}
@@ -348,9 +382,18 @@ The general structure is simple: the network has an \emph{input layer}, several 
 
 Formally, the operation of a fully connected layer can be described as:
 
-\begin{equation} \label{eq:fully-connected} \mathbf{h} = \phi(\mathbf{W}\mathbf{x} + \mathbf{b}), \end{equation}
+\begin{equation} 
+	\label{eq:fully-connected} \mathbf{h} = \phi(\mathbf{W}\mathbf{x} + \mathbf{b}), 
+\end{equation}
 
 where $\mathbf{x}$ is the input vector, $\mathbf{W}$ is the weight matrix, $\mathbf{b}$ is the bias vector, $\phi$ is a non-linear activation function (such as ReLU or sigmoid), and $\mathbf{h}$ is the resulting output (also called the hidden state).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{img/neural_networks.pdf}
+  \caption{Dense neural network \cite{neural_networks_image}.}
+  \label{fig:dense_network}
+\end{figure}
 
 In the context of classification, the final output layer typically applies a softmax activation function to produce a probability distribution over the possible classes.
 
@@ -358,15 +401,25 @@ While fully connected networks are highly expressive and can, in principle, appr
 
 \subsection{Convolutional network}
 
-Convolutional neural networks (CNNs) are designed to efficiently process data with a grid-like structure, most notably images. Unlike fully connected networks, CNNs leverage the spatial structure of the data by applying convolutional operations, greatly reducing the number of parameters and improving generalization.
+Convolutional neural networks (CNNs) are designed to process data with a grid-like structure, most notably images. Unlike fully connected networks, CNNs leverage the spatial structure of the data by applying convolutional operations, greatly reducing the number of parameters and improving generalization.
 
 \paragraph{Computation of convolution}
 
-At the heart of a CNN is the \emph{convolutional layer}, where a small filter (also called a kernel) slides across the input and computes local dot products. Mathematically, a 2D convolution operation between an input $\mathbf{x}$ and a filter $\mathbf{w}$ can be expressed as:
+At the heart of a CNN is the \emph{convolutional layer}, where a small filter (also called a kernel) slides across the input and computes local dot products. Mathematically, a 2D convolution operation between an input $\mathbf{I}$ and a filter $\mathbf{K}$ can be expressed as:
 
-\begin{equation} \label{eq:convolution} (\mathbf{x} * \mathbf{w})(i,j) = \sum_{m}\sum_{n} \mathbf{x}(i+m, j+n) , \mathbf{w}(m,n), \end{equation}
+\begin{equation} 
+	\label{eq:convolution} 
+	(\mathbf{I} * \mathbf{K})(i,j) = \sum_{m}\sum_{n} \mathbf{I}(i+m, j+n) , \mathbf{K}(m,n), 
+\end{equation}
 
 where $(i,j)$ are the spatial coordinates of the output, and the sums run over the spatial extent of the filter.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{img/conv2d.pdf}
+  \caption{Applying single 2D convolutional kernel \cite{conv2d_image}.}
+  \label{fig:conv2d}
+\end{figure}
 
 \paragraph{Backpropagation through convolution}
 
@@ -393,57 +446,97 @@ This decomposition significantly reduces computational cost and the number of pa
 After several stages of convolutions and pooling, the high-level feature maps extracted by the CNN must be converted into a form suitable for classification. This is typically achieved by flattening the feature maps into a 1D vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
 
 \subsubsection{Simple convolutional block}
+
+A simple convolutional block is the foundational building unit in convolutional neural networks (CNNs). It is a sequence of layers that work together to extract features from the input data in a hierarchical manner. 
+
+A standard convolutional block usually contains the following components:
+
+\begin{itemize}
+    \item \textbf{Convolutional layer:} Applies several filters to the input, producing a set of feature maps.
+    \item \textbf{Batch normalization:} Normalizes the feature maps to stabilize training and improve convergence speed.
+    \item \textbf{Activation function:} A function that is applied element-wise to introduce non-linearity into the model.
+\end{itemize}
+
+These blocks can be stacked, often putting a pooling layer between them. This forms deep networks, where each successive block captures increasingly abstract features.
+
 \subsubsection{Residual connections}
+The idea behind residual connections is to enable the network to learn a residual mapping with respect to its input, rather than learning the entire transformation directly.
+
+This is achieved by introducing a shortcut (identity) connection that bypasses one or more convolutional layers. For a given input $\mathrm{x}$ and a series of transformations represented by a function $\mathcal{F}(\mathrm{x})$, the output of a residual block is:
+
+\begin{equation}
+\mathrm{y} = \mathcal{F}(\mathrm{x}) + \mathrm{x},
+\end{equation}
+
+followed by a non-linear activation function.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/residual_block.png}  
+  \caption{Residual block \cite{residual_block_image}.}
+  \label{fig:residual_block}
+\end{figure}
+
+When the convolutional layers change the spatial dimensions or number of channels, direct addition is not possible. In such cases, the shortcut connection is implemented using a $1\times1$ convolution to align the shapes of $\mathrm{x}$ and $\mathcal{F}(\mathrm{x})$ before the addition.
+
 \subsubsection{Squeeze and excitation block}
-\subsubsection{cbam block}
+The Squeeze-and-Excitation (SE) block was introduced in \cite{hu2018squeeze} (CVPR 2018)  the paper Squeeze-and-Excitation Networks (CVPR 2018). Its idea is to improve the representational power of CNNs by explicitly modeling interdependencies between channels.
+
+The SE block has two main stages:
+
+\begin{itemize}
+	\item \textbf{Squeeze:} The spatial information in each channel is aggregated into a single scalar value by global average pooling. This operation reduces the spatial dimensions. For a feature map of shape $H \times W \times C$, the output of the squeeze step is a vector of length $C$.
+	
+	\item \textbf{Excitation:} This squeezed vector is passed through a small bottleneck feedforward neural network (typically a two-layer MLP with a ReLU activation followed by a sigmoid). The output is a set of channel-wise importance weights, one per feature channel. These weights are then used to rescale the original feature map by simple channel-wise multiplication. In other words, the network learns to emphasize informative features and suppress less useful ones, in a data-driven manner.
+\end{itemize}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{img/se_scheme.png}  
+  \caption{Squeeze and excitation scheme, adopted from \cite{hu2018squeeze}.}
+  \label{fig:se_scheme}
+\end{figure}
+
+\subsubsection{CBAM block}
+The Convolutional Block Attention Module (CBAM) enhances feature representations by sequentially applying attention mechanisms along both the channel and spatial dimensions. Unlike the Squeeze-and-Excite block, which focuses solely on channel-wise attention, CBAM extends this idea to also include spatial attention, allowing the network to emphasize what and where to attend.
+
+For a given input feature map $\mathbf{F} \in \mathbb{R}^{C \times H \times W}$, CBAM applies a channel attention module followed by a spatial attention module. The channel attention module aggregates spatial information using global average and max pooling, followed by shared MLP layers, resulting in a channel attention map $M_c \in \mathbb{R}^{C \times 1 \times 1}$. The input is then refined as:
+
+\begin{equation}
+	\mathbf{F'} = M_c(\mathbf{F}) \cdot \mathbf{F},
+\end{equation}
+
+Next, the spatial attention module focuses on “where” to emphasize by applying a similar pooling and convolutional process to generate a spatial attention map $M_s \in \mathbb{R}^{1 \times H \times W}$. The final output is:
+
+\begin{equation}
+	\mathbf{F''} = M_s(\mathbf{F'}) \cdot \mathbf{F'},
+\end{equation}
+
+where $\cdot$ denotes element-wise multiplication.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{img/cbam_block.png}
+	\caption{CBAM block \cite{cbam_block_image}.}
+	\label{fig:cbam_block}
+\end{figure}
+
+By incorporating both attention types in a lightweight and modular fashion, CBAM can be easily integrated into existing convolutional architectures to improve representational power and performance.
+
 
 \section{Regularization}
-\todo{General introduction}
-\subsection{Data augmentation}
-\subsection{Initialization}
-\subsection{Parameter-norm penalties}
-\subsection{Dropout}
-\subsection{Training}
+The main source for this chapter is \cite{bengio2017deep}.
 
-\todo{some general categorization of neural networks, state that our task is classification}
-
-\todo{activation functions}
-
-\todo{we are using CNN with dense layer and classification head}
-
-\todo{loss (objective) function}
-
-\todo{neural nets as maximum likelihood estimators}
-
-
-\section{Training of neural networks}
-
-\subsection{Gradient descent}
-
-\todo{GD, SGD, batch-SGD}
-
-\todo{optimizers: }
-
-\subsection{Backpropagation}
-
-\todo{chalenges in machine learning: underfitting, overfitting, (maybe mention double descend??)}
-
-\section{Regularization}
-
-\todo{consider exploring double decent phenomenon in our usecase (beware of possible counteraction with augmentation)}
-
-The main source for this chapter is \cite{bengio2017deep}
-
-The key concept for this thesis is the term generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean single phase images and want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
+We have already mentioned the key concept for ML and that is generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean images containing only a single phase, and we want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
 
 There are many strategies how to improve generalization (often with the cost of increasing training error). Some of these strategies relies on putting constrains on the model parameters, some modify the objective function. Some strategies modify the training data, some interfere with the training process, model's architecture and many other things. We will describe strategies that are relevant for us in the following section.
 
 \subsection{Parameter-norm penalties}
-A common way to regularize, used long before deeplearning, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x}; \bm{\theta})$
+A common way to regularize, used long before deeplearning, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$
 
 \begin{equation}
 	\label{eq:loss-parameter-norm}
-	\tilde{L(\bm{x}; \bm{\theta})} = L(\bm{x}; \bm{\theta}) + \alpha \Omega(\bm{\theta}),
+	\tilde{L(\bm{x} \mid \bm{\theta})} = L(\bm{x} \mid \bm{\theta}) + \alpha \Omega(\bm{\theta}),
 \end{equation}
 where $\alpha \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
 
@@ -470,4 +563,93 @@ A weight decay is very similar to $L^2$ regularization, but is implemented littl
 
 \subsection{Data augmentation}
 
-The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always practical, but we can help ourselves by modifying data we already have. For our advantage, this approach is easy to apply in image classification tasks. We can rotate by 90 degrees, reflext and due to periodical boundary conditions also translate the images. These tranformations in no way change the information, and they add additional variability to our data, making it effectivelly larger. Yet this is not the biggest leverage data augmentation brings for our usecase. We can also combine images from different classes in order to help our model recognize phase transitions. There are two common approaches for such data augmentation, CutMix and MixUp. CutMix works by taking a portion of image 1 (usually rectangular segment) and pasting it onto an image 2. Resulting image will get label that is a weighted sum of original one-hot encoded labels, with weights proportional to number of pixels contributed by each image. MixUp works again by taking two images, generating random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). Label is then created in same manner.
+The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always practical, but we can help ourselves by modifying data we already have. We can take advantage of a fact that the physical properties that define the phase of a magnetic configuration, are preserved with respect to some image tranformations. These include:
+\begin{itemize}
+    \item \textbf{Reflextions and $\mathbf{\ang{90}}$ rotations}: Reflexted and/or rotated configurations are entirely equivalent with respect to each other.
+    \item \textbf{Rolls}: Due to periodic boundary conditions used in the Monte Carlo simulations, we can “roll” images (shift circularly) in any direction.
+    \item \textbf{Global spin rotation (in-plane)}: For ferromagnetic states, we can uniformly rotate all spins, especially within the $xy$-plane, to emphasize that the essential feature is uniformity, not orientation.
+\end{itemize}
+
+We can expect that the neural networks that use these augmentations are more robust and better at generalizing across physically equivalent configurations.
+
+Yet this is not the only benefit data augmentation brings for our usecase. We can also combine images from different classes in order to help our model recognize phase transitions. There are two common approaches for such data augmentation combining multiple classes, CutMix and MixUp. CutMix works by taking a portion of image 1 (usually rectangular segment) and pasting it onto an image 2. Resulting image will get label that is a weighted sum of original one-hot encoded labels, with weights proportional to number of pixels contributed by each image. MixUp works again by taking two images, generating random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). Label is then created in same manner.
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_fe_1.pdf}
+    \caption{Ferromagnet}
+    \label{fig:aug_fe_1}
+  \end{subfigure}
+	\centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_fe_2.pdf}
+    \caption{Skyrmion latice}
+    \label{fig:aug_fe_2}
+  \end{subfigure}
+  \centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_fe_3.pdf}
+    \caption{CutMix}
+    \label{fig:aug_fe_3}
+  \end{subfigure}
+  \centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_fe_4.pdf}
+    \caption{MixUp}
+    \label{fig:aug_fe_4}
+  \end{subfigure}
+  \caption{Augmentation between ferromagnet and skyrmion phases.}
+  \label{fig:aug_fe}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_sp_1.pdf}
+    \caption{Ferromagnet}
+    \label{fig:aug_sp_1}
+  \end{subfigure}
+	\centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_sp_2.pdf}
+    \caption{Skyrmion latice}
+    \label{fig:aug_sp_2}
+  \end{subfigure}
+  \centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_sp_3.pdf}
+    \caption{CutMix}
+    \label{fig:aug_sp_3}
+  \end{subfigure}
+  \centering
+  \begin{subfigure}[b]{0.22\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/augment_sp_4.pdf}
+    \caption{MixUp}
+    \label{fig:aug_sp_4}
+  \end{subfigure}
+  \caption{Augmentation between ferromagnet and skyrmion phases.}
+  \label{fig:aug_sp}
+\end{figure}
+
+\subsection{Initialization}
+
+Deep networks can suffer from either exploding and vanishing gradients, which naturally results in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by proper initialization of the weights. For both dense and convolutional layers, a common strategy is to initialize weights from distributions that take into account the number of input and output units. In the mentioned paper, authors proposed so called Xavier (or Glorot) initialization. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in both dense and convolutional layers when the activation function is symmetric around zero.
+
+For networks with ReLU activations, one widely adopted initialization method is the He initialization \cite{he2015delving}, also known as Kaiming initialization. It draws weights from a zero-mean Gaussian distribution with variance $\frac{2}{n_{\text{in}}}$, where $n_{\text{in}}$ is the number of input connections to the neuron. 
+
+For convolutional layers, these principles are applied in a spatially-aware manner, where $n_{\text{in}}$ and $n_{\text{out}}$ correspond to the number of input and output channels multiplied by the kernel size.
+
+\subsection{Dropout}
+
+Dropout is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
+
+Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature.
