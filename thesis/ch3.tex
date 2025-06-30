@@ -1,22 +1,182 @@
 \chapter{Results and discussion}
 \label{chap3}
 
-\todo{General introduction}
-This is the practical part of the thesis. We aim to understand how different architectures and regularization influence the behavior of a statistical model on our dataset. We start by implementing the dense neural network as specified in \cite{iakovlev2018supervised} for our data. Then implement various regularizations and different architectures described in the previous chapter, with an aim to achieve better classification and to accurately reconstruct the phase diagram.
 
-%I also want to acknowledge the approach that is quite popular is the recent development of deep learning models heavily influenced by \cite{belkin2019reconciling} in 2019, showing an interesting phenomenon called \emph{Double Descent}. 
+This is the practical part of the thesis. We aim to understand how different architectures and regularization influence the behavior of a statistical model on our dataset. 
+
+First we introduce our dataset, and then we train the models on it.
+
+\section{Dataset}
+\subsection{Monte-Carlo simulation}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{equation}
+H = -J \sum_{\langle i,j \rangle} \mathbf{S}_i \cdot \mathbf{S}j
+- \mathbf{D} \cdot \sum{\langle i,j \rangle} [\mathbf{S}_i \times \mathbf{S}_j]
+- B \sum_i S_i^Z,
+\end{equation}
+
+which includes exchange interaction, Dzyaloshinskii–Moriya interaction (DMI), and external magnetic field perpendicular to the lattice plane. Both the exchange and DMI terms consider. The magnetic field BB and the DMI strength DD are assumed to be uniform across the lattice.
+
+Each lattice site is characterized by a spin vector SiSi​. We adopt a coordinate system in which the zz-axis is normal to the plane of the lattice, while the xx and yy axes lie in the plane.
+
+To make the Hamiltonian dimensionless, we divide by the exchange parameter JJ, obtaining
+
+\begin{equation}
+\tilde{H} = - \sum_{\langle i,j \rangle} \mathbf{S}_i \cdot \mathbf{S}j
+- \frac{D}{J} \sum{\langle i,j \rangle} [\mathbf{S}_i \times \mathbf{S}_j]
+- \frac{B}{J} \sum_i S_i^Z.
+\end{equation}
+
+We further set J=1J=1 for convenience. Accordingly, all reported values of DD are given in units of JJ. Similarly, the magnetic field is expressed as
+B=μBB [T]J,
+B=JμB​B[T]​,
+
+where μBμB​ is the Bohr magneton and B [T]B[T] is the magnetic induction in Tesla. Temperature is expressed as
+T=kBT [K]J,
+T=JkB​T[K]​,
+
+where kBkB​ is the Boltzmann constant and T [K]T[K] is the absolute temperature in Kelvin.
+
+
+All simulations in this work were performed at a reduced temperature of T=0.006T=0.006 (in units of JJ). Lattices were generated for various combinations of DD and BB parameters within this framework.
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Our dataset is based on $9840$ magnetic configurations simulated via Monte-Carlo simulations. The configuration is a discrete $200\times200$ grid, filled with $3-D$ magnetic spins with constant length $|\bm{S}| = 1$, simulated using periodic boundary conditions. The direction of $\bm{D}_{ij}$ was fixed and oriented in the spin plane, facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $0$ to $235$ in similar manner, with the spacing by $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations. The resulting magnetic configurations cover all 3 phases, as well as the transitions between these them. An example how a single-phase configurations look like, see \ref{fig:phases} 
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/fe.pdf}
+    \caption{Ferromagnet}
+    \label{fig:ferromagnet}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/sk.pdf}
+    \caption{Skyrmion}
+    \label{fig:skyrmion}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/sp.pdf}
+    \caption{Spiral}
+    \label{fig:spiral}
+  \end{subfigure}
+  \caption{Example of magnetic configurations containing a single phase. In \textbf{\subref{fig:ferromagnet}} you can see a ferromagnet phase, in \textbf{\subref{fig:skyrmion}} skyrmion phase and in \textbf{\subref{fig:spiral}} the spiral phase.}
+  \label{fig:phases}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/magnetization_full.pdf}
+    \caption{Magnetization}
+    \label{fig:magnetization}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_full.pdf}
+    \caption{Topological number}
+    \label{fig:topological_number}
+  \end{subfigure}
+  \caption{Magnetization and topological number across parameter space.}
+  \label{fig:magnetization_topology}
+\end{figure}
+\todo{Increase tick/label sizes}
+
+\subsection{Challenges of this dataset}
+
+Looking at the single phase configurations in \ref{fig:phases}, the classification tasks may seem rather trivial, especially considering what are current image classification models capable of. However, the challenges of this dataset are multiple. Firstly, we want to predict the portion of each class in configurations where two phases are present without having any labels for such cases. Therefore it is a very non-trivial problem both to succesfully train and also evaluate the performance of a model on such cases. 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{img/difficult_cases.pdf}
+  \caption{Magnetic configurations near phase transitions.}
+  \label{fig:difficult_cases}
+\end{figure}
+
+The second difficulty of this dataset is related to how the skyrmions and magnetic spirals change their size and shape under different levels of external fields. To ilustrate this, as well as to help the reader understand different phases, we have compiled figure \ref{fig:phase_map}. For example we see that by increasing magnetic field, skyrmions get smaller. Also with the small DM interaction levels the magnetic spirals take various volatile shapes, whereas for higher levels spirals arrange themselves into parallel regions. These dependencies carry a significant complications to our problem, that isn't directly connected to the phase changes, which is our main concern. Therefore, we use work only subset of the whole simulated dataset,t that is bounded by the red rectanles in the figure \ref{fig:magnetization_topology}. In this region, skyrmions and spirals have similar sizes and spirals are arranged in the parallel segments. This way we can focus on the effects of regularization on the model's performance on examples near the phase transitions.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/phase_map.pdf}
+  \caption{Magnetic configurations in different location within the phase diagram. Note that the axes are non linear, and the ranges of $B$ and $D$ are not including the whole dataset.}
+  \label{fig:phase_map}
+\end{figure}
+
+
+\subsection{Data preprocessing}
+
+Our first non-trivial task is to clean the dataset, separating the single-phases comfigurations from the mixed ones. We have done it heuristically utilizing the values of total magnetization and topological number. 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/transitions_Q.pdf}
+  \caption{Configurations near the phase transitions.}
+  \label{fig:transitions_Q}
+\end{figure}
+
+In the figure \ref{fig:transitions_Q} we see the datapoint near the phase transitions, selected heuristically. These samples contain mostly the configuration with mixed magnetic phases, and we have no reliable way how to label them. Therefore, we can't use them easily during training, however our goal is to achieve reasonable predictions particularly on such data. 
+
+Before training any neural network, we need to process the data into a form that both reflects the underlying physics and makes the training procedure more effective. In our case, the raw data are $200 \times 200 \times 3$ vector fields representing spin configurations, and the proper preprocessing is straight forward. From each configuration, we take only the $z$-component, which significantly reduces the data size, while maintaining all relevant information. This choice is also favours practical considerations, because this way we treat the configurations as greyscale images, comparable to experimental images obtained via electron microscopy.
+
+In our case, each pixel value on any image is in the range $[0, 1]$, which is ideal for the model training. When dealing with typical images, the pixel values are integers from $[0 \cdots 255]$, in which case using for example min-max scaling for all images is a very important step. It is known to improve convergence by reducing the risk of unnecessarily large or saturated gradients, especially during the early stages of training.
+
+We also split the dataset into training, development, and testing sets. To do this, we utilize physical indicators: the average magnetization and the topological number. These quantities allow us to identify regions of the phase diagram where the configuration is clearly ferromagnetic, skyrmionic, or spiral. From these well-separated regions, we assign one-hot encoded labels: $(1, 0, 0)$ for ferromagnetic, $(0, 1, 0)$ for skyrmion, and $(0, 0, 1)$ for spiral phase. These cleanly labeled configurations are then randomly split into training, development, and test sets.
+
+
+\subsection{Taking subset of this dataset}
+
+To simplify our problem at first, we will restrict ourselves to a subset of the data, looking only at the strip of the original phase diagram. This way, we don't deal with the complications caused by the changing size of skyrmions and spirals. We focus on improving the performance of neural networks on the phase boudaries first, and can try so solve the problem of changing size later.
+
+
+\subsubsection{Train/test split}
+To evaluate how well a trained model generalizes, we need to test it on the previously unseen data. The most basic method for doing this is the \emph{train/test split}. The available dataset is split into two disjoint subsets: the \emph{training set}, used to update the model parameters, and the \emph{test set} to evaluate final performance.
+
+It is useful to have also a third data set, so called \emph{validation set} to use for tuning hyperparameters or to perform early stopping during training. 
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_train_sub.pdf}
+    \caption{Training dataset}
+    \label{fig:sub_train}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_dev_test_sub.pdf}
+    \caption{Development and testing data}
+    \label{fig:sub_dev_test}
+  \end{subfigure}
+  \caption{Data points in the selected region of phase space, divided into training and development/testing data.}
+  \label{fig:sub_train_dev_test_split}
+\end{figure}
+
+We choose a relatively small number of skyrmion samples, however these configurations have just minimal deformations in the lattice. Then we picked a few blocks of configurations from ferromagnet and spiral phase, where in both cases, the blocks are relatively far from the skyrmion phase. This way we train the model on clean single phase configurations, utilizing various regularization techniques in order to generalize even on the configurations containing some defects or mixtures of two phases.
+
+We start by implementing the dense neural network as specified in \cite{iakovlev2018supervised} for our data. Then implement various regularizations and different architectures described in the previous chapter, with an aim to achieve better classification and to accurately reconstruct the phase diagram.
 
 \section{Perfomance evaluation}
-We evaluate the performance of our models in multiple ways. The first metric we monitor is accuracy on the training and validation datasets. The accuracy is defined as the proportion of correctly predicted dominant phases. On the other hand, on the test set we accumulate the absolute value of error across the whole set. Meaning  Once we reach a reasonable accuracy on these clean samples, our focus shifts to how well it handles the cases near phase transitions. Since there are no true labels for these data, we introduce additional evaluation metrics, in order to quantitatively compare models on these data. We describe these in the section \ref{metric-definition}.
+We evaluate the performance of our models in multiple ways. The first metric we monitor is accuracy on the training and validation datasets. The accuracy is defined as the proportion of correctly predicted dominant phases. On the other hand, on the test set we accumulate the absolute value of error across the whole set. Once we reach a reasonable accuracy on these clean samples, our focus shifts to how well the models handle the cases near phase transitions. Since there are no true labels for these data, we introduce additional custom evaluation metrics, in order to quantitatively compare models on these data. We describe these in the section \ref{metric-definition}.
 
-Finally, we visualize the models' predictions near phase transitions to qualitatively compare their behavior. We also use the best models from each architectural family to reconstruct the phase diagram, while visually checking the configurations whether the reconstructed phase diagrams correspond to reality.
+Finally, we reconstruct the phase diagram using trained models, and visualize their predictions near phase transitions to qualitatively inspect and compare their behavior. 
 
 \subsection{Metrics definition}
 \label{metric-definition}
 
-In this subsection, we define metrics to evaluate model performance on data near the phase transitions between ferromagnetic $\rightarrow$ skyrmion and skyrmion $\rightarrow$ spiral phases. These configurations typically exhibit a mixture of phases within a single image, and we do not have a reliable way to assign ground truth labels to them. Usually, one part of the image is in one phase, while another part is in a different phase.
-
-The goal is to define metrics that help us evaluate models even without labeled data. One useful idea is to penalize out-of-order predictions—based on known physical behavior across parameter sweeps. Since for each $(B, D)$ pair we always have five generated images, we can also include consistency-based terms in the metric. Additionally, we want to encourage smooth transitions in predicted probabilities as we move through the phase space.
+Even though we have no labels for the data containing mixtures of phases, we can use 
+In this subsection, we define metrics to evaluate model performance on data near the phase transitions between ferromagnetic $\rightarrow$ skyrmion and skyrmion $\rightarrow$ spiral phases. These configurations typically contain a mixture of phases within a single image, and we do not have a reliable way to assign ground truth labels to them. The goal is to define metrics that help us evaluate models even without labeled data. One useful idea is to penalize out-of-order predictions, based on known physical behavior across parameter sweeps. Since for each $(B, D)$ pair we always have five generated images, we can also include consistency-based terms in the metric. Additionally, we want to encourage smooth transitions in predicted probabilities as we move through the phase space.
 
 The key observation we use is the following: for a fixed value of magnetic field $B$, increasing $D$ should lead to a continuous and monotonic transition from the ferromagnetic phase to the skyrmion phase, and with further increase of $D$, to the spiral phase. This gives us a way to evaluate predictions against the physically expected ordering of phase transitions.
 

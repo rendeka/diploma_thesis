@@ -27,7 +27,7 @@ def get_callbacks(args, skyrmion_transitions, skyrmion_fm, test_dataset):
         reduce_on_plateau = keras.callbacks.ReduceLROnPlateau(
             monitor='val_loss',
             factor=0.1,
-            patience=10,
+            patience=15,
             verbose=1,
             min_lr=1e-8
         )
@@ -36,7 +36,7 @@ def get_callbacks(args, skyrmion_transitions, skyrmion_fm, test_dataset):
     if args.early_stopping:
         early_stopping = keras.callbacks.EarlyStopping(
             monitor='val_loss',
-            patience=20,
+            patience=40,
             restore_best_weights=True,
             verbose=1
         )
@@ -316,11 +316,11 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         if self.model.__class__.__name__ == "ModelFFN":
             return
 
-        total_epochs = self.args.epochs
-        log_milestones = {int(0.6 * total_epochs), total_epochs}
+        # total_epochs = self.args.epochs
+        # log_milestones = {int(0.6 * total_epochs), total_epochs}
         
-        if epoch not in log_milestones or epoch in self._logged_epochs:
-            return  # Skip if it's not a logging epoch or already logged
+        # if epoch not in log_milestones or epoch in self._logged_epochs:
+        #     return  # Skip if it's not a logging epoch or already logged
 
         self._logged_epochs.add(epoch)
 
@@ -365,7 +365,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                     filters.append(layer.layers[-1].get_weights()[0])
 
         num_rows = len(filters) # Same for plotting feature maps
-        num_cols = min(8, filters[0].shape[-1])
+        num_cols = min(4, filters[0].shape[-1])
 
         fig, axes = plt.subplots(num_rows, num_cols, figsize=(20, 3 * num_rows))
         axes = np.array(axes).ravel()
@@ -374,12 +374,13 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         for i, (row, col) in enumerate(np.ndindex(num_rows, num_cols)):
             ax = axes[i]
             ax.imshow(np.mean(filters[row][..., col], axis=-1), cmap="gray")  # Averaging across channels
+            # ax.imshow(filters[row][0, ..., col], cmap="gray") 
             ax.axis("off")
 
         writer.add_figure("conv_filters", fig, epoch)
 
         # Log feature maps
-        num_cols += 1 # +1 for the original input image
+        # num_rows += 1 # +1 for the original input image
 
         if len(filters) != len(conv_layers):
             raise ValueError(f"Unexpected mismatch: {len(filters)} filter levels vs {len(conv_layers)} layers")
@@ -393,8 +394,8 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                 feature_maps = feature_extractor(image).cpu().detach().numpy()[0] # Shape: (H, W, num_filters), and num filter increases
                 for col in range(num_cols):
                     ax = axes[row * num_cols + col]
-                    if col == 0:
-                        if row == 0:
+                    if row == 0:
+                        if col == 0:
                             ax.imshow(image.squeeze(0).squeeze(-1).cpu().detach().numpy(), cmap="RdBu")
                     else:
                         ax.imshow(feature_maps[..., col - 1], cmap="RdBu") # Plotting just first 'num_col' fearure maps
@@ -519,9 +520,6 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
                         self.writer(metric_category).add_scalar(metric, score, epoch + 1)
                         self.writer(metric_category).flush()
             
-            if self.fm_dataset is not None and self.args.ffm:
-                self.log_filters_and_features(epoch + 1)
-
     def on_train_end(self, logs=None):
 
         if self.args.trans_probs:
@@ -529,3 +527,6 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
         if self.test_dataset is not None:
             self.log_test_results(self.last_epoch)
+
+        if self.fm_dataset is not None and self.args.ffm:
+            self.log_filters_and_features(self.last_epoch)

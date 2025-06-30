@@ -501,37 +501,132 @@ runs = []
 
 # Hope for the best
 
+# runs.append(
+#     RUN(
+#         name="Augmentation",
+#         args_combinations={
+#             "--activation": ["relu"],
+#             "--augment": [
+#                 None,
+#                 "cutmix",
+#                 "mixup",
+#                 ("tailored", "cutmix", None, "cutmix", None),
+#                 ],   
+#             # "--batch_norm": ["False"],         
+#             # "--conv_type": ["standard", "ds"],
+#             "--decay": ["plateau"],
+#             "--depth": [3],
+#             # "--dropout": [0.1],
+#             "--early_stopping": ["True"],
+#             "--epochs": [200],
+#       aug=N      # "--fag": ["Flatten", "GAP"],
+#             "--filters": [32],
+#             # "--head": ["sigmoid"],
+#             "--logdir_suffix": ["augment"],
+#             "--learning_rate": [0.01],
+#             "--loss": ["KLD"],
+#             "--model": ["model5"],
+#             # "--optimizer": ["SGD", "Adam", "RMSprop"],
+#             # "--padding": ["valid", "same"],
+#             "--save_model": ["True"],
+#             "--scope": ["sub"],
+#             "--seed": [6, 7, 8],
+#             # "--spatial_dropout": [0.1],
+#         },
+#         n_threads = 3    
+#     )
+# )
+
 runs.append(
     RUN(
-        name="best",
+        name="Augmentation + phase",
         args_combinations={
             "--activation": ["relu"],
             "--augment": [
                 None,
-                "cutmix",
+                # "cutmix",
+                # "mixup",
                 ("tailored", "cutmix", None, "cutmix", None),
-                ],            
+                ],   
+            # "--batch_norm": ["False"],         
             # "--conv_type": ["standard", "ds"],
             "--decay": ["plateau"],
             "--depth": [3],
-            "--dropout": [0.5],
-            "--early_stopping": [True],
-            "--epochs": [150],
+            # "--dropout": [0.1],
+            # "--early_stopping": ["False"],
+            "--epochs": [300],
+            # "--fag": ["Flatten", "GAP"],
             "--filters": [32],
             # "--head": ["sigmoid"],
-            "--logdir_suffix": ["best"],
-            "--learning_rate": [0.1],
+            "--logdir_suffix": ["augment"],
+            "--learning_rate": [0.01],
             "--loss": ["KLD"],
-            "--model": ["model5"],
+            "--model": ["cbam"],
             # "--optimizer": ["SGD", "Adam", "RMSprop"],
-            "--save_model": [True],
+            # "--padding": ["valid", "same"],
+            "--phase_augment": [("None", "cutmix", "cutmix")],
+            "--save_model": ["True"],
             "--scope": ["sub"],
-            "--seed": [5, 6, 7, 8],
-            "--spatial_dropout": [0.25],
+            "--seed": [6, 7, 8],
+            # "--spatial_dropout": [0.1],
         },
-        n_threads = 4    
+        n_threads = 3    
     )
 )
+
+# runs.append(
+#     RUN(
+#         name="ffn",
+#         args_combinations = {
+#             # "--activation": [
+#             #     "celu", "elu", "exponential", "gelu", "glu", "hard_shrink", "hard_sigmoid", 
+#             #     "hard_silu", "hard_swish", "hard_tanh", "leaky_relu", "linear", "log_sigmoid", 
+#             #     "log_softmax", "mish", "relu", "relu6", "selu", "sigmoid", "silu", "swish", 
+#             #     "soft_shrink", "softmax", "softplus", "softsign", "squareplus", "tanh", "tanh_shrink"
+#             #     ],
+#             "--activation": ["gelu"],
+#             # "--alpha_dropout": [True],
+#             "--augment": [
+#                 None,
+#                 "cutmix",
+#                 "mixup",
+#                 ("tailored", "cutmix", None, "cutmix", None),
+#                 ],            
+#             # "--batch_size": [16],
+#             # "--bias_regularizer": [0],
+#             # "--conv_type": ["ds"],
+#             # "--dataloader_workers": [0],
+#             "--decay": ["plateau"],
+#             # "--depth": [1, 2, 3, 4, 5, 6],
+#             "--dropout": [0.4],
+#             # "---spatial_dropout": [0.0, 0.2],
+#             "--epochs": [250],
+#             # "--fag": ["GAP"],
+#             "--filters": [64],
+#             # "--ffm": [False],
+#             # "--head": ["sigmoid"],
+#             # "--kernel_regularizer": [0],
+#             # "--kernel_size": [3],
+#             # "--label_smoothing": 0.0,
+#             "--learning_rate": [0.01],
+#             # "--learning_rate_final": 0.001,
+#             "--logdir_suffix": ["augment"],
+#             "--loss": ["KLD"],
+#             "--model": ["ffn"],
+#             # "--optimizer": ["AdamW"],
+#             # "--padding": ["same"],
+#             # "--pooling": ["average"],
+#             # "--seed": [42],
+#             "--save_model": ["True"],
+#             "--seed": [6, 7, 8],
+#             # "--stochastic_depth": [0.0],
+#             # "--stride": [1, 2],
+#             # "--threads": [1],
+#             "--weight_decay": [0.5],
+#             # "--width": [1]
+#         }
+#     )
+# )
 
 
 if __name__ == "__main__":

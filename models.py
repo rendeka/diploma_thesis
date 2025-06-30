@@ -71,9 +71,9 @@ class ModelBase(keras.Model):
     # Get filter scaling factor (definning how the number of filters increase in the conv layers)
     @property
     def get_filter_scaling_factor(self):
-        if "Flatten" in self.args.fag:
-            return 1
-        elif self.args.pooling == "max" or self.args.conv_type == "depthwise_separable":
+        # if "Flatten" in self.args.fag:
+        #     return 1
+        if self.args.pooling == "max" or self.args.conv_type == "depthwise_separable":
             return 2
         elif self.args.stride > 1:
             return 1
