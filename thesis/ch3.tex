@@ -1,51 +1,11 @@
 \chapter{Results and discussion}
 \label{chap3}
 
+We begin the practical part of this thesis by exploring the dataset and defining the scope of the phase diagram we are intersted in. Then we continue with implementation of various model architectures, and choose the best ones to study how the regularization techniques effect the model's performance, with the focus on configurations near phase transitions. We also use the models to reconstruct the phase diagram.
 
-This is the practical part of the thesis. We aim to understand how different architectures and regularization influence the behavior of a statistical model on our dataset. 
+\section{Data exploration}
 
-First we introduce our dataset, and then we train the models on it.
-
-\section{Dataset}
-\subsection{Monte-Carlo simulation}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\begin{equation}
-H = -J \sum_{\langle i,j \rangle} \mathbf{S}_i \cdot \mathbf{S}j
-- \mathbf{D} \cdot \sum{\langle i,j \rangle} [\mathbf{S}_i \times \mathbf{S}_j]
-- B \sum_i S_i^Z,
-\end{equation}
-
-which includes exchange interaction, Dzyaloshinskii–Moriya interaction (DMI), and external magnetic field perpendicular to the lattice plane. Both the exchange and DMI terms consider. The magnetic field BB and the DMI strength DD are assumed to be uniform across the lattice.
-
-Each lattice site is characterized by a spin vector SiSi​. We adopt a coordinate system in which the zz-axis is normal to the plane of the lattice, while the xx and yy axes lie in the plane.
-
-To make the Hamiltonian dimensionless, we divide by the exchange parameter JJ, obtaining
-
-\begin{equation}
-\tilde{H} = - \sum_{\langle i,j \rangle} \mathbf{S}_i \cdot \mathbf{S}j
-- \frac{D}{J} \sum{\langle i,j \rangle} [\mathbf{S}_i \times \mathbf{S}_j]
-- \frac{B}{J} \sum_i S_i^Z.
-\end{equation}
-
-We further set J=1J=1 for convenience. Accordingly, all reported values of DD are given in units of JJ. Similarly, the magnetic field is expressed as
-B=μBB [T]J,
-B=JμB​B[T]​,
-
-where μBμB​ is the Bohr magneton and B [T]B[T] is the magnetic induction in Tesla. Temperature is expressed as
-T=kBT [K]J,
-T=JkB​T[K]​,
-
-where kBkB​ is the Boltzmann constant and T [K]T[K] is the absolute temperature in Kelvin.
-
-
-All simulations in this work were performed at a reduced temperature of T=0.006T=0.006 (in units of JJ). Lattices were generated for various combinations of DD and BB parameters within this framework.
-%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Our dataset is based on $9840$ magnetic configurations simulated via Monte-Carlo simulations. The configuration is a discrete $200\times200$ grid, filled with $3-D$ magnetic spins with constant length $|\bm{S}| = 1$, simulated using periodic boundary conditions. The direction of $\bm{D}_{ij}$ was fixed and oriented in the spin plane, facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$ \xxx{(units?)}. Values of $B$ ranged from $0$ to $235$ in similar manner, with the spacing by $5$ \xxx{(units?)}. For each pair of $D$ and $B$ values, we have $5$ simulated configurations. The resulting magnetic configurations cover all 3 phases, as well as the transitions between these them. An example how a single-phase configurations look like, see \ref{fig:phases} 
+An example how a single-phase configurations look like, see \ref{fig:phases} 
 
 \begin{figure}[ht]
   \centering
@@ -69,7 +29,7 @@ Our dataset is based on $9840$ magnetic configurations simulated via Monte-Carlo
     \caption{Spiral}
     \label{fig:spiral}
   \end{subfigure}
-  \caption{Example of magnetic configurations containing a single phase. In \textbf{\subref{fig:ferromagnet}} you can see a ferromagnet phase, in \textbf{\subref{fig:skyrmion}} skyrmion phase and in \textbf{\subref{fig:spiral}} the spiral phase.}
+  \caption{Examples of single-phase magnetic configurations}
   \label{fig:phases}
 \end{figure}
 
@@ -91,126 +51,136 @@ Our dataset is based on $9840$ magnetic configurations simulated via Monte-Carlo
   \caption{Magnetization and topological number across parameter space.}
   \label{fig:magnetization_topology}
 \end{figure}
-\todo{Increase tick/label sizes}
 
 \subsection{Challenges of this dataset}
 
 Looking at the single phase configurations in \ref{fig:phases}, the classification tasks may seem rather trivial, especially considering what are current image classification models capable of. However, the challenges of this dataset are multiple. Firstly, we want to predict the portion of each class in configurations where two phases are present without having any labels for such cases. Therefore it is a very non-trivial problem both to succesfully train and also evaluate the performance of a model on such cases. 
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.9\textwidth]{img/difficult_cases.pdf}
-  \caption{Magnetic configurations near phase transitions.}
-  \label{fig:difficult_cases}
-\end{figure}
+%\begin{figure}[h]
+%  \centering
+%  \includegraphics[width=0.9\textwidth]{img/difficult_cases.pdf}
+%  \caption{Magnetic configurations near phase transitions.}
+%  \label{fig:difficult_cases}
+%\end{figure}
 
-The second difficulty of this dataset is related to how the skyrmions and magnetic spirals change their size and shape under different levels of external fields. To ilustrate this, as well as to help the reader understand different phases, we have compiled figure \ref{fig:phase_map}. For example we see that by increasing magnetic field, skyrmions get smaller. Also with the small DM interaction levels the magnetic spirals take various volatile shapes, whereas for higher levels spirals arrange themselves into parallel regions. These dependencies carry a significant complications to our problem, that isn't directly connected to the phase changes, which is our main concern. Therefore, we use work only subset of the whole simulated dataset,t that is bounded by the red rectanles in the figure \ref{fig:magnetization_topology}. In this region, skyrmions and spirals have similar sizes and spirals are arranged in the parallel segments. This way we can focus on the effects of regularization on the model's performance on examples near the phase transitions.
+Another difficulty of this dataset is related to how the skyrmions and magnetic spirals change their size and shape under different levels of external fields. To ilustrate how the magnetic configurations change, we compiled the figure \ref{fig:phase_map}, showing the phase diagram through the images. There we can see that by increasing magnetic field, skyrmions get smaller. Also with the small DM interaction valuesm, the magnetic spirals take various volatile shapes, whereas for higher levels spirals arrange themselves into parallel regions.
 
-\begin{figure}[h]
+\begin{figure}[h!]
   \centering
   \includegraphics[width=0.95\textwidth]{img/phase_map.pdf}
   \caption{Magnetic configurations in different location within the phase diagram. Note that the axes are non linear, and the ranges of $B$ and $D$ are not including the whole dataset.}
   \label{fig:phase_map}
 \end{figure}
 
-
-\subsection{Data preprocessing}
-
-Our first non-trivial task is to clean the dataset, separating the single-phases comfigurations from the mixed ones. We have done it heuristically utilizing the values of total magnetization and topological number. 
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.95\textwidth]{img/transitions_Q.pdf}
-  \caption{Configurations near the phase transitions.}
-  \label{fig:transitions_Q}
-\end{figure}
-
-In the figure \ref{fig:transitions_Q} we see the datapoint near the phase transitions, selected heuristically. These samples contain mostly the configuration with mixed magnetic phases, and we have no reliable way how to label them. Therefore, we can't use them easily during training, however our goal is to achieve reasonable predictions particularly on such data. 
-
-Before training any neural network, we need to process the data into a form that both reflects the underlying physics and makes the training procedure more effective. In our case, the raw data are $200 \times 200 \times 3$ vector fields representing spin configurations, and the proper preprocessing is straight forward. From each configuration, we take only the $z$-component, which significantly reduces the data size, while maintaining all relevant information. This choice is also favours practical considerations, because this way we treat the configurations as greyscale images, comparable to experimental images obtained via electron microscopy.
-
-In our case, each pixel value on any image is in the range $[0, 1]$, which is ideal for the model training. When dealing with typical images, the pixel values are integers from $[0 \cdots 255]$, in which case using for example min-max scaling for all images is a very important step. It is known to improve convergence by reducing the risk of unnecessarily large or saturated gradients, especially during the early stages of training.
-
-We also split the dataset into training, development, and testing sets. To do this, we utilize physical indicators: the average magnetization and the topological number. These quantities allow us to identify regions of the phase diagram where the configuration is clearly ferromagnetic, skyrmionic, or spiral. From these well-separated regions, we assign one-hot encoded labels: $(1, 0, 0)$ for ferromagnetic, $(0, 1, 0)$ for skyrmion, and $(0, 0, 1)$ for spiral phase. These cleanly labeled configurations are then randomly split into training, development, and test sets.
-
+%Our first non-trivial task is to clean the dataset, separating the single-phases comfigurations from the mixed ones. We have done it heuristically utilizing the values of total magnetization and topological number. 
+%
+%\begin{figure}[h]
+%  \centering
+%  \includegraphics[width=0.95\textwidth]{img/transitions_Q.pdf}
+%  \caption{Configurations near the phase transitions.}
+%  \label{fig:transitions_Q}
+%\end{figure}
+%
+%In the figure \ref{fig:transitions_Q} we see the datapoint near the phase transitions, selected heuristically. These samples contain mostly the configuration with mixed magnetic phases, and we have no reliable way how to label them. Therefore, we can't use them easily during training, however our goal is to achieve reasonable predictions particularly on such data. 
 
 \subsection{Taking subset of this dataset}
 
-To simplify our problem at first, we will restrict ourselves to a subset of the data, looking only at the strip of the original phase diagram. This way, we don't deal with the complications caused by the changing size of skyrmions and spirals. We focus on improving the performance of neural networks on the phase boudaries first, and can try so solve the problem of changing size later.
+We already saw that both skyrmions and spirals have vastly different size throughout the phase diagram, and the spirals can also take different shapes. However, instead of dealing with the different shapes and sizes contained within a single phase, we want to focus on improving generalization for mixed configurations in phase transitions. Therefore, we select a subset of the data, where skyrmions and spirals have similar sizes and spirals are arranged in the parallel segments. This subset are highlighted by the black rectanles in the \ref{fig:magnetization_topology}, containing $3710$ samples.
 
+\subsection{Data preprocessing}
+Before training any neural network, we need to process the data into a form that both reflects the underlying physics and makes the training procedure more effective. In our case, the raw data are $200 \times 200 \times 3$ vector fields representing spin configurations, and the proper preprocessing is straight forward. From each configuration, we take only the $z$-component, which significantly reduces the data size, while maintaining all relevant information. This choice is also favours practical considerations, because this way we treat the configurations as greyscale images, comparable to experimental images obtained via electron microscopy.
 
-\subsubsection{Train/test split}
-To evaluate how well a trained model generalizes, we need to test it on the previously unseen data. The most basic method for doing this is the \emph{train/test split}. The available dataset is split into two disjoint subsets: the \emph{training set}, used to update the model parameters, and the \emph{test set} to evaluate final performance.
+In our case, each pixel value on any image is in the range $[0, 1]$, which is ideal for the model training. When dealing with typical images, the pixel values are integers from $[0, 255]$, in which case using for example min-max scaling for all images is a very important step. It is known to improve convergence by reducing the risk of unnecessarily large or saturated gradients, especially during the early stages of training.
 
-It is useful to have also a third data set, so called \emph{validation set} to use for tuning hyperparameters or to perform early stopping during training. 
+We also split the dataset into training, development, and testing sets. To do this, we utilize physical indicators: the average magnetization and the topological number. These quantities help us to identify regions of the phase diagram where the configurations are single phase ferromagnet, skyrmion, or spiral. In these separated regions, we assign one-hot encoded labels: $(1, 0, 0)$ for ferromagnetic, $(0, 1, 0)$ for skyrmion, and $(0, 0, 1)$ for spiral phase. We dont have a reliable way to label the data from regions near phase boundaries. However, we still store this data in a separate \emph{transitional dataset}, which we can use for further testing. Resulting datasets are visualized in \ref{fig:sub_train_dev_test_split}. The training data contains $450$ samples $175$ ferromagnets, $90$ skyrmions and $185$ spirals.  
+
 
 \begin{figure}[ht]
   \centering
-  \begin{subfigure}[b]{0.48\textwidth}
+  \begin{subfigure}[b]{0.3\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/topological_number_train_sub.pdf}
     \caption{Training dataset}
     \label{fig:sub_train}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.48\textwidth}
+  \begin{subfigure}[b]{0.3\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/topological_number_dev_test_sub.pdf}
-    \caption{Development and testing data}
+    \caption{Val/test dataset}
     \label{fig:sub_dev_test}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/topological_number_trans_sub.pdf}
+    \caption{Transition dataset}
+    \label{fig:sub_trans}
   \end{subfigure}
   \caption{Data points in the selected region of phase space, divided into training and development/testing data.}
   \label{fig:sub_train_dev_test_split}
 \end{figure}
 
-We choose a relatively small number of skyrmion samples, however these configurations have just minimal deformations in the lattice. Then we picked a few blocks of configurations from ferromagnet and spiral phase, where in both cases, the blocks are relatively far from the skyrmion phase. This way we train the model on clean single phase configurations, utilizing various regularization techniques in order to generalize even on the configurations containing some defects or mixtures of two phases.
-
-We start by implementing the dense neural network as specified in \cite{iakovlev2018supervised} for our data. Then implement various regularizations and different architectures described in the previous chapter, with an aim to achieve better classification and to accurately reconstruct the phase diagram.
+We choose a relatively small number of skyrmion samples because these configurations have just minimal deformations in their lattice. Then we picked a few blocks of configurations from ferromagnet and spiral phase, where in both cases, the blocks are relatively far from the skyrmion phase. This way we train the model on clean single phase configurations, relying on the regularization techniques to generalize to configurations containing some defects or mixtures of two phases. The validation/testing data \ref{fig:sub_dev_test}, were splitted randomly while $20\%$ went to the \emph{validation} dataset which we use during training, and the rest goes to the \emph{testing} dataset.
 
 \section{Perfomance evaluation}
-We evaluate the performance of our models in multiple ways. The first metric we monitor is accuracy on the training and validation datasets. The accuracy is defined as the proportion of correctly predicted dominant phases. On the other hand, on the test set we accumulate the absolute value of error across the whole set. Once we reach a reasonable accuracy on these clean samples, our focus shifts to how well the models handle the cases near phase transitions. Since there are no true labels for these data, we introduce additional custom evaluation metrics, in order to quantitatively compare models on these data. We describe these in the section \ref{metric-definition}.
+We evaluate the performance of our models in multiple ways. The first metric we monitor is accuracy on the training and validation datasets. The validation accuracy is defined as the proportion of correctly predicted dominant phases. On the other hand, on the test set we accumulate the absolute value of error across the whole set. This way we have more intuitive interpretation of model's performance on the test set. Once we reach a reasonable accuracy on these clean samples, our focus shifts to how well the models handle the cases near phase transitions. Since we have no true labels for such data, we introduce additional custom evaluation metrics, in order to quantitatively compare models on these data. We describe these in the section \ref{metric-definition}.
 
 Finally, we reconstruct the phase diagram using trained models, and visualize their predictions near phase transitions to qualitatively inspect and compare their behavior. 
 
-\subsection{Metrics definition}
+\subsection{Definition of metrics on phase boundaries}
 \label{metric-definition}
 
-Even though we have no labels for the data containing mixtures of phases, we can use 
-In this subsection, we define metrics to evaluate model performance on data near the phase transitions between ferromagnetic $\rightarrow$ skyrmion and skyrmion $\rightarrow$ spiral phases. These configurations typically contain a mixture of phases within a single image, and we do not have a reliable way to assign ground truth labels to them. The goal is to define metrics that help us evaluate models even without labeled data. One useful idea is to penalize out-of-order predictions, based on known physical behavior across parameter sweeps. Since for each $(B, D)$ pair we always have five generated images, we can also include consistency-based terms in the metric. Additionally, we want to encourage smooth transitions in predicted probabilities as we move through the phase space.
+We can use the transitional dataset we created \ref{fig:trans_dataset}, and even though we have no labels for the data containing mixtures of phases, we can use our general knowleadge about the phase transitions. 
 
-The key observation we use is the following: for a fixed value of magnetic field $B$, increasing $D$ should lead to a continuous and monotonic transition from the ferromagnetic phase to the skyrmion phase, and with further increase of $D$, to the spiral phase. This gives us a way to evaluate predictions against the physically expected ordering of phase transitions.
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/fe_sk_D_07.pdf}
+    \caption{Transition from ferromagnet to skyrmion phase, $D = 0.70$}
+    \label{fig:trans_fe_sk}
+  \end{subfigure}
+  \vskip\baselineskip
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/sk_sp_D_115.pdf}
+    \caption{Transition from skyrmion to spiral phase, $D = 1.15$}
+    \label{fig:trans_sk_sp}
+  \end{subfigure}
+  \caption{Examples from the unlabeled \emph{transitional} dataset containing phase transitions}
+  \label{fig:trans_dataset}
+\end{figure}
 
-To capture these ideas, we define three metrics: out-of-order error, in-group variance, and transition smoothness.
+The key observation we use is that for a fixed value of $D$, decreasing $B$ should lead to a continuous and monotonic transition from the ferromagnetic skyrmion phase and then from skyrmion to spiral phase. We can group the data in transition dataset by the fixed value of $D$ per transition, gives us a way to evaluate the order of model predictions on transitions. For each $(B, D)$ pair we have $5$ independent configurations. Morever, we can perform data augmentations that represents physically equivalent configurations. So we can also test the consistency of predictions on these equivalent configurations.
+
+To capture these ideas, we define two metrics that we can track throughout the training: \emph{out-of-order} error and \emph{in-group-variance}. 
 
 \begin{enumerate}
 \item \textbf{Out-of-order error} measures how well the predicted ordering of phase transitions matches the expected progression. For a fixed $B$, we sort the images by increasing $D$ to define a reference order $r$. We then use the model to predict the dominant phase probabilities and sort the images according to these predictions to get the predicted order $\hat{r}$. We compare $\hat{r}$ and $r$ using the Euclidean norm:
 \begin{equation}
-O = \left| \hat{r} - r \right|.
+	O = \left| \hat{r} - r \right|.
 \end{equation}
 A lower value of $O$ indicates better alignment with the expected phase transition ordering.
 
-\item \textbf{In-group variance} quantifies the consistency of predictions within groups of five equivalent images simulated under the same $(B, D)$ parameters. For each rank $r$, we compute the variance of the predicted probability vectors $p_i$ within the group and sum over all ranks:
+\item \textbf{In-group variance} quantifies the consistency of predictions within groups of the physically equivalent configurations. For each rank $r$, we compute the variance of the predicted probability vectors $p_i$ within the group and sum over all ranks:
 \begin{equation}
-V = \sum_r \mathrm{Var}(p_i \mid \hat{r}_i = r).
+	V = \sum_r \mathrm{Var}(p_i \mid \hat{r}_i = r).
 \end{equation}
-A lower value of $V$ means the model consistently predicts similar probabilities for physically identical inputs.
-
-\item \textbf{Transition smoothness} measures how smoothly the predicted probabilities evolve as we move across the ranks. For each rank $r$, we compute the mean predicted probability vector $\mu_r$, and then calculate the average absolute change between successive means:
-\begin{equation}
-S = \frac{1}{N - 1} \sum_{r=1}^{N-1} \left\| \mu_{r+1} - \mu_r \right\|.
-\end{equation}
-A lower value of $S$ indicates smoother transitions and suggests that the model is sensitive to subtle, continuous changes in the spin configurations.
 \end{enumerate}
+A lower value of $V$ means the model consistently predicts similar probabilities for physically equivalent inputs.
 
 \subsection{Feature Map Visualizations}
 We can gain insight into a trained convolutional model by visualizing its feature maps. We start with a given input image and pass it through the model. At each convolutional layer, the learned filters are applied to the input, producing a set of feature maps on the output. By visualizing these feature maps, we can get an idea of what kind of features the model is focusing on at different depths. This can help us make more informed decisions when designing or selecting model architectures.
 
-We have also implemented the Grad-CAM method \cite{Selvaraju_2019}, which produces a coarse localization heatmap highlighting the regions in the input that contribute the most to the prediction. The idea is to compute the gradient of the output with respect to the feature maps in the last convolutional layer and use this information to weigh the feature maps. The result is a heatmap that can be overlaid on the input image to indicate important regions.
+We have also implemented the Grad-CAM method \cite{Selvaraju_2019}, which produces a coarse localization heatmap highlighting the regions in the input that contribute the most to the prediction. The idea is to compute the gradient of the output with respect to the feature maps in the last convolutional layer and use this information to weigh the feature maps. The result is a heatmap that can be overlaid on the input image to indicate important regions. \todo{what about cutmixes?}
 
 However, in our case, Grad-CAM did not provide any particularly useful information. This is because the method requires labeled data and works best when specific regions in the image are responsible for the prediction. In our dataset, especially in the clean, single-phase configurations, the relevant features are distributed uniformly across the image, and no single region carries dominant information. As a result, the generated heatmaps were mostly uniform and did not help us interpret the model's behavior in a meaningful way.
 
-\section{Results on the subset of data}
-\subsection{Fully connected network}
+\section{Results}
+
+\subsection{Model architectures}
+
 In the paper \cite{iakovlev2018supervised}, the largest lattice authors used was $128 \times 128$. Their best-performing model consisted of a single hidden layer with $64$ neurons and no activation function applied to that layer. They normalized the input by the total magnetization, stating that this step was especially important at the beginning of training, as without it the model would often output only $0$ or $1$. However, this kind of normalization is non-standard and potentially risky for configurations with magnetization close to zero, which can occur in both skyrmion and spiral phases.
 
 The output layer consisted of $3$ neurons with sigmoid activation. This output is not automatically normalized to sum to $1$. Since we want the outputs to represent class probabilities summing to $1$, we manually normalize them, and we will also experiment with a more standard classification activation softmax, which enforces the normalization automatically.
@@ -236,34 +206,265 @@ They used mean squared error as the loss function and employed early stopping on
   \label{fig:phase_diagram_ffn}
 \end{figure}
 
-The results of this network are best described by the reconstructed phase diagram \ref{fig:ffn_mazurenko}. We clearly see that the model overfits on the training data, and do not recongnize any skyrmions in the testing set. The model fails to generalize and interprets all skyrmion lattices as magnetic spirals. We can try to apply some regularization techniques and see if they improve the generalization. The resulting phase diagram is in \ref{fig:ffn_regularized}
+The results of this network are best described by the reconstructed phase diagram \ref{fig:ffn_mazurenko}. We clearly see that the model overfits on the training data, and do not recongnize any skyrmions in the testing set. The model fails to generalize and tends to interprets unseen skyrmion lattices as magnetic spirals. We can try to apply some regularization techniques and see if they improve the generalization. The resulting phase diagram is in \ref{fig:ffn_regularized}
+
+The final architecture with number of parameters is summarized in the table \ref{tab:cnn_model_architecture}. The total number of trainable parameters for this model is $226,499$, which is significantly less compared to simple dense neural network.
+
+The concrete models that performed the best per each of the selected CNN architectures \textit{(sinple CNN, ResNet, Squeeze-Excite and CBAM)} are summarized in tables \cref{tab:cnn_summary, tab:resnet_summary, tab:se_summary, tab:cbam_summary}.
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\label{tab:cnn_summary}
+	\begin{tabular}{lllc}
+		\toprule
+		\textbf{Layer} & \textbf{Type} & \textbf{Output Shape} & \textbf{Parameters*} \\
+		\midrule
+		Input             & InputLayer                    & (200, 200, 1)     & 0      \\
+		Rescaling         & Rescaling                     & (200, 200, 1)     & 0      \\
+		\midrule
+		Conv Block 1      & Conv2D + BN + Activation      & (200, 200, 32)    & 320 + 128 \\
+                   & MaxPooling2D                 & (100, 100, 32)    & 0      \\
+                   & MCSpatialDropout             & (100, 100, 32)    & 0      \\
+		\midrule
+		Conv Block 2      & Conv2D + BN + Activation      & (100, 100, 64)    & 18496 + 256 \\
+                   & MaxPooling2D                 & (50, 50, 64)      & 0      \\
+                   & MCSpatialDropout             & (50, 50, 64)      & 0      \\
+		\midrule
+		Conv Block 3      & Conv2D + BN + Activation      & (50, 50, 128)     & 73856 + 512 \\
+                   & MaxPooling2D                 & (25, 25, 128)     & 0      \\
+                   & MCSpatialDropout             & (25, 25, 128)     & 0      \\
+		\midrule
+		Pooling           & GlobalAveragePooling2D        & (128)             & 0      \\
+		\midrule
+		Dense Layer 1     & Dense + BN + Activation       & (512)             & 66048 + 2048 \\
+                   & MCDropout                    & (512)             & 0      \\
+		Dense Layer 2     & Dense + BN + Activation       & (128)             & 65664 + 512 \\
+		Output            & Dense                         & (3)               & 387    \\
+		\bottomrule
+	\end{tabular}
+	\caption{Architecture of the simple CNN model. *\textit{trainable + non-trainable parameters}}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\begin{tabular}{lcc}
+    \toprule
+    \textbf{Layer / Block} & \textbf{Output Shape} & \textbf{Parameters} \\
+    \midrule
+    Input Layer                     & (200, 200, 1)     & 0 \\
+    Stem Block                      & (100, 100, 32)    & 320 \\
+    Residual Block 1               & (50, 50, 32)      & 18,624 \\
+    Residual Block 2               & (25, 25, 64)      & 57,792 \\
+    Global Average Pooling         & (64)              & 0 \\
+    Dense Layer 1                  & (256)             & 16,640 \\
+    BatchNorm + Activation + Dropout & (256)           & 1,024 \\
+    Dense Layer 2                  & (64)              & 16,448 \\
+    BatchNorm + Activation         & (64)              & 256 \\
+    Output Layer                   & (3)               & 195 \\
+    \midrule
+    \textbf{Total}                 & —                 & \textbf{111,299} \\
+    \bottomrule
+\end{tabular}
+\caption{Blockwise architecture summary of the model. Each row combines the layers into logical processing blocks. Parameter count includes both trainable and non-trainable weights.}
+\label{tab:resnet_summary}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\begin{tabular}{lcc}
+    \toprule
+    \textbf{Layer / Block} & \textbf{Output Shape} & \textbf{Parameters} \\
+    \midrule
+    Input Layer                          & (200, 200, 1)     & 0 \\
+    Stem Block                           & (100, 100, 32)    & 320 \\
+    Residual SE Block 1                  & (50, 50, 32)      & 18,752 \\
+    Residual SE Block 2                  & (25, 25, 64)      & 58,976 \\
+    Global Average Pooling               & (64)              & 0 \\
+    Dense Layer 1                        & (256)             & 16,640 \\
+    BatchNorm + Activation + Dropout     & (256)             & 1,024 \\
+    Dense Layer 2                        & (64)              & 16,448 \\
+    BatchNorm + Activation               & (64)              & 256 \\
+    Output Layer                         & (3)               & 195 \\
+    \midrule
+    \textbf{Total}                       & —                 & \textbf{112,611} \\
+    \bottomrule
+\end{tabular}
+\caption{Blockwise architecture summary of the Squeeze-and-Excitation model. Residual blocks include SE modules, batch normalization, and skip connections.}
+\label{tab:se_summary}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\scriptsize
+\begin{tabular}{lcc}
+    \toprule
+    \textbf{Layer / Block} & \textbf{Output Shape} & \textbf{Parameters} \\
+    \midrule
+    Input Layer                          & (200, 200, 1)     & 0 \\
+    Stem Block (Conv + Pooling)          & (100, 100, 32)    & 320 \\
+    Residual CBAM Block 1                 & (100, 100, 32)    & XX,XXX \\
+    Pooling                             & (50, 50, 32)      & 0 \\
+    Residual CBAM Block 2                 & (50, 50, 64)      & XX,XXX \\
+    Pooling                             & (25, 25, 64)      & 0 \\
+    Global Average Pooling                 & (64)              & 0 \\
+    Dense Layer 1                       & (256)             & 16,640 \\
+    MC Dropout + BatchNorm + Activation & (256)             & 1,024 \\
+    Dense Layer 2                       & (64)              & 16,448 \\
+    BatchNorm + Activation              & (64)              & 256 \\
+    Output Layer                       & (3)     & 195 \\
+    \midrule
+    \textbf{Total}                     & —                 & \textbf{113,269} \\
+    \bottomrule
+\end{tabular}
+\caption{Blockwise architecture summary of the CBAM model. Residual blocks include CBAM modules, batch normalization, and skip connections.}
+\label{tab:cbam_summary}
+\end{table}
+
+Compiling numerous experiments, finding the ideal depth and number of parameters per each architecture, the best two of them were the simple CNN and CBAM, which has significantly better results on the test set. However CBAM scored worse on the metrics defined on the phase transition data. Therefore we choose the simple CNN with 3 hidden convolutional layers as our base model, that we aim to further improve by exploring different hyperparameters and regularization techniques.
 
 
-\subsection{Simple CNN}
+\subsection{Learning rate scheduling}
 
-The best activation is gelu, achieving great results on the testing dataset.
+We evaluated all learning rate scheduling strategies described in \ref{subsec:decay-scheduling}, which are: \emph{None}, \emph{linear}, \emph{exponential}, \emph{cosine}, \emph{piecewise}, and \emph{plateau}. The cosine and plateau schedules consistently led to significantly better models compared to the others. Since the plateau schedule also resulted in faster convergence, we selected it for use in all subsequent experiments.
 
-\todo{images not visible}
-\begin{figure}[ht]
+\subsection{Optimizers}
+
+We have tried multiple optimizing algorithms described in the theoretical part of this thesis: SGD, Adam and RMSprop. Since we have seen that the nature of the task changes with the addition of augmentations, we have tested these optimizers using different augmentations. RMSprop usually does not work well at the beggining of the training, but this is due to relatively larget initial learning rate that we use $\alpha = 0.1$. By the combination with learning rate scheduling, RMS prop ended up outperforming SGD and Adam measured by validation loss and out-of-order metric. Since we use relativelly small training set, we initialy experienced jittering of the training loss. This was however largely eliminated by gradient clipping, where we bounded the $l2$ norm of a gradient by $0.5$. 
+
+\begin{figure}[h!]
   \centering
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cnn_fe_sk_transition.png}
-    \caption{Ferromagnet to skyrmion lattice transition}
-    \label{fig:cnn_fe_sk_trans}
-  \end{subfigure}
-  \vskip\baselineskip
-  \begin{subfigure}[b]{\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{img/cnn_sk_sp_transition.png}
-    \caption{Skyrmion lattice to magnetic spiral transition}
-    \label{fig:cnn_sk_sp_trans}
-  \end{subfigure}
-  \caption{Visualized prediction of CNN model with gelu activation on configurations near phase transitions.}
-  \label{fig:cnn_transitions}
+  \includegraphics[width=0.95\textwidth]{img/opt-val-loss.pdf}
+  \caption{Validation loss during training using different optimizers.}
+  \label{fig:opt-loss}
 \end{figure}
 
-\todo{Dropout is probably not working but test again.}
+\subsubsection{Transition from feature maps}
+
+We tested the two methods for transitioning from convoliutional to dense layers: \emph{Flattening} and \emph{Global average pooling (GAP)}.
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/FAG-ooo-fe-sk.pdf}
+    \caption{Transition from ferromagnet to skyrmion phase}
+    \label{fig:FAG-fe-sk}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/FAG-ooo-sk-sp.pdf}
+    \caption{Transition from skyrmion to magnetic spiral phase}
+    \label{fig:FAG-sk-ap}
+  \end{subfigure}
+  \caption{Comparison of out-of-order metric between \textbf{flattening} and \textbf{global average pooling}}
+  \label{fig:flatten-gap}
+\end{figure}
+
+While models that use either flattening or global average pooling when transitioning between convolutional to dense layers would often achieve similar validation loss, and accuracy on the test set. However, even in such cases, the GAP would often outperform flattening on our metrics defined on the configurations near phase transitions, see \ref{fig:flatten-gap}. A possible explanation is that the model using GAP effectively summarizes the overall activation of features corresponding to a particular phase. This helps it generalize to configurations near phase transitions, where mixed or partial patterns occur. GAP might be more sensitive to the relative strength of activations for different phases, and therefore better at recognizing cases where one phase gradually transitions into another.
+
+\subsection{Activation}
+
+The best results were obtain using the \emph{gelu} activation.
+\todo{add the visuals}
+
+\subsection{Classification head}
+
+The most common activation function on the output layer for classification is softmax. However, the exponential in the softmax suppresses all but the most significant class quite drastically. Since we would like to be able to indentify how much of each phase is present in the given configuration, softmax might not be the best choice. Therefore we compare softmax with the sigmoid classification head as described in the theoretical section. 
+
+The performance of the models using the two classification heads are very similar considering multiple outcome metrics. The softmax models achieve slightly lower loss and lower testing error \ref{tab:head_comparison}. However, even while having larger validation loss and higher test error, the sigmoid head have consistently better out-of-order metric on the phase transition between skyrmion and magnetic spiral phase \ref{fig:head-sk-sp}. \todo{Therefore what..}
+
+\begin{table}[h]
+	\centering
+	\caption{Performance of models with different classification heads.}
+	\label{tab:head_comparison}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Head} & \textbf{Validation loss} & \textbf{Test Error} \\
+		\midrule
+		Sigmoid & $\num{0.025}$ & $\num{4.170}$ \\
+		Softmax & $\num{0.010}$ & $\num{0.895}$ \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/head-ooo-sk-sp.pdf}
+  \caption{Comparison of out-of-order metric between \textbf{Sigmoid} and \textbf{Softmax} classification heads}
+  \label{fig:head-sk-sp}
+\end{figure}
+
+\subsection{Depth and Number of filters}
+
+By specifying the number of convolutional filters and the model's depth (e.i. the number of layers) we are setting a base number of parameters which has a significant impact generalization of resulting models. In our experiments we have tried the depths: $1, 2, 3, 4, 5, 7$ and the number of filters: $8, 16, 32, 64, 128$, and all the combinations of depths and number of filters. 
+
+To see how the depth influences the model, it is helpfull to look at the feature maps.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/fm_depth_2_9573.pdf}
+  \caption{Example of feature maps of CNN model with depth 2.}
+  \label{fig:fm_9573_depth_2}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/fm_depth_5_9573.pdf}
+  \caption{Example of feature maps of CNN model with depth 5.}
+  \label{fig:fm_9573_depth_5}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/fm_depth_7_9573.pdf}
+  \caption{Example of feature maps of CNN model with depth 7.}
+  \label{fig:fm_9573_depth_7}
+\end{figure}
+
+As we can see in \cref{fig:fm_9573_depth_2, fig:fm_9573_depth_5, fig:fm_9573_depth_7}, the features in deeper layers become more and more abstract and harder to interpret. We can also see the pattern on the edges of feature maps in the deeper models. These patterns caused by the padding \emph{same}. They does not seem to worsen the performance of our models, however, they can be eradicated by using \emph{valid}, or a custom \emph{periodic} padding. All $3$ models perform very well on both validation and testing datasets. The validation loss and test error are in the table \ref{tab:depth_comparison}. We see that the deeper networks achieve lower generalization error on our testing dataset. However, when comparing the performance in terms of our out-of-order metric on phase transitions, the deeper models peform consistently worse as can be seen on \ref{fig:depth-ooo}.
+
+\begin{table}[h]
+	\centering
+	\caption{Performance of models with different depths.}
+	\label{tab:depth_comparison}
+	\begin{tabular}{cc}
+		\toprule
+		\textbf{Depth} & \textbf{Test Error} \\
+		\midrule
+		2 & $\num{1.349}$ \\
+		5 & $\num{2.468e-2}$ \\
+		7 & $\num{1.910e-4}$ \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/depth-ooo-fe-sk.pdf}
+    \caption{Transition from ferromagnet to skyrmion phase}
+    \label{fig:FAG-fe-sk}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/depth-ooo-sk-sp.pdf}
+    \caption{Transition from skyrmion to magnetic spiral phase}
+    \label{fig:depth-sk-ap}
+  \end{subfigure}
+  \caption{Comparison of out-of-order metric between CNN models of different depth}
+  \label{fig:depth-ooo}
+\end{figure}
+
+\subsection{Activations}
+
+The best activation is gelu \todo{add results}
 
 \begin{figure}[h]
   \centering
@@ -273,12 +474,56 @@ The best activation is gelu, achieving great results on the testing dataset.
 \end{figure}
 
 
-If we compare the reconstruction of phase diagram made by the CNN \ref{fig:phase_diagram_cnn_gelu} with the previous phase diagram obtain with dense neural networks \ref{fig:phase_diagram_ffn}, we see potentially great improvement. However, already from \ref{fig:cnn_transitions} we see that this model doesn't behave ideally on the phase transitions, because it isn't sensitive to it's continuous nature. We try to improve on this by using data augmentations.
+If we compare the reconstruction of phase diagram made by the CNN \ref{fig:phase_diagram_cnn_gelu} with the previous phase diagram obtain with dense neural networks \ref{fig:phase_diagram_ffn}, we already see a great improvement. 
 
-\todo{Add figure showing that augmentations improve transitions}
+However, in \ref{fig:cnn_transitions} we see that this model doesn't behave ideally on the phase transitions, because it isn't sensitive to it's continuous nature. We try to improve on this by using data augmentations.
 
-\subsection{More sophisticated CNN}
-\todo{cbam, resnet and se-block results}
+\section{Data Augmentations}
 
-\subsection{Discussion}
+%\todo{How do feature maps change}
+%
+%\todo{What happends to the in-group-variance}
+%
+%
+%\todo{Add figure showing that augmentations improve transitions}
+
+\begin{figure}[ht]
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/model_comparison_fe_sk_D_0.65_augment.pdf}
+    \caption{Transition from skyrmion to ferromagnet phase}
+    \label{fig:cnn_fe_sk_trans}
+  \end{subfigure}
+  \vskip\baselineskip
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{img/model_comparison_sk_sp_D_1.05_augment.pdf}
+    \caption{Transition from spiral to skyrmion phase}
+    \label{fig:cnn_sk_sp_trans}
+  \end{subfigure}
+  \caption{Comparison of normalized topological charge with model predictions under different augmentation strategies during phase transitions. The green line represents normalized topological number.}
+  \label{fig:model_comparison_aug}
+\end{figure}
+
+The figure \ref{fig:model_comparison_aug} encapsulates how different data augmentation change the behavior of a the model during phase transitions. The models that are trained on cutmixes learn to evaluate the proporsion of skyrmions and spirals within the configuration, corresponding to the normalized tolopogical number \ref{fig:cnn_sk_sp_trans}. ON the other hand, cutmixes also cause the model to perform worse on during the transition from skyrmions to ferromagnets \ref{fig:cnn_fe_sk_trans}. The mixups keeps the good performance on the transition from ferromagnet to skyrmion, but does not offer much improveme on skyrmion to spiral transition. Moreove, mixups tends to 
+
+\todo{add the out-of-order plots for cutmixes, mixups and custom }
+
+\section{Dropout}
+
+Both dropout and spatial dropout worsens the performance of the models on the testing datasets.
+\todo{add figure for transition probabilities using MC dropout} 
+
+\section{Discussion}
+
+After evaluating multiple model architectures, the simple CNN outperform the dense network, as well as all the other CNNs with residual connections, squeeze-and-excite blocks, and cbam blocks. We chose these more complex CNN models, because they perform well on typical classification tasks This may be wery well connected to our finding, that the model depth plays a cricial role for the generalization. Deeper models have more abstract features and those turned out not to be usefull for mixed phase configuration. The more complex are deeper by the design of their building blocks.
+
+The activation matters because..
+
+
+
+By application of data augmentation, we trained the model to quantitatively evaluate proportion of skyrmion and spiral phase, that corrosponds to topological number of configurations. This means that by the use of cutmixes, the models basically learned the topological number on these transitions, without any prior knowleadge of this physical metric.
+
+The dropout doesn't work because..
 

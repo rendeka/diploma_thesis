@@ -318,6 +318,50 @@ class Model5(ModelBase):
 
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
 
+class ModelSE(ModelBase):
+    def __init__(self, args, **kwargs):
+        self.args = args
+        self.filter_scaling_factor = self.get_filter_scaling_factor
+        self.build_model(**kwargs)
+
+    def build_model(self, **kwargs):
+        inputs = keras.Input(shape=self.input_shape)
+
+        num_filters = self.args.filters
+        hidden = self.conv(num_filters)(inputs)
+        hidden = self.pooling()(hidden)
+
+        for i in range(self.args.depth):
+            num_filters = int(self.args.filters * (self.filter_scaling_factor ** i))
+            hidden = self.residual_block_se(hidden, num_filters)
+            hidden = self.pooling()(hidden)
+
+        hidden = self.feature_aggregation(hidden)
+        hidden = self.dense_block(hidden, units=num_filters * 4)
+        hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
+        hidden = self.dense_block(hidden, units=num_filters)
+        outputs = self.head(hidden)
+
+        super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
+
+    def residual_block_se(self, inputs, filters):
+        if inputs.shape[-1] == filters:
+            skip = inputs
+        else:
+            skip = keras.layers.Conv2D(filters=filters, kernel_size=1, strides=1, padding="same", activation=None)(inputs)
+
+        hidden = self.conv(filters=filters)(inputs)
+        hidden = self.batch_norm()(hidden)
+        hidden = self.activation()(hidden)
+        hidden = self.conv(filters=filters)(hidden)
+        hidden = self.batch_norm()(hidden)
+        hidden = self.se_block(hidden)
+
+        hidden = keras.layers.Add()([hidden, skip])
+        outputs = self.activation()(hidden)
+
+        return outputs
+
 class ModelCBAM(ModelBase):
     def __init__(self, args, **kwargs):
         self.args = args 
@@ -338,6 +382,9 @@ class ModelCBAM(ModelBase):
 
         hidden = self.feature_aggregation(hidden)
         # hidden = self.dense_block(hidden, units=num_filters)
+        hidden = self.dense_block(hidden, units=num_filters * 4)
+        hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
+        hidden = self.dense_block(hidden, units=num_filters)
         outputs = self.head(hidden)
         
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)
@@ -350,7 +397,6 @@ class ModelCBAM(ModelBase):
 
         hidden = self.conv(filters=filters)(inputs) 
         hidden = self.batch_norm()(hidden)
-        # hidden = keras.layers.Activation("relu")(hidden)
         hidden = self.activation()(hidden)
         hidden = self.conv(filters=filters)(hidden)
         hidden = self.batch_norm()(hidden)
@@ -403,7 +449,9 @@ class ModelRes(ModelBase):
             hidden = self.pooling()(hidden)
 
         hidden = self.feature_aggregation(hidden)
-        # hidden = self.dense_block(hidden, units=num_filters)
+        hidden = self.dense_block(hidden, units=num_filters * 4)
+        hidden = self.mc_dropout(rate=self.args.dropout * 2)(hidden)
+        hidden = self.dense_block(hidden, units=num_filters)
         outputs = self.head(hidden)
         
         super().__init__(args=self.args, inputs=inputs, outputs=outputs, **kwargs)

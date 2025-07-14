@@ -67,7 +67,7 @@ parser.add_argument("--early_stopping", default=False, type=str2bool, help="Earl
 parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--fag", default="GAP", type=str, choices=["GAP", "Flatten", "SE"], nargs="+", help="feature-aggregation: going from CONV to DENSE layer")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
-parser.add_argument("--ffm", default=True, type=str2bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
+parser.add_argument("--ffm", default=False, type=str2bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
 parser.add_argument("--grad_cam", default=False, type=str2bool, help="True to generage grad-CAM images in callback")
 parser.add_argument("--head", default="softmax", type=str, help="Activation function for the classification head (use any valid keras activation)")
 parser.add_argument("--keep_batch_size", default=True, type=str2bool, help="If False, batch size will vary (typically will be larger while using Tailored augmentations)")
@@ -78,7 +78,7 @@ parser.add_argument("--learning_rate", default=0.01, type=float, help="Learning 
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
 parser.add_argument("--logdir_suffix", default=None, type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
 parser.add_argument("--loss", default="CCE", type=str, choices=["CCE", "KLD", "MSE", "weighted", "focal"], help="Loss function")
-parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn"], help="Model of choice")
+parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn", "se"], help="Model of choice")
 parser.add_argument("--normalize_input", default=False, type=str2bool, help="Whether to normalize")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam", "AdamW", "RMSprop"], help="Optimizer type")
 parser.add_argument("--padding", default ="periodic", type=str, choices=["same", "valid", "periodic"], help="Padding in convolutional layers")
@@ -136,6 +136,7 @@ def main(args: argparse.Namespace) -> None:
     log_subdir = f"{args.scope}-" if args.scope else ""
     log_subdir += f"{args.model}-{args.logdir_suffix}" if args.logdir_suffix else f"{args.model}"
     base_log_dir = base_path / "logs" / log_subdir
+    base_log_dir.mkdir(parents=True, exist_ok=True)
    
     args.logdir = str(base_log_dir / f"{timestamp}-{args_str}") # Must be converted to string in order to be serializable
 
@@ -239,6 +240,9 @@ def main(args: argparse.Namespace) -> None:
         model = models.ModelCBAM(args)
     elif args.model == "ffn":
         model = models.ModelFFN(args)
+    elif args.model == "se":
+        model = models.ModelSE(args)
+ 
     else:
         raise ValueError("Uknown model '{}'".format(args.model))
     
@@ -279,9 +283,9 @@ def main(args: argparse.Namespace) -> None:
         )
 
     if args.save_model:
-        save_dir = base_path / "saved_models" / args.scope / (args.logdir_suffix or "")
+        save_dir = base_path / "saved_models" / args.scope / (f"{args.model}_{args.logdir_suffix}" if args.logdir_suffix else args.model)
         save_dir.mkdir(parents=True, exist_ok=True)
-        model.save((save_dir / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
+        model.save((save_dir / f"{args.model}-{timestamp}-{log_args}").with_suffix(".keras"))
 
 if __name__ == "__main__":
     # parse args

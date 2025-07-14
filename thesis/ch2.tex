@@ -1,390 +1,112 @@
-\chapter{Theoretical background}
+\chapter{Machine learning methods}
 \label{chap2}
 
+The field of \emph{machine learning (ML)} is a complex discipline grounded in the language of probability theory, statistics, and information theory. In this chapter, we describe all the methods and ML techniques applied in the practical part of this thesis. However, these are based on a deeper understanding of ML concepts. Since this knowledge is not part of the standard curriculum of our study program, the fundamentals of ML are included in an extensive appendix of this thesis, and we will frequently refer to terms explained there.
 
-The primary source for this chapter is \cite{bengio2017deep}.
+\section{Model architecture} 
+In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\bm{x}$, a neural network learns a mapping $f_\theta(\bm{x})$ parameterized by weights $\theta$, such that $f_\theta(\bm{x})$ gives a meaningful output. The \emph{model architecture} creates the backbone for such function, and have big influence on its quality. Many different neural network architectures were proposed in the realm of computer vision. Two basic ones we want to explore are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}. Convolutional networks, however, came through a lot of development and many succesfull image recognition architectures were established, some of which we put into test in our experiments.
 
-\section{Machine learning}
-Many problems are challenging to define or solve using classical mathematical tools. Imagine going back to the early 2000s, when you were given a set of images represented by a grid of real numbers, and your task was to devise a rule to decide whether there was a dog, a cat, or an elephant in a given picture. At first glance, it doesn't seem the mathematical framework is well-suited to tackle such questions. You may try to develop some distinct geometrical features, for example, cats have pointy ears, and elephants have a trunk. Then, you can try to find these shapes in the images, and you may have some success with such an approach. If I ask you to do the same, not with $3$ categories, but with $1000$ different classes, the problem seems impossible to solve. Today, we know such things are possible, mainly due to the rapid advancement in the field of \emph{Machine learning (ML)} and \emph{Deep learning (DL)}. At its core, machine learning looks at such a problem from a probabilistic view. In this chapter, we aim to introduce the main theoretical concepts as well as practical ideas that lay the basis for the practical part of this thesis. We use the terms \textit{machine} and \textit{statistical} learning interchangeably in the spirit of Larry Wasserman's quote: "There are no machines, only statistics."
-Nevertheless, it is important to acknowledge the difference between these two fields. Even though these fields are identical in their intent (learning from the data) and their mathematical base, their history, culture, and future development direction set them apart quite substantially. While traditional statistics leans on interpretability, formal inference, and hypothesis testing, intending to most rigorously describe the data-generating process, the development in machine learning is highly driven by improvement in predictive performance. This nature allows the field of ML to evolve rapidly, with the application to various problems. To name a few, we can mention classification, regression, transcription, translation, anomaly detection, density estimation, and many more. The development in machine learning addresses ever more complex tasks, like image generation, protein folding, or large language models (LLMs) for context-appropriate, human-like text generation. These fields of application are, however, very remote in scale compared to our situation. For example, LLMs are often trained on any available digitized text, routinely using substantial parts of the whole internet content. Compared to that, our data options are much more limited, and our task is specialized and clearly defined. This also encourages us to adopt some ways of thinking closer to more traditional statistical approaches. Our setup allows us to use relatively simple statistical models and try to improve their performance with our understanding of their internal dynamics and interpretation of the inference.
+\subsection{Activation functions}
 
-\section{Probability and information theory}
+One of the hyperparameters we are interested in exploring is the \emph{activation function}. Activation functions introduce non-linearity into neural networks, enabling them to approximate more complex functions. Choosing the right activation function can impact training dynamics, stability, and ultimately model performance. In this subsection, we describe the activation functions used in our work.
 
-Machine learning is grounded in the mathematical frameworks of probability theory and information theory, which provide the tools for modeling uncertainty and quantifying information. The reason can be evident from the example we gave at the beginning of this chapter. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to our example, no two cats are the same, and cats can be caught in pictures in various positions from different angles, distances, and backgrounds. Therefore, it is sensible to think about the image of a cat as an example from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label, like a cat. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. In the rest of this section, we will introduce the key concepts from probability and information theory that we will use in further sections. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
+\paragraph{ReLU}
 
-\subsection{Sample space}
-An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
-
-\subsection{Random variable}
-A random variable is an important concept in ML because it provides a valid mathematical framework to represent noisy, real-world data. Random variable $X$ is a mapping from the sample space $\Omega$ into some target space (typically $\mathbb{R}$ or $\mathbb{Z}$). We can treat an example from the data as a realization of a random variable. Following the single coin toss example, we can define $X$ simply by $X(\text{head}) = 0$ and $X(\text{tail}) = 1$. The instance of a random variable is denoted by $x$ and equals $x = X(\omega)$ for some $\omega \in \Omega$, in our case $x \in \{0, 1\}$.
-
-\subsection{Probability distribution}
-Every random variable is closely tied to some probability distribution. Probability distribution quantifies the probability of each state a random variable can take. In the case of a fair coin, it would give both outcomes the same probability $\nicefrac{1}{2}$. Probability distribution can be either continuous or discrete. Both cases are relevant in most ML applications. Let us briefly introduce both of them \cite{bengio2017deep}.
-
-\subsubsection{Discrete probability distribution}
-The discrete probability distribution is characterized by a finite (or countably infinite) set of states. We usually describe it by a \emph{probability mass function} (PMF), denoted by $P$. It assigns a probability to each state of a random variable. We denote $P(X = x) \equiv P(x)$ a probability that a random variable $X$ takes a value $x$. There are three natural properties a proper PMF has to follow:
-
-\begin{align}
-1.\quad&\operatorname{dom}(P) = \mathcal{X}, \\
-2.\quad&P(\bm{x}) \geq 0 \quad  \forall \bm{x} \in \mathcal{X}, \\
-3.\quad&\sum_{\bm{x} \in \mathcal{X}} P(\bm{x}) = 1.
-\end{align}
-
-\subsubsection{Continuous probability distribution}
-Continuous probability distribution is described by \emph{probability density function (PDF)}, denoted by $p$. Analogously to the discrete case, PDF gives us a probability that $x \in [a, b]$ as $\int_a^b p(x) dx$.
-\begin{align}
-1.\quad&\operatorname{dom}(p) = \mathcal{X}, \\
-2.\quad&p(\bm{x}) \geq 0 \quad  \forall \bm{x} \in \mathcal{X}, \\
-3.\quad&\int_{\mathcal{X}} p(\bm{x}) d\bm{x} = 1.
-\end{align}
-
-All the previously introduced concepts extend naturally to multiple dimensions, with the notion of \emph{random vector}. A random vector is a vector-valued function, where each component is a random variable defined on the same underlying sample space. 
-
-%We often need to work with multiple random vectors, each representing different but potentially related parts of the data. We often need \emph{conditional probability} to model these relationships properly.
-
-% \subsection{Marginal probability} Marginal probability describes the probability of a single event occurring, without considering any other variables. It is obtained by summing (or integrating, in the continuous case) over the possible values of the other variables. For discrete random variables $X$ and $Y$, the marginal probability of $X$ is given by:
-
-% \begin{equation} 
-%     P(X=x) = \sum_{y} P(X=x, Y=y). 
-% \end{equation}
-
-% In other words, marginalization allows us to "ignore" other variables by aggregating over them. In machine learning, we often marginalize out latent variables that are not directly observable.
-
-\subsection{Conditional probability}
-Suppose we have two random variables $X$ and $Y$. Conditional probability represents the probability of one event given that another event has already occurred. The conditional probability of $X$ given $Y$ is defined as:
-
-\begin{equation} 
-    P(X=x \mid Y=y) = \frac{P(X=x, Y=y)}{P(Y=y)}, 
-\end{equation}
-
-where we assume that $P(Y=y) > 0$, and $P(X=x, Y=y)$ denotes a joint probability that the random variables $X$ and $Y$ simultaneously take on values $x$ and $y$ respectively.
-
-\subsection{Expectation, variance, covariance} The expectation (or expected value) of a random variable $X$ captures the average outcome if the experiment were repeated infinitely many times. For a discrete variable:
-
-\begin{equation} 
-    \mathbb{E}[X] = \sum_{x} x P(X=x). 
-\end{equation}
-
-Variance measures how much the values of $X$ are spread around the mean:
-
-\begin{equation} 
-    \mathrm{Var}(X) = \mathbb{E}[(X - \mathbb{E}[X])^2]. 
-\end{equation}
-
-Covariance extends this idea to two random variables and measures how much they change together:
-
-\begin{equation} 
-    \mathrm{Cov}(X, Y) = \mathbb{E}[(X - \mathbb{E}[X])(Y - \mathbb{E}[Y])]. 
-\end{equation}
-
-When the covariance is positive, $X$ and $Y$ tend to increase together; when it is negative, one tends to decrease as the other increases.
-
-\subsection{Statistical (in)dependence} 
-Two random variables $X$ and $Y$ are said to be statistically independent if knowing the value of one provides no information about the other. Mathematically, $X$ and $Y$ are independent if and only if:
-
-\begin{equation} 
-    P(X=x, Y=y) = P(X=x) P(Y=y),
-\end{equation}
-
-for all possible values of $x$ and $y$.
-When this condition does not hold, $X$ and $Y$ are dependent. Statistical (in)dependence is important when deffining machine learning models, where we assume that our data are independent.
-
-\subsection{Likelihood}
-
-The \emph{likelihood} tells us how probable a given set of observed data is, under a particular set of model parameters.
-
-Let us consider a statistical model, represented as a probability distribution $p(x \mid \theta)$, where:
-\begin{itemize}
-    \item $x$ is the observed data,
-    \item $\theta$ are the parameters of the model.
-\end{itemize}
-
-While $p(x \mid \theta)$ is a function of $x$ for fixed $\theta$, likelihood treats the observed data $x$ as fixed and views it as a function of $\theta$. That is, we define the \emph{likelihood function} as:
-\begin{equation}
-    \mathcal{L}(\theta \mid x) = p(x \mid \theta)
-\end{equation}
-
-If we observe multiple independent samples $x_1, \dots, x_m$, the total likelihood becomes a product of individual likelihoods:
-\begin{equation}
-    \mathcal{L}(\theta) \equiv \mathcal{L}(\theta \mid x_1, \dots, x_m) = \prod_{i=1}^{m} p(x_i \mid \theta).
-\end{equation}
-
-This product can be numerically unstable, hence we usually work with the \emph{log-likelihood}, which transforms the product into a sum:
-\begin{equation}
-    \log \mathcal{L}(\theta) = \sum_{i=1}^{m} \log p(x_i \mid \theta),
-\end{equation}
-
-This transformation preserves the extremal points and makes likelihood easier to deal with, especially when taking derivatives. 
-
-\subsection{Self information}
-The main task of information theory is to quantify the amount of information in the signal. We can use its concepts in ML in order to describe a probability distribution and to compare information contained in two distributions. A very useful quantity describing the amount of information is called \emph{self-information}, denoted as $I$. The intuition behind self-information can be summarized in $3$ properties.
-\begin{itemize}
-    \item Likely events should carry low information content. For example, if an event $x$ occurs with high probability, it is not surprising, and thus $I(x)$ should be small. In the extreme case of a certain event (i.e., $p(x) = 1$), we expect $I(x) = 0$.
-    \item Unlikely events should carry high information content, reflecting that rare events are more surprising and hence more informative.
-    \item Independent events should have additive information content. Meaning, for two independent events $x$ and $y$ (i.e., $p(x, y) = p(x)p(y)$), the information of their joint occurrence should satisfy $I(x, y) = I(x) + I(y)$.
-\end{itemize}
-
-To satisfy all the above properties, self-information for a discrete variable is defined as:
+The \emph{Rectified Linear Unit (ReLU)} is one of the most widely used activations due to its simplicity and effective gradient propagation:
 
 \begin{equation}
-	\label{eq:self-information}
-	I(x) = - \ln P(x).
+    \mathrm{ReLU}(x) = \max(0, x).
 \end{equation}
 
-For the continuous random variable, self-information is defined analogously; the practical difference is that self-information can also be negative. Note that the logarithm in the above definition can have a different base. Using the natural logarithm implies that self-information is measured in \emph{nats}, whereas using the \textit{(from an information theory perspective, more traditional)} base 2 means the unit of self-information is \emph{bits}.
+\paragraph{Leaky ReLU}
 
-While the self-information deals only with the single example, we can use it to quantify the uncertainty across the whole distribution. This notion is called \emph{Shannon entropy}, denoted as $H(P)$ and it is simply an expected value of self information across the probability distribution.
-
-\begin{equation} 
-    \label{eq:shannon-entropy} 
-    H(P) = \mathbb{E}_{x \sim P}[I(x)] = - \mathbb{E}_{x \sim P}[\ln(P)]. 
-\end{equation}
-
-Shannon entropy tells us the expected amount of information while observing an event drawn from a given distribution. When dealing with two probability distributions, say $P$ (true target distribution) and $Q$ (model output distribution), we eventually need to measure how different they are.
-
-A quantity that extends the idea of Shannon entropy to two distributions is the \emph{cross-entropy}. Cross-entropy measures how well the predicted distribution $Q$ matches the true distribution $P$. It can be seen as the expected amount of surprise when the true outcomes are sampled according to $P$ but are predicted using $Q$. It is defined as:
-
-\begin{equation} 
-    \label{eq:cross-entropy} 
-    H(P, Q) = \mathbb{E}{_x \sim P}[-\ln Q(x)] = - \sum_{x \in \mathcal{X}} P(x) \ln Q(x). 
-\end{equation}
-
-If $P = Q$, the cross-entropy reduces to the Shannon entropy of $P$. In the context of machine learning, especially classification tasks, cross-entropy is often used as a loss function. It penalizes the model $Q$ for assigning low probability to the true label sampled from $P$.
-
-Another important quantity is the \emph{Kullback-Leibler divergence} (KL divergence), denoted as $D_{\mathrm{KL}}(P | Q)$. It quantifies the extra amount of information required to code samples from $P$ when using a coding scheme designed for $Q$. It can be interpreted as a measure of how much $Q$ diverges from $P$, and is defined as:
-
-\begin{equation} 
-    \label{eq:kl-divergence} 
-    D_{\mathrm{KL}}(P | Q) = 
-    \mathbb{E}_{x \sim P} \left[ \ln \frac{P(x)}{Q(x)} \right] = \sum_{x \in \mathcal{X}} P(x) \ln \frac{P(x)}{Q(x)}. 
-\end{equation}
-
-The KL divergence is always non-negative and equals zero if and only if $P = Q$ almost everywhere. Unlike true metrics, KL divergence is not symmetric, meaning that in general $D_{\mathrm{KL}}(P | Q) \neq D_{\mathrm{KL}}(Q | P)$. It is useful to observe the relationship between cross-entropy, Shannon entropy, and KL divergence:
-
-\begin{equation} 
-    \label{eq:cross-entropy-kl} 
-    H(P, Q) = H(P) + D_{\mathrm{KL}}(P | Q).
-\end{equation}
-
-In the practical setting of supervised classification, we do not know the full data distribution $P$ and instead observe samples. Thus, we typically minimize the empirical cross-entropy, treating the labels as samples from $P$ and the model outputs as the distribution $Q$.
-
-\section{Machine learning}
-Machine learning builds on the concepts mentioned in the previous section. In its essence, ML is trying to find a sufficiently accurate mapping between two distributions: the distribution of the input data and the distribution of their corresponding labels \textit{(sometimes referred to as targets)}. This mapping is a statistical model with its output distribution. In practice, we often expect the relationship between input and output distributions to be highly nonlinear, which needs to be reflected in the model's architecture. Training a statistical model is adjusting a subset of its parameters, such that the model's output distribution matches the true label distribution more closely.
-
-\subsection{Model training}
-\label{subsec:training}
-
-\subsubsection{Maximum likelihood estimation}
-One of the most widely adopted and statistically grounded principles for training models is \emph{maximum likelihood estimation (MLE)}. The idea is that given a set of independent training examples $X = x_1, \dots, x_m$, we want to find the model parameters $\theta$ that maximize the likelihood of the observed data under the model distribution $p_{\text{model}}(x \mid \theta)$. Formally, the maximum likelihood estimator is defined as:
-
-\begin{align}
-\theta_{\text{MLE}} 
-&= \arg\max_{\theta} p_{\text{model}}(X \mid \theta) \label{eq:mle}\\
-&= \arg\max_{\theta} \prod_{i=1}^{m} p_{\text{model}}(x_i \mid \theta)
-\end{align}
-
-Since optimizing a product of many probabilities can be numerically unstable, but we can use injectivity of the logarithm and maximize the log-likelihood instead:
-
-\begin{align}
-\theta_{\text{MLE}} 
-&= \arg\max_{\theta} \sum_{i=1}^{m} \log p_{\text{model}}(x_i \mid \theta)
-\end{align}
-
-By dividing by the number of training examples, we can express the objective as an expectation over the empirical distribution $\hat{p}_{\text{data}}$ defined by the training set:
-
-\begin{align}
-\theta_{\text{MLE}} 
-&= \arg\max_{\theta} \mathbb{E}_{x \sim \hat{p}_{\text{data}}} \left[ \log p_{\text{model}}(x \mid \theta) \right] \\
-&= \arg\min_{\theta} \mathbb{E}_{x \sim \hat{p}_{\text{data}}} \left[- \log p_{\text{model}}(x \mid \theta) \right] \label{eq:mle_nll} \\
-&= \arg\min_{\theta} H\left(\hat{p}_{\text{data}}(x), p_{\text{model}}(x \mid \theta) \right) \label{eq:mle_cross_entropy} \\
-&= \arg\min_{\theta} D_{\text{KL}}\left(\hat{p}_{\text{data}}(x) \,\|\, p_{\text{model}}(x \mid \theta) \right) \label{eq:mle_kl}
-\end{align}
-
-We see that if the empirical data distribution $\hat{p}_{\text{data}}$ accurately represents the true data distribution, the following objectives become mathematically equivalent:
-\begin{itemize}
-    \item Maximizing the likelihood~\eqref{eq:mle_expectation},
-    \item Minimizing the negative log-likelihood (NLL)~\eqref{eq:mle_nll},
-    \item Minimizing the cross-entropy~\eqref{eq:mle_cross_entropy},
-    \item Minimizing the Kullback–Leibler (KL) divergence \eqref{eq:mle_kl}.
-\end{itemize}
-
-
-\subsubsection{Loss function}
-In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, it is often advantageous to incorporate additional heuristics or prior knowledge into the loss, as this can lead to improved model performance and better generalization.
-
-An example of a slightly more advanced loss function is so called \emph{focal loss}. This loss is useful when we have a class imbalance in the data, meaning that for example one category has significantly less samples than the other ones.
-
-Once the loss function is defined, the task becomes an optimization problem: finding the global minimum of the loss in the high-dimensional space of the model’s parameters. Training the model is typically an iterative process that updates these parameters step-by-step to minimize the loss. We typically require the loss function to be differentiable, in order to apply gradient-based methods during minimization.
-
-\subsubsection{Gradient descent}
-Most optimization methods used in training neural networks, are based on \emph{gradient descent}. The idea is to compute the gradient of the loss function with respect to the model parameters and take a step in the direction that most decreases the loss. If $\theta$ denotes the current parameters and $\mathcal{L}(\theta)$ the loss, then a single update step is given by:
+By design, ReLU ignores half of the activations, which can obstruct the training. \emph{Leaky ReLU} addresses this by allowing still smaller, but non-zero gradient even for the negative activations:
 
 \begin{equation}
-    \theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta),
+    \mathrm{LeakyReLU}(x) = 
+    \begin{cases}
+        x, & x \ge 0, \\
+        \alpha x, & x < 0,
+    \end{cases}
 \end{equation}
 
-where $\alpha > 0$ is a hyperparameter called \emph{learning rate}, that controls the step size. 
+where typically $\alpha = 0.01$.
 
-The choice of the learning rate is one of the most critical hyperparameters for the successful training of neural networks. A learning rate that is too high can cause the optimization to diverge, while a learning rate that is too small can result in very slow convergence or getting stuck in suboptimal regions. In practice, it is beneficial not only to choose a good initial learning rate but also to adjust it during training. This approach is known as \emph{learning rate scheduling} or \emph{learning rate decay} and we discuss it further in \ref{subsec:decay-scheduling}.
+\paragraph{ELU}
 
-Computing the gradient over the entire dataset can be very slow, if not impossible due to high memory requirements. Instead, we use an approximation based on randomly selected subsets of data. This leads to two widely used variants:
-\begin{itemize}
-    \item Stochastic gradient descent (SGD): The gradient is computed using a single randomly selected data point. While this is very efficient per update, the variance of the updates is high, which can make training unstable.
-    \item Mini-batch gradient descent: A compromise between full-batch and stochastic methods. The gradient is computed over a small batch of data points, typically ranging from 16 to 512 samples. This approach is the standard in most modern applications, offering both stability and computational efficiency.
-\end{itemize}
-It it well established that the mini-batch gradient descent is the way to go if applicable, and the most popular optimization algorithms used in ML are its different extensions.
+The idea of \emph{Exponential Linear Unit (ELU)} is similar to the Leaky ReLU, but ELU is smooth:
 
-\subsubsection{Underfitting/overfitting}
-A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common failure modes are:
-\begin{itemize}
-    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
-    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise or spurious correlations. While training performance is excellent, test performance degrades.
-\end{itemize}
-These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. 
-
-In the rest of this chapter we introduce the various options that can be implemented in training as well as some straight forward \emph{regularization techniques}. It is important to know and understand these options because each of them can have impact on the resulting generalization of the model.
-
-\subsubsection{Optimizers}
-
-While mini-batch gradient descent is a powerful and general optimization method, several enhancements have been developed to address its practical shortcomings, such as slow convergence, sensitivity to learning rate, and getting stuck in poorly conditioned regions of the loss landscape. These enhancements form the basis of modern optimizers used in training neural networks. In this subsection, we briefly outline the key ideas that lead to the widely used \emph{Adam} optimizer.
-
-\paragraph{Momentum}
-
-One of the earliest improvements over vanilla gradient descent was the introduction of \emph{momentum}. Instead of updating parameters purely based on the current gradient, momentum accumulates an exponentially decaying moving average of past gradients. The update rule becomes:
-
-\begin{equation} 
-	v_t = \beta v_{t-1} + (1 - \beta) \nabla_\theta \mathcal{L}(\theta), 			\label{eq:momentum_velocity} 
+\begin{equation}
+    \mathrm{ELU}(x) = 
+    \begin{cases}
+        x, & x \ge 0, \\
+        \alpha (e^x - 1), & x < 0,
+    \end{cases}
 \end{equation}
 
-\begin{equation} 
-	\theta \leftarrow \theta - \alpha v_t, 
-	\label{eq:momentum_update} 
+where $\alpha$ is a hyperparameter controlling the value to which ELU saturates for negative inputs.
+
+\paragraph{SELU}
+
+The \emph{Scaled Exponential Linear Unit (SELU)} is defined as:
+
+\begin{equation}
+    \mathrm{SELU}(x) = \lambda \cdot
+    \begin{cases}
+        x, & x \ge 0, \\
+        \alpha (e^x - 1), & x < 0,
+    \end{cases}
 \end{equation}
 
-where $v_t$ is the velocity vector at iteration $t$ and $\beta \in [0,1)$ controls the contribution of previous gradients. Momentum helps accelerate updates along directions with persistent gradients and dampens oscillations in directions with high curvature.
+with specific fixed parameters $\lambda \approx 1.0507$ and $\alpha \approx 1.6733$. SELU is designed for self-normalizing networks, maintaining mean and variance under certain conditions \cite{klambauer2017selfnormalizingneuralnetworks}.
 
-\paragraph{Adaptive learning rates}
+\paragraph{GELU}
 
-Another major challenge in optimization is choosing a good learning rate. To address this, \emph{adaptive learning rate methods} adjust the learning rate individually for each parameter based on past gradients. One early method is Adagrad, which scales the learning rate inversely proportional to the square root of the sum of historical squared gradients:
+The \emph{Gaussian Error Linear Unit (GELU)} is a probabilistic gating with an empirical success in many deep learning domains \cite{hendrycks2023gaussianerrorlinearunits}:
 
-\begin{equation} 
-	\theta_i \leftarrow \theta_i - \frac{\alpha}{\sqrt{G_{i,i}} + \epsilon} \nabla_{\theta_i} \mathcal{L}(\theta), 
-	\label{eq:adagrad_update} 
+\begin{equation}
+    \mathrm{GELU}(x) = x \cdot \Phi(x),
 \end{equation}
 
-where $G$ is the matrix accumulating the squared gradients, and $\epsilon$ is a small constant added for numerical stability. This approach makes larger updates for infrequently updated parameters and smaller updates for frequently updated ones.
+where $\Phi(x)$ is the standard normal cumulative distribution function. An approximation often used in practice is:
 
-However, Adagrad can suffer from aggressively shrinking learning rates. Later methods such as RMSProp address this by maintaining an exponential moving average of squared gradients instead of a cumulative sum:
-
-\begin{equation} 
-    E[g^2]t = \beta E[g^2]{t-1} + (1-\beta) (\nabla_\theta \mathcal{L}(\theta))^2, 
-    \label{eq:rmsprop_ema} 
+\begin{equation}
+    \mathrm{GELU}(x) \approx 0.5\, x \left[1 + \tanh\left(\sqrt{\frac{2}{\pi}} \left(x + 0.044715\, x^3\right)\right)\right].
 \end{equation}
 
-\begin{equation} 
-    \theta \leftarrow \theta - \frac{\alpha}{\sqrt{E[g^2]t + \epsilon}} \nabla_\theta \mathcal{L}(\theta). 
-    \label{eq:rmsprop_update} 
+All of the activation functions described earlier are can be used in the hidden layers of a neural network. These however, do not work well for the output layer. The two most common choices for \emph{classification heads} are the \emph{sigmoid} and \emph{softmax} functions.
+
+\paragraph{Sigmoid}
+
+The \emph{sigmoid} function is typically used in binary classification, to model probabilities in $[0, 1]$:
+
+\begin{equation}
+    \sigma(x) = \frac{1}{1 + e^{-x}}.
 \end{equation}
 
-\paragraph{Adam optimizer}
+\paragraph{Softmax}
 
-The \emph{Adam} (Adaptive Moment Estimation) optimizer combines the ideas of momentum and adaptive learning rates into a single method. It maintains two moving averages:
-\begin{itemize}
-    \item First moment (mean of gradients): $m_t$,
-    \item Second moment (uncentered variance of gradients): $v_t$.
-\end{itemize}
-The updates are computed as:
+\emph{Softmax} is the most common activation function for classification into multiple classes, as the output of \emph{softmax} can be directly interpreted as a probability distribution over classes:
 
-\begin{equation} 
-    m_t = \beta_1 m_{t-1} + (1 - \beta_1) \nabla_\theta \mathcal{L}(\theta), 
-    \label{eq:adam_first_moment} 
+\begin{equation}
+    \mathrm{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}.
 \end{equation}
 
-\begin{equation} 
-    v_t = \beta_2 v_{t-1} + (1 - \beta_2) (\nabla_\theta \mathcal{L}(\theta))^2, 
-    \label{eq:adam_second_moment} 
-\end{equation}
-
-\begin{equation} 
-    \hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}, 
-    \label{eq:adam_bias_correction} 
-\end{equation}
-
-\begin{equation} 
-    \theta \leftarrow \theta - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}, 
-    \label{eq:adam_update} 
-\end{equation}
-
-where $\beta_1$ and $\beta_2$ are decay rates for the moment estimates, and $\epsilon$ is again a small constant for stability. The bias-corrected estimates $\hat{m}_t$ and $\hat{v}_t$ account for initialization at zero.
-
-Adam has become the optimizer of choice in many applications because of its robustness, good empirical performance, and minimal need for manual learning rate tuning. Throughout this thesis, we primarily use Adam with its default hyperparameters $(\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8})$.
-
-\subsubsection{Decay scheduling}
-\label{subsec:decay-scheduling}
-
-Decay scheduling is task of assigning a learning rate during training. The general idea is that as the training progresses, we want to be more conservative with the weight updates, which can be achieved by lowering the learning rate.
-
-\paragraph{None}
-The simplest approach is to keep the learning rate constant throughout the training process. However, this usually leads to suboptimal results in more complex settings.
-
-\paragraph{Linear decay}
-In linear decay, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
-
-\begin{equation} 
-	\label{eq:linear-decay} 
-	l_t = l_0 \left(1 - \frac{t}{T}\right). 
-\end{equation}
-
-\paragraph{Exponential decay}
-Exponential decay reduces the learning rate multiplicatively at each step, resulting in a faster decay than linear scheduling. It can be particularly useful when rapid early convergence is desired. The formula is:
-
-\begin{equation} 
-	\label{eq:exponential-decay} 
-	l_t = l_0 , \gamma^{t}, 
-\end{equation}
-
-where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
-
-\paragraph{Cosine decay}
-Cosine annealing is a decay schedule that reduces the learning rate following a cosine function, usually without any abrupt jumps. It starts at the maximum learning rate and gradually decays to the minimum value. The form is:
-
-\begin{equation} 
-	\label{eq:cosine-decay} 
-	l_t = l_{\mathrm{min}} + \frac{1}{2}(l_0 - l_{\mathrm{min}}) \left(1 + \cos\left( \pi \frac{t}{T} \right) \right)
-\end{equation}
-
-where $l_{\mathrm{min}}$ is the final learning rate. Cosine decay is popular due to its smooth and natural shape and its empirical success in many modern applications.
-
-\paragraph{Piecewise decay}
-Piecewise decay divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by a factor of $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
-
-\paragraph{Plateau-based decay}
-Plateau-based methods are similar to piecewise decay, but they monitor some metric and reduce the learning rate by some factor whenever the metric stops improving for a certain number of epochs. Our implementation follows the validation loss, and if the loss doesn't improve in the last $10$ epochs, we divide the current learning rate by a factor of $10$.
-
-
-\subsubsection{Backpropagation}
-To efficiently compute gradients of the loss with respect to millions of model parameters, we use the \emph{backpropagation} algorithm. Backpropagation applies the chain rule of calculus to propagate the loss gradient from the output layer backward through the network. Each layer computes the gradient of the loss with respect to its parameters and passes the gradient with respect to its inputs to the preceding layer. This recursive process allows the entire gradient $\nabla_\theta \mathcal{L}$ to be computed in time linear in the number of layers.
-
-While the mathematics of backpropagation is straightforward, its implementation benefits greatly from modern automatic differentiation frameworks such as TensorFlow or PyTorch, which handle all the necessary bookkeeping and gradient computations automatically.
-
-\section{Model architecture}
-In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\mathbf{x}$, a neural network seeks to learn a function $f_\theta(\mathbf{x})$ parameterized by weights $\theta$, such that $f_\theta(\mathbf{x})$ yields the correct or meaningful output. The particular nature of this output defines the type of problem we are solving — either supervised, unsupervised, or reinforcement learning. In our case, we use supervised learning, where each input is paired with a known label, and the goal is to learn the mapping from inputs to outputs.
-
-Today’s collection of neural network architectures is very diverse, with each family offering distinct trade-offs. For instance, transformer-based models excel at capturing long-range dependencies and complex structures in data, but they typically require large-scale datasets and significant computational resources — conditions that are not met in our case. Given the nature of our task and the structure of our data, the most reasonable architectural choices are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}.
+In our experiments, we use either $3$ sigmoids (normalized afterwards to $1$), or a softmax activations as the classification heads.
 
 \subsection{Fully connected network}
 
-A fully connected neural network, often referred to as a \emph{dense network} or \emph{multilayer perceptron (MLP)}, is one of the fundamental architectures in machine learning. It consists of sequential layers where each neuron in one layer is connected to every neuron in the following layer.
+A fully connected neural network, often referred to as a \emph{dense neural network} or \emph{multilayer perceptron (MLP)}, is one of the fundamental architectures in machine learning. It consists of sequential layers where each neuron in one layer is connected to every neuron in the following layer.
 
 The general structure is simple: the network has an \emph{input layer}, several \emph{hidden layers}, and an \emph{output layer}. Each layer transforms its input vector into an output vector through a combination of a linear transformation and a non-linear activation function.
 
 Formally, the operation of a fully connected layer can be described as:
 
 \begin{equation} 
-	\label{eq:fully-connected} \mathbf{h} = \phi(\mathbf{W}\mathbf{x} + \mathbf{b}), 
+	\label{eq:fully-connected} \bm{h} = \phi(\bm{W}\bm{x} + \bm{b}), 
 \end{equation}
 
-where $\mathbf{x}$ is the input vector, $\mathbf{W}$ is the weight matrix, $\mathbf{b}$ is the bias vector, $\phi$ is a non-linear activation function (such as ReLU or sigmoid), and $\mathbf{h}$ is the resulting output (also called the hidden state).
+where $\bm{x}$ is the input vector, $\bm{W}$ is the weight matrix, $\bm{b}$ is the bias vector, $\phi$ is a non-linear activation function (such as ReLU or sigmoid), and $\bm{h}$ is the resulting output (also called the hidden state).
 
 \begin{figure}[h]
   \centering
@@ -399,41 +121,54 @@ While fully connected networks can in principle approximate any continuous funct
 
 \subsection{Convolutional network}
 
-Convolutional neural networks (CNNs) are designed to process data with a grid-like structure, for example 1-D sequences or 2-D images. Unlike fully connected networks, CNNs capture the spatial structure of the data while greatly reducing the number of parameters.
+Convolutional neural networks (CNNs) \cite{bengio2017deep} are designed to process data with a grid-like structure, for example 1-D sequences or 2-D images. Unlike fully connected networks, CNNs capture the spatial structure of the data while greatly reducing the number of parameters.
 
 \paragraph{Computation of convolution}
 
-At the heart of a CNN is the \emph{convolutional layer}, where a small filter (also called a kernel) slides across the input and computes local dot products. Mathematically, a 2D convolution operation between an input $\mathbf{I}$ and a filter $\mathbf{K}$ can be expressed as:
+At the heart of a CNN is the \emph{convolutional layer}, where a small filter (also called a kernel) slides across the input and computes local dot products. Mathematically, a 2D convolution operation between an input $\bm{I}$ and a filter $\bm{K}$ can be expressed as:
 
 \begin{equation} 
 	\label{eq:convolution} 
-	(\mathbf{I} * \mathbf{K})(i,j) = \sum_{m}\sum_{n} \mathbf{I}(i+m, j+n) , \mathbf{K}(m,n), 
+	(\bm{I} * \bm{K})(i,j) = \sum_{m}\sum_{n} \bm{I}(i+m, j+n) , \bm{K}(m,n), 
 \end{equation}
 
-where $(i,j)$ are the spatial coordinates of the output, and the sums run over the spatial extent of the filter.
+where $(i,j)$ are the spatial coordinates of the output, and the sums run over the spatial extent of the filter. The output of this operation is then refered to as \emph{feature map}.
 
-\begin{figure}[h]
+\begin{figure}[h!]
   \centering
   \includegraphics[width=0.9\textwidth]{img/conv2d.pdf}
   \caption{Applying single 2D convolutional kernel \cite{conv2d_image}.}
   \label{fig:conv2d}
 \end{figure}
 
+The filter does not have to slide over every input location, but can move in larger steps given by the \emph{stride}. A stride of $(s_h, s_w)$ skips $s_h$ rows and $s_w$ columns between successive applications of the filter. This effectively reduces the spatial dimension of the feature map, which can help.
+
 \paragraph{Pooling layers}
 
-To further reduce the spatial dimensions and promote invariance to small translations, CNNs often include pooling layers. The most common variant is \emph{max pooling}, which down-samples the input by taking the maximum value over non-overlapping regions. For example, a $2\times2$ max pooling operation reduces each $2\times2$ region to a single value:
+Other way to reduce the spatial dimensions in CNNs is provided by \emph{pooling layers}. The most common variant is \emph{max pooling}, which down-samples the input by taking the maximum value over non-overlapping regions. For example, a $2\times2$ max pooling operation reduces each $2\times2$ region to a single value:
 
-\begin{equation} \label{eq:max-pooling} y(i,j) = \max_{(m,n) \in \mathcal{R}(i,j)} x(m,n), \end{equation}
+\begin{equation} 
+	\label{eq:max-pooling} 
+	y(i,j) = \max_{(m,n) \in \mathcal{R}(i,j)} I(m,n), 
+\end{equation}
 
-where $\mathcal{R}(i,j)$ denotes the receptive field corresponding to output location $(i,j)$.
+where $\mathcal{R}(i,j)$ denotes the receptive field corresponding to output location $(i,j)$. An alternative to max pooling is \emph{average pooling}, which computes the average value within each region instead of the maximum:
+
+\begin{equation}
+	\label{eq:avg-pooling}
+	y(i,j) = \frac{1}{|\mathcal{R}(i,j)|} \sum_{(m,n) \in \mathcal{R}(i,j)} I(m,n),
+\end{equation}
+
+
+In our experiments we always use the $2\times2$ receptive fields. 
 
 \paragraph{Depthwise separable convolutions}
 
 Standard convolutions are computationally expensive, especially when both the input and output have many channels. One way to alleviate this is by using \emph{depthwise separable convolutions}, which decompose a convolution into two simpler operations:
 
 \begin{itemize} 
-\item \textbf{Depthwise convolution:} A spatial convolution is applied independently to each input channel. 
-\item \textbf{Pointwise convolution:} A $1\times1$ convolution is applied across channels to mix the features. 
+	\item \textbf{Depthwise convolution:} A spatial convolution is applied independently to each input channel. 
+	\item \textbf{Pointwise convolution:} A $1\times1$ convolution is applied across channels to mix the features. 
 \end{itemize}
 
 This decomposition significantly reduces computational cost and the number of parameters, while often maintaining or  improving performance.
@@ -499,16 +234,16 @@ The SE block has two main stages:
 \subsubsection{CBAM block}
 The Convolutional Block Attention Module (CBAM) enhances feature representations by sequentially applying attention mechanisms along both the channel and spatial dimensions. Unlike the Squeeze-and-Excite block, which focuses solely on channel-wise attention, CBAM extends this idea to also include spatial attention, allowing the network to emphasize what and where to attend.
 
-For a given input feature map $\mathbf{F} \in \mathbb{R}^{C \times H \times W}$, CBAM applies a channel attention module followed by a spatial attention module. The channel attention module aggregates spatial information using global average and max pooling, followed by shared MLP layers, resulting in a channel attention map $M_c \in \mathbb{R}^{C \times 1 \times 1}$. The input is then refined as:
+For a given input feature map $\bm{F} \in \mathbb{R}^{C \times H \times W}$, CBAM applies a channel attention module followed by a spatial attention module. The channel attention module aggregates spatial information using global average and max pooling, followed by shared MLP layers, resulting in a channel attention map $M_c \in \mathbb{R}^{C \times 1 \times 1}$. The input is then refined as:
 
 \begin{equation}
-	\mathbf{F'} = M_c(\mathbf{F}) \cdot \mathbf{F},
+	\bm{F'} = M_c(\bm{F}) \cdot \bm{F},
 \end{equation}
 
 Next, the spatial attention module focuses on where to emphasize by applying a similar pooling and convolutional process to generate a spatial attention map $M_s \in \mathbb{R}^{1 \times H \times W}$. The final output is:
 
 \begin{equation}
-	\mathbf{F''} = M_s(\mathbf{F'}) \cdot \mathbf{F'},
+	\bm{F''} = M_s(\bm{F'}) \cdot \bm{F'},
 \end{equation}
 
 where $\cdot$ denotes element-wise multiplication.
@@ -522,16 +257,120 @@ where $\cdot$ denotes element-wise multiplication.
 
 By incorporating both attention types in a lightweight and modular fashion, CBAM can be easily integrated into existing convolutional architectures to improve representational power and performance.
 
+\subsubsection{Optimizers}
 
-\section{Regularization techniques}
-The main source for this chapter is \cite{bengio2017deep}.
+The term \emph{optimizer} defines the update rule for the model's weights during training, regardless on the concrete architecture. While the training is based on gradient decent, the choice of optimizer can significantly impact convergence and the resulting generalization. In this subsection, we briefly describe the three optimizers used in this thesis: \emph{Nesterov SGD with momentum}, \emph{RMSProp}, and \emph{AdamW}.
 
-We have already mentioned the key concept for ML and that is generalization. Generalization is the ability of the model to perform well on previosly unseen data. In our case we train the model on the clean images containing only a single phase, and we want the model to perform well also on the images near the phase transitions where there are often simultaniosly two phases present in the different parts of the given image. 
+\paragraph{Nesterov SGD with momentum}
 
-There are many strategies how to improve generalization (often with the cost of increasing training error). Some of these strategies relies on putting constrains on the model parameters, some modify the objective function. Some strategies modify the training data, some interfere with the training process, model's architecture and many other things. We will describe strategies that are relevant for us in the following section.
+Standard stochastic gradient descent (SGD) can be slow to converge and sensitive to the learning rate. The \emph{momentum} technique helps accelerate convergence by smoothing updates, maintaining a velocity vector that accumulates past gradients:
+
+\begin{equation}
+    v_t = \beta v_{t-1} + \nabla_\theta \mathcal{L}(\theta),
+    \label{eq:momentum_velocity_sgd}
+\end{equation}
+
+\begin{equation}
+    \theta \leftarrow \theta - \alpha v_t,
+    \label{eq:momentum_update_sgd}
+\end{equation}
+
+where $\beta \in [0,1)$ is the momentum coefficient.  
+
+\emph{Nesterov momentum} \cite{sutskever2013importance} is a method that looks ahead to the estimated future position before computing the gradient:
+
+\begin{equation}
+    v_t = \beta v_{t-1} + \nabla_\theta \mathcal{L}(\theta - \alpha \beta v_{t-1}),
+    \label{eq:nesterov_velocity}
+\end{equation}
+
+\begin{equation}
+    \theta \leftarrow \theta - \alpha v_t.
+    \label{eq:nesterov_update}
+\end{equation}
+
+This step can improve convergence, therefore we use SGD with Nesterov momentum as one of the optimizers in our experiments.
+
+\paragraph{RMSProp}
+
+\emph{RMSProp} was designed to address slow convergence by using adaptive learning rate. RMSProp does it by maintaining an exponentially decaying average of squared gradients:
+
+\begin{equation}
+    E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta) (\nabla_\theta \mathcal{L}(\theta))^2,
+    \label{eq:rmsprop_ema_new}
+\end{equation}
+
+\begin{equation}
+    \theta \leftarrow \theta - \frac{\alpha}{\sqrt{E[g^2]_t} + \epsilon} \nabla_\theta \mathcal{L}(\theta),
+    \label{eq:rmsprop_update_new}
+\end{equation}
+
+where $\beta$ is the decay rate (often set around 0.9) and $\epsilon$ is a small constant for numerical stability. By adapting learning rates individually for each parameter, RMSProp can handle noisy gradients and sharp minima effectively. We use RMSProp in selected experiments to evaluate its impact on training dynamics and generalization.
+
+\subsubsection{Decay scheduling}
+\label{subsec:decay-scheduling}
+
+Decay scheduling changes the learning rate during training. The general idea is that as the training progresses, we want to be more conservative with the weight updates, which can be achieved by lowering the learning rate. Even though some optimizers adapt the learning rate during the training, it can still be beneficial to use scheduling. 
+
+\paragraph{None}
+The simplest approach is to keep the learning rate constant throughout the training process. However, this usually leads to suboptimal results in more complex settings.
+
+\paragraph{Linear decay}
+In linear decay, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
+
+\begin{equation} 
+	\label{eq:linear-decay} 
+	l_t = l_0 \left(1 - \frac{t}{T}\right). 
+\end{equation}
+
+\paragraph{Exponential decay}
+Exponential decay reduces the learning rate multiplicatively at each step, resulting in a very fast decay, potentially resulting in a rapid early convergence. The formula is:
+
+\begin{equation} 
+	\label{eq:exponential-decay} 
+	l_t = l_0 , \gamma^{t}, 
+\end{equation}
+
+where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
+
+\paragraph{Cosine decay}
+Cosine decay schedule reduces the learning rate following a cosine function. It starts at the maximum learning rate and gradually decays to the minimum value:
+
+\begin{equation} 
+	\label{eq:cosine-decay} 
+	l_t = l_{\mathrm{min}} + \frac{1}{2}(l_0 - l_{\mathrm{min}}) \left(1 + \cos\left( \pi \frac{t}{T} \right) \right)
+\end{equation}
+
+where $l_{\mathrm{min}}$ is the final learning rate. In our experiments, we use $l_0 = 0.1$ and $l_{\mathrm{min}} = \SI{1e-4}{}$ everywhere applicable.
+
+\paragraph{Piecewise decay}
+Piecewise decay divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by a factor of $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
+
+\paragraph{Plateau-based decay}
+Plateau-based methods are similar to piecewise decay, but they monitor some metric and reduce the learning rate by some factor whenever the metric stops improving for a certain number of epochs. Our implementation follows the validation loss, and if the loss doesn't improve in the last $15$ epochs, we divide the current learning rate by a factor of $10$.
+
+\subsection{Initialization}
+
+Deep networks can suffer from either exploding and vanishing gradients, which naturally results in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by proper initialization of the weights. For both dense and convolutional layers, a common strategy is to initialize weights from distributions that take into account the number of input and output units. In the mentioned paper, authors proposed so called Xavier (or Glorot) initialization. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in both dense and convolutional layers when the activation function is symmetric around zero.
+
+For networks with ReLU activations, one widely adopted initialization method is the He initialization \cite{he2015delving}, also known as Kaiming initialization. It draws weights from a zero-mean Gaussian distribution with variance $\frac{2}{n_{\text{in}}}$, where $n_{\text{in}}$ is the number of input connections to the neuron. 
+
+For convolutional layers, these principles are applied in a spatially-aware manner, where $n_{\text{in}}$ and $n_{\text{out}}$ correspond to the number of input and output channels multiplied by the kernel size.
+
+\subsection{Underfitting/overfitting}
+A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common failure modes are:
+\begin{itemize}
+    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
+    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise. While training performance is excellent, test performance degrades.
+\end{itemize}
+These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. If the model performs well on previously unseen data, we say it \emph{generalizes} well. In our case, we don't want achieve just low test error, we want to model to generalize even further a to behave well on unlabeled data from phase transitions containing a mixture of phases.
+
+\section{Regularization}
+
+\emph{Regularization} is a set of techniques to prevent overfitting, \textit{(improve generalization)}, often at the cost of increasing the training error. There are many strategies to improve generalization \cite{bengio2017deep}, often at the cost of increasing the training error. In this thesis we explore following regularization strategies: constraining model parameters, modifying the objective function, altering training data, inferfering with the training process. We will describe the strategies relevant to our work in the following section.
 
 \subsection{Parameter-norm penalties}
-A common way to regularize, used long before deeplearning, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$
+A common way to regularize, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$ \cite{bengio2017deep}. 
 
 \begin{equation}
 	\label{eq:loss-parameter-norm}
@@ -539,30 +378,29 @@ A common way to regularize, used long before deeplearning, is to limit the capac
 \end{equation}
 where $\lambda \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
 
-This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting.
+This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting. The most common parameter norms is the $L^2$:
 
-
-The most common parameter norms are $L^2$:
 \begin{equation}
  	\label{eq:l2-regularization}
  	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_2^2,
-\end{equation} a
-nd $L^1$:
-\begin{equation}
-	\label{eq:l1-regularization}
-	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_1.
 \end{equation} 
 
+%and $L^1$:
+%\begin{equation}
+%	\label{eq:l1-regularization}
+%	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_1.
+%\end{equation} 
 
 \subsection{Weight decay}
-A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss function, it modifies the weight update rule during minimization. Specifically, the weights are updated as:
-\[
-\mathbf{w} \leftarrow \mathbf{w} - \eta \left( \nabla_{\mathbf{w}} \mathcal{L} + \lambda \mathbf{w} \right),
-\]  
+A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss functio
+n, it modifies the weight update rule during minimization. Specifically, the weights are updated as:
+\begin{equation}
+\bm{w} \leftarrow \bm{w} - \eta \left( \nabla_{\bm{w}} \mathcal{L} + \lambda \bm{w} \right),
+\end{equation}
 
 \subsection{Data augmentation}
 
-The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always practical, but we can help ourselves by modifying data we already have. We can take advantage of a fact that the physical properties that define the phase of a magnetic configuration, are preserved with respect to some image tranformations. These include:
+The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always possible, but we can help ourselves by modifying data we already have. We can take advantage of a fact that the physical properties that define the phase of a magnetic configuration, are preserved with respect to some image tranformations. These include:
 \begin{itemize}
     \item \textbf{Reflextions and $\mathbf{\ang{90}}$ rotations}: Reflexted and/or rotated configurations are entirely equivalent with respect to each other.
     \item \textbf{Rolls}: Due to periodic boundary conditions used in the Monte Carlo simulations, we can “roll” images (shift circularly) in any direction.
@@ -641,15 +479,14 @@ Yet this is not the only benefit data augmentation brings for our usecase. We ca
 
 \subsection{Dropout}
 
-Dropout is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
+\emph{Dropout} \cite{srivastava2014dropout} is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
 
-Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature.
+Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout} \cite{tompson2015efficient}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature. Implementation of DropBlock doesn't make sense for our usecase, sinse we try to evaluate how much of each phase is present in the given image. Which leaves us with the spatial dropout for convolutional layes as only viable option.
 
-\subsection{Initialization}
+\subsection{Monte Carlo Dropout}
 
-Deep networks can suffer from either exploding and vanishing gradients, which naturally results in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by proper initialization of the weights. For both dense and convolutional layers, a common strategy is to initialize weights from distributions that take into account the number of input and output units. In the mentioned paper, authors proposed so called Xavier (or Glorot) initialization. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in both dense and convolutional layers when the activation function is symmetric around zero.
+Monte Carlo dropout is in it's idea closely connected to the \emph{model ensembling}. Model ensembling is a regularization technique that combines multiple models. The intuition is that individual models make different errors, and averaging their predictions reduces the variance and improves the robustness. The drawback of model ensembling is the computational cost. It is costly to train many models, just to average their predictions. However, we can approximate the model ensemble by using the \emph{Monte-Carlo (MC) dropout} \cite{gal2016dropout}. Monte Carlo dropout extends the idea of dropout to the inference. Instead of disabling dropout during the inference, we can keep it active and perform multiple forward passes. Each forward pass samples a different subnetwork from the full model, effectively creating an ensemble.
 
-For networks with ReLU activations, one widely adopted initialization method is the He initialization \cite{he2015delving}, also known as Kaiming initialization. It draws weights from a zero-mean Gaussian distribution with variance $\frac{2}{n_{\text{in}}}$, where $n_{\text{in}}$ is the number of input connections to the neuron. 
+\subsection{Early Stopping}
 
-For convolutional layers, these principles are applied in a spatially-aware manner, where $n_{\text{in}}$ and $n_{\text{out}}$ correspond to the number of input and output channels multiplied by the kernel size.
-
+\emph{Early stopping} \cite{prechelt2002early} is a regularization technique that directly interfere with the training process. It requires additional \emph{validation} dataset, that is not used for updating weights. We use it to monitor a  validation loss during training, and instead of training for a fixed number of steps, we stop as soon as the validation loss stops improving (for certain number of epochs, in our case $40$). This stops the model from overtraining, improving the generalization. After early stopping, we restore the model's weights from the epoch with minimal validation loss.

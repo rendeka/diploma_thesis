@@ -256,7 +256,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
 
         return None
     
-    def evaluate_test(self, n_worst:int = 80):
+    def evaluate_test(self, n_worst:int = 8):
         "Evaluates the accuracy on the test set, and outputs `n_worst` images and predictions"
 
         model = self.model
@@ -306,7 +306,7 @@ class TorchTensorBoardCallback(keras.callbacks.Callback):
         if self.args.grad_cam:
             fig = self.get_gradcam(samples)
         else:
-            fig = SKYRMION.visualize_images(samples["images"].squeeze(-1), labels=samples["preds"], row_size=8, base_size=3, show_images=False)
+            fig = SKYRMION.visualize_images(samples["images"].squeeze(-1), labels=samples["preds"], row_size=4, base_size=3, show_images=False)
         if fig:
             writer.add_figure("Worst Predictions", fig, epoch)
             writer.flush()

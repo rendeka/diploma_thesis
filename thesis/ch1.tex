@@ -3,20 +3,18 @@
 
 \section{Physics of skyrmions}
 
-Multiple distinct mechanisms can result in the emergence of magnetic skyrmions \cite{fert2017magnetic}. In some cases, skyrmions can emerge solely due to dipole interactions, but typically they are facilitated through an antisymmetric exchange. The consequences of such interaction were first observed as weak ferromagnetism in antiferromagnetic crystals in the early 20th century. A theoretical understanding of this phenomenon was provided by Igor Dzyaloshinskii, who showed that the interaction was due to the relativistic spin-lattice and magnetic dipole interaction. Later, Toru Moriya identified the spin-orbit coupling as the microscopic mechanism behind this interaction. In acknowledgment of their work, the antisymmetric exchange is referred to as \emph{Dzyaloshinskii–Moriya (DM) interaction}.
+Multiple distinct mechanisms can result in the emergence of magnetic skyrmions \cite{fert2017magnetic}. In some cases, skyrmions can emerge solely due to dipole interactions, but typically they are facilitated through an antisymmetric exchange. The consequences of such interaction were first observed as weak ferromagnetism in antiferromagnetic crystals in the early 20th century. A theoretical understanding of this phenomenon was provided by \emph{Igor Dzyaloshinskii} \cite{dzyaloshinsky1958thermodynamic}, who showed it is caused by relativistic spin-lattice and magnetic dipole interaction. \emph{Toru Moriya} \cite{PhysRev.120.91} identified the spin-orbit coupling as the microscopic mechanism behind this interaction. In acknowledgment of their work, the antisymmetric exchange is referred to as \emph{Dzyaloshinskii–Moriya (DM) interaction}.
 
 \subsection{Dzyaloshinskii–Moriya interaction}
 
-DM interaction plays an essential role in forming magnetic skyrmions and magnetic spirals in chiral magnets. It is a magnetic exchange interaction between particles with non-zero spin, characterized by the hamiltonian:
+Dzyaloshinskii–Moriya interaction plays an essential role in forming magnetic skyrmions and magnetic spirals in chiral magnets. It is a magnetic exchange interaction between particles with non-zero magnetic moments, characterized by the hamiltonian:
 
 \begin{equation}
 	\label{DM-interaction-hamiltonian}
 	H^{\text{DM}} = \sum_{ij} \bm{D}_{ij} \dot (\bm{S}_i \times \bm{S}_j),
 \end{equation}
 
-where $\bm{D}_{ij}$ is a Dzyaloshinskii–Moriya vector, and $\bm{S}_i$, $\bm{S}_j$ are spins. From the hamiltonian we see that the DM interaction prefers the perpendicular orientation of neighboring spins. The Dzyaloshinskii–Moriya vector $\bm{D}_{ij}$ is given by the symmetry of the system. 
-
-The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influences the topology of skyrmions and spirals.
+where $\bm{D}_{ij}$ is a DM vector between $i$-th and $j$-th spin, and $\bm{S}_k$, is a unite vector in the direction of magnetic moment e.i. $\bm{S}_k = \nicefrac{\bm{\mu_k}}{\lVert \bm{\mu_k} \rVert}$ . From the hamiltonian we see that the DM interaction prefers the perpendicular orientation of neighboring spins. The direction of DM vector $\bm{D}_{ij}$ is given by the symmetry of the system, and that in turn influences the topology of skyrmions and spirals. 
 
 \begin{figure}[h]
     \centering
@@ -56,7 +54,7 @@ The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influenc
         \label{fig:spin-neel}
     \end{subfigure}
 
-    \caption{Preferred configuration of neighbouring spins, depending on the direction of DM vector. Subfigure \textbf{\subref{fig:spin-bloch}} shows the case when DM vector is perpendicular to the spin plane. This configuration results in a formation of Bloch-type skyrmions. In \textbf{\subref{fig:spin-neel}}, the DM vector lies in the spin plane, leading to the emergence of Néel-type skyrmions.}
+    \caption{Preferred configuration of string of spins considering solely the DM hamiltonian. The preferred orientation depends on the direction of DM vector (assume the spin plane parallel to paper). Subfigure \textbf{\subref{fig:spin-bloch}} shows the case of DM vector perpendicular to the spin plane, leading to the emergence of Bloch-type skyrmions. In the \textbf{\subref{fig:spin-neel}} corresponds to symmertry when DM vector lies within the plane, resulting in Néel-type skyrmions.}
     \label{fig:spin}
 \end{figure}
 
@@ -81,42 +79,40 @@ The system symmetry dictates the direction of vector $\bm{D}_{ij}$, and influenc
 
 Ilustation of Bloch and Néel-type skyrmions is in \ref{fig:skyrmion_types}.
 
-The hamiltonian containing only DMI would clearly prefer magnetic spiral phase, and some other interaction is necessary for the stabilization of skyrmions. There naturally is a spin-to-spin exchange interaction, represented by the the hamiltonian:
+The full hamiltonian contains also two other terms: spin-to-spin exchange interaction and the effect of external magnetic field. The spin-to-spin exchange interaction is represented by:
 
 \begin{equation}
 	\label{eq:exchange_interaction_hamiltonian}
 	H^\text{exchange} = - \sum_{ij} J_{ij} \bm{S}_i \cdot \bm{S}_j,
 \end{equation}
 
-where $J_{ij}$ is the exchange integral which depends on the charge density overlap between $i$-th and $j$-th atoms \cite{kittel2018introduction}. However, even more important contribution to the stabilization of skyrmions can be provided by interaction with the external magnetic field.
+where $J_{ij}$ is the exchange integral which depends on the charge density overlap between $i$-th and $j$-th spin \cite{kittel2018introduction}. Lastly, the effect of homogenious magnetic field is represented by.
 
 \begin{equation}
 	\label{eq:exchange_interaction}
 	H^\text{B} = - \sum_{i} \bm{B} \cdot \bm{S}_i,
 \end{equation}
 
-assuming the homogenious, constant magnetic field. The final hamiltonian is the sum us these three. However, there is a common approximation that significantly reduces the computational complexity of this system. That is that we assume only the interactions between the closest neightbours. In such approximation, $J$ is just a constant. We assume constant vector $\bm{B}$ oriented in the direction of $z$ axis, then the final hamiltonian is:
+The full hamiltonian is therefore: 
 
 \begin{equation}
-	\label{full-hamiltonian}
-	H = -J \sum_{ij} \mathbf{S}_i \cdot \mathbf{S}_j
-	- \sum_{ij} \bm{D}_{ij} \cdot \left[\mathbf{S}_i \times \mathbf{S}_j\right] 
+	\label{eq:full-hamiltonian}
+	H = - \sum_{ij} J_{ij} \bm{S}_i \cdot \bm{S}_j
+	- \sum_{ij} \bm{D}_{ij} \cdot \left[\bm{S}_i \times \bm{S}_j\right] 
+	- \bm{B} \sum_i S_i,
+\end{equation}
+
+\section{Data generation}
+
+The dataset we use in this thesis consists of magnetic configurations on a square lattice. The configurations were simulated with the \emph{Uppsala Atomic Spin Dynamics package (UppASD)} \cite{skubic2008method, eriksson2017atomistic}. The final state is reached via \emph{simulated annealing}, where we start with a random spin configuration at an initial temperature, and iteratively propose random spin updates, while lowering the temperature. At higher temperatures we accept energy increasing updates with some probability, however this probability will decrease with the lowering of temperature, and we start accepting only those configurations that reduce the hamiltonian. The hamiltonian used in simulation is further simplified, compared to \ref{eq:full-hamiltonian}, and we also use different units. The main simplification lies in considering only interactions between the nearest neighbours. In our case of a square lattice, this means that $J_{ij}$ is just a constant. All $\bm{B}$, $\bm{D}_{ij}$ and $J_{ij}$ present in the \ref{eq:full-hamiltonian} have the unit of energy. To make the hamiltonian dimensioneless, we divide by $J$, abusing notation with: $\bm{D} \leftarrow \nicefrac{\bm{D}}{J}$ and $\bm{B} \leftarrow \nicefrac{\bm{B}}{J}$. We also assume magnetic field oriented in the direction of the $z$-axis, resulting in the dimensioneless hamiltonian:
+
+\begin{equation}
+	\label{eq:MC-hamiltonian}
+	H = - \sum_{<ij>} \bm{S}_i \cdot \bm{S}_j
+	- \sum_{<ij>} \bm{D}_{ij} \cdot \left[\bm{S}_i \times \bm{S}_j\right] 
 	- B \sum_i S_i^z,
 \end{equation}
 
-To simplify the analysis and make the Hamiltonian dimensionless, we rescale by the exchange constant $J$:
-
-\begin{equation}
-\label{dimensionless-hamiltonian}
-\tilde{H} = - \sum_{i,j} \mathbf{S}_i \cdot \mathbf{S}_j
-- \frac{D}{J} \sum_{i,j} \hat{\bm{D}}_{ij} \cdot \left[\mathbf{S}_i \times \mathbf{S}_j\right]
-- \frac{B}{J} \sum_i S_i^z,
-\end{equation}
-
-where $\hat{\bm{D}}_{ij} = \bm{D}_{ij}/D$ is the unit vector giving the direction of the DMI, and $D/J$ is the dimensionless ratio controlling the relative strength of the DMI to exchange interaction. For convenience, we typically set $J=1$. Accordingly, all values of $D$ and $B$ reported are given in units of $J$.
-
-\vspace{0.5em}
-\noindent
 The magnetic field $B$ is expressed in simulation units as
 
 \begin{equation}
@@ -129,28 +125,34 @@ where $\mu_B$ is the Bohr magneton and $B[\text{T}]$ is the magnetic induction i
 \frac{T}{J} = \frac{k_B T[\text{K}]}{J},
 \end{equation}
 
-where $k_B$ is the Boltzmann constant and $T[\text{K}]$ is the absolute temperature in Kelvin. 
+where $k_B$ is the Boltzmann constant and $T[\text{K}]$ is the temperature in Kelvin. 
 
-\vspace{0.5em}
-\noindent
-All simulations in this work were performed at a reduced temperature of $T=0.006$ (in units of $J$). Lattice configurations were generated for various combinations of the dimensionless parameters $D/J$ and $B/J$ within this framework.
+The simulations were performed at initial temperature $T[\text{K}] = \SI{1}{\kelvin}$ a correspoonding to reduced temperature of $T=0.006$ in the units of $J$. The full dataset contains $9840$ magnetic configurations of $200\times200$  $3-D$ spins, simulated using periodic boundary conditions. Consider a unit vector $\bm{u}_{ij}$ pointing from $i$-th to $j$-th spin position. The $\bm{D}_{ij}$ vector is given by the $C_v$ symmetry, and has the following components:
+
+\begin{align}
+	\label{eq:DM-components}
+	\bm{D} &= (0, D, 0)  && \text{for } \bm{u}_{ij} = (1, 0, 0), \\
+	\bm{D} &= (-D, 0, 0) && \text{for } \bm{u}_{ij} = (0, 1, 0),
+\end{align}
+
+facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$. Values of $B$ ranged from $0$ to $235$ in similar manner, with the spacing by $5$. For each pair of $D$ and $B$ values, we have $5$ independent configurations. The resulting magnetic configurations cover all 3 phases, as well as the transitions between these them.
 
 \subsection{Topological charge, magnetization}
 
 We can describe magnetic configurations by different physical properties \cite{li2023magnetic}. The two most useful ones in our context are the \emph{topological charge} and the \emph{magnetization}. While total magnetization is a well known and straightforward characteristic of a magnetic configuration, the topological charge is bit more nuanced, but captures deeper structural properties.
 
-Having a 2-D lattice where each site carries a spin vector $\mathbf{S}_i \in \mathbb{R}^3$ of unit length. The total magnetization is then defined as the average of all spins across the lattice:
+Having a 2-D lattice where each site carries a spin vector $\bm{S}_i \in \mathbb{R}^3$ of unit length. The total magnetization is then defined as the average of all spins across the lattice:
 
 \begin{equation}
-    \mathbf{M} = \frac{1}{N} \sum_{i=1}^N \mathbf{S}_i,
+    \bm{M} = \frac{1}{N} \sum_{i=1}^N \bm{S}_i,
 \end{equation}
 
-where $N$ is the total number of spins. In the case of the ferromagnetic phase, all spins align in the same direction, and the magnetization vector has maximal norm, $||\mathbf{M}||_2 \approx 1$. On the contrary, for more complex configurations such as spiral or skyrmion phases, the global alignment vanishes or significantly weakens, and $||\mathbf{M}||_2$ is closer to zero.
+where $N$ is the total number of spins. In the case of the ferromagnetic phase, all spins align in the same direction, and the magnetization vector has maximal norm, $|\bm{M}| \approx 1$. On the contrary, for more complex configurations such as spiral or skyrmion phases, the global alignment vanishes or significantly weakens, and $|\bm{M}|$ is closer to zero.
 
 A topological charge, also refered to as \emph{topological number} or \emph{skyrmion number}, measures how many times the spin configuration wraps around the unit sphere. For 2-D systems it is defined as:
 
 \begin{equation}
-    Q = \frac{1}{4\pi} \int \mathbf{S} \cdot \left( \frac{\partial \mathbf{S}}{\partial x} \times \frac{\partial \mathbf{S}}{\partial y} \right) \, dx\,dy.
+    Q = \frac{1}{4\pi} \int \bm{S} \cdot \left( \frac{\partial \bm{S}}{\partial x} \times \frac{\partial \bm{S}}{\partial y} \right) \, dx\,dy.
 \end{equation}
 
 In the discrete case, this integral is approximated by approach described in \cite{berg1981definition, yin2016topological}. A single skyrmion carries $Q = \pm 1$, where the sign depends on chirality. Ferromagnetic or spiral phase will have a topological charge close to zero.
