@@ -54,7 +54,7 @@ where $\bm{D}_{ij}$ is a DM vector between $i$-th and $j$-th spin, and $\bm{S}_k
         \label{fig:spin-neel}
     \end{subfigure}
 
-    \caption{Preferred configuration of string of spins considering solely the DM hamiltonian. The preferred orientation depends on the direction of DM vector (assume the spin plane parallel to paper). Subfigure \textbf{\subref{fig:spin-bloch}} shows the case of DM vector perpendicular to the spin plane, leading to the emergence of Bloch-type skyrmions. In the \textbf{\subref{fig:spin-neel}} corresponds to symmertry when DM vector lies within the plane, resulting in Néel-type skyrmions.}
+    \caption{The preferred configuration of the string of spins, considering solely the DM Hamiltonian. The preferred orientation depends on the direction of the DM vector (assume the spin plane parallel to the paper). Subfigure \textbf{\subref{fig:spin-bloch}} shows the case of DM vector perpendicular to the spin plane, leading to the emergence of Bloch-type skyrmions. The \textbf{\subref{fig:spin-neel}} corresponds to the setup when the DM vector lies within the plane, resulting in Néel-type skyrmions.}
     \label{fig:spin}
 \end{figure}
 
@@ -122,7 +122,7 @@ The magnetic field $B$ is expressed in simulation units as
 where $\mu_B$ is the Bohr magneton and $B[\text{T}]$ is the magnetic induction in Tesla. Similarly, temperature is made dimensionless by
 
 \begin{equation}
-	T = \frac{k_B T[\text{K}]}{J},
+	T \leftarrow \frac{k_B T[\text{K}]}{J},
 \end{equation}
 
 where $k_B$ is the Boltzmann constant and $T[\text{K}]$ is the temperature in Kelvin. 
@@ -137,7 +137,7 @@ The temperature was reduced during the simulation up to the final temperature of
 	\bm{D} &= (D, 0, 0) && \text{for } \bm{u}_{ij} = (0, -1, 0),
 \end{align}
 
-facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$. Values of $B$ ranged from $0$ to $235$ in similar manner, with the spacing by $5$. For each pair of $D$ and $B$ values, we have $5$ independent configurations. The resulting magnetic configurations cover all 3 phases, as well as the transitions between these them.
+facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$. Values of $B$ ranged from $0$ to $1$ in similar manner, with the spacing by $\approx 0.021$. For each pair of $D$ and $B$ values, we have $5$ independent configurations. The resulting magnetic configurations cover all $3$ phases, as well as the transitions between these them.
 
 \subsection{Topological charge, magnetization}
 

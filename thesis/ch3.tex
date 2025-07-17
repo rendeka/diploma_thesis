@@ -45,7 +45,7 @@ We begin by visual exploration of the data. One example of the $3$ different sin
   \begin{subfigure}[b]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/topological_number_full.pdf}
-    \caption{Topological number}
+    \caption{Topological charge}
     \label{fig:topological_number}
   \end{subfigure}
   \caption{Magnetization and topological number across parameter space.}
@@ -120,9 +120,9 @@ We also split the dataset into training, development, and testing sets. To do th
   \label{fig:sub_train_dev_test_split}
 \end{figure}
 
-We choose a relatively small number of skyrmion samples because these configurations have just minimal deformations in their lattice. Then we picked a few blocks of configurations from ferromagnet and spiral phase, where in both cases, the blocks are relatively far from the skyrmion phase. This way we train the model on clean single phase configurations, relying on the regularization techniques to generalize to configurations containing some defects or mixtures of two phases. The validation/testing data \ref{fig:sub_dev_test}, were splitted randomly while $20\%$ went to the \emph{validation} dataset which we use during training, and the rest goes to the \emph{testing} dataset.
+We choose a relatively small number of skyrmion samples because these configurations have just minimal deformations in their lattice. Then we picked a two blocks of configurations for each ferromagnet and spiral phase, where in both cases, the blocks are relatively far from the skyrmion phase. This way we train the model on clean single phase configurations, relying on the regularization techniques to generalize to configurations containing some defects or mixtures of two phases. The validation/testing data \ref{fig:sub_dev_test}, were splitted randomly while $20\%$ went to the \emph{validation} dataset which we use during training, and the rest goes to the \emph{testing} dataset.
 
-\section{Perfomance evaluation}
+\subsection{Perfomance evaluation}
 
 
 We evaluate the performance of our models in multiple ways. The first metric we monitor is accuracy on the training and validation datasets. The validation accuracy is defined as the proportion of correctly predicted dominant phases. On the other hand, on the test set we accumulate the absolute value of error across the whole set. We have in total $2608$ testing samples, therefore the worst test performance model can have is $2608$. However, having a total test error of $0$ isn't neccesarily the best either. Once we reach a reasonable accuracy on these clean samples, our focus shifts to how well the models handle the cases near phase transitions. Since we have no true labels for such data, we introduce additional custom evaluation metrics, in order to quantitatively compare models on these data. We describe these in the section \ref{metric-definition}. Finally, we reconstruct the phase diagram using trained model, and visualize their predictions near phase transitions to qualitatively inspect and compare their behavior. 
@@ -143,10 +143,10 @@ To define a sensible metric to evaluate predictions on mixed phase configuration
   \begin{subfigure}[b]{\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/sk_sp_D_115.pdf}
-    \caption{Transition from skyrmion to spiral phase, $D = 1.15$}
+    \caption{Transition from skyrmion to magnetic spiral phase, $D = 1.15$}
     \label{fig:trans_sk_sp}
   \end{subfigure}
-  \caption{Examples from the unlabeled \emph{transitional} dataset containing phase transitions}
+  \caption{Examples from the unlabeled \emph{transitional} dataset}
   \label{fig:trans_dataset}
 \end{figure}
 
@@ -187,9 +187,7 @@ All our experiments were conducted under the proper initialization method, as de
 
 \subsection{Model architectures}
 
-We begin by implementing the dense neural network, used in \cite{iakovlev2018supervised} on the same problem. Their best-performing model consisted of a single hidden layer with $64$ neurons and no activation function applied to that layer. They normalized the input by the total magnetization, stating that this step was especially important at the beginning of training, as without it the model would often output only $0$ or $1$. However, this kind of normalization is non-standard and potentially risky for configurations with magnetization close to zero, which can occur in both skyrmion and spiral phases.
-
-The output layer consisted of $3$ neurons with sigmoid activation. This output is not automatically normalized to sum to $1$. Since we want the outputs to represent class probabilities summing to $1$, we manually normalize them, and we will also experiment with a more standard classification activation softmax, which enforces the normalization automatically.
+We begin by implementing the dense neural network, used in \cite{iakovlev2018supervised} on the same problem. Their best-performing model consisted of a single hidden layer with $64$ neurons and no activation function applied to that layer. The output layer consisted of $3$ neurons with sigmoid activation. This output is not automatically normalized to sum to $1$. Since we want the outputs to represent class probabilities summing to $1$, we manually normalize them, and we will also experiment with a more standard classification activation softmax, which enforces the normalization automatically.
 
 They used mean squared error as the loss function and employed early stopping once a specific accuracy threshold was reached, while also monitoring validation loss to avoid overfitting. The optimizer used was stochastic gradient descent with momentum.
 
@@ -223,7 +221,7 @@ Next we move on to the convolutional neural networks. To find a correct number o
 
 By specifying the number of convolutional filters and the model's depth (e.i. convolutional blocks) we are setting a base number of parameters which has a significant impact generalization of resulting models. In our experiments we have tried the depths: $1, 2, 3, 4, 5, 6, 7$ and the number of filters: $16, 32, 64$. 
 
-The concrete models that performed the best per each of the selected CNN architectures \textit{(sinple CNN, ResNet, Squeeze-Excite and CBAM)} are summarized in tables \cref{tab:cnn_summary, tab:resnet_summary, tab:se_summary, tab:cbam_summary}.
+The concrete models that performed the best per each of the selected CNN architectures \textit{(sinple CNN, ResNet, Squeeze-Excite and CBAM)} are summarized in tables \cref{tab:cnn_summary,tab:resnet_summary,tab:se_summary,tab:cbam_summary}.
 
 \begin{table}[H]
 \centering
@@ -254,7 +252,7 @@ The concrete models that performed the best per each of the selected CNN archite
 		Dense Layer 2     & Dense + BN + Activation       & (128)             & 65664 \\
 		Output            & Dense                         & (3)               & 387    \\
 		\midrule
-    		\textbf{Total}                     & —                 & \textbf{226,499} \\
+    		\textbf{Total}    & —                 & —                 & \textbf{226,499} \\
     		\bottomrule	\end{tabular}
 	\caption{Architecture of the simple CNN model}
 \end{table}
@@ -397,7 +395,7 @@ As we can see in \cref{fig:fm_9573_depth_2,fig:fm_9573_depth_5,fig:fm_9573_depth
   \label{fig:depth-ooo}
 \end{figure}
 
-\subsubsection{Transition from feature maps}
+\subsection{Transition from feature maps}
 
 We tested the two methods for transitioning from convoliutional to dense layers: \emph{Flattening} and \emph{Global average pooling (GAP)}.
 
@@ -416,7 +414,7 @@ We tested the two methods for transitioning from convoliutional to dense layers:
     \caption{Transition from skyrmion to magnetic spiral phase}
     \label{fig:FAG-sk-ap}
   \end{subfigure}
-  \caption{Comparison of out-of-order metric between \textbf{flattening} and \textbf{global average pooling}}
+  \caption{Comparison between \textbf{flattening} and \textbf{global average pooling} in terms of the out-of-order metric}
   \label{fig:flatten-gap}
 \end{figure}
 
@@ -437,7 +435,7 @@ We have tried multiple optimizing algorithms described in the theoretical part o
   \label{fig:opt-loss}
 \end{figure}
 
-\subsection{Activation}
+\paragraph{Activation}
 
 We have tested multiple activation functions on the hidden layers, described in the \ref{sec:activation}.
 
@@ -472,20 +470,15 @@ The performance of the models using the two classification heads are very simila
   \label{fig:head-sk-sp}
 \end{figure}
 
-
-If we compare the reconstruction of phase diagram made by the CNN \ref{fig:phase_diagram_cnn_dep5} with the previous phase diagram obtain with dense neural networks \ref{fig:phase_diagram_ffn}, we already see a great improvement. 
-
-However, in \ref{fig:cnn_transitions} we see that this model doesn't behave ideally on the phase transitions, because it isn't sensitive to it's continuous nature. We try to improve on this by using data augmentations.
-
-\paragraph{L2 regularization}
+\subsection{L2 regularization}
 
 L2 regularization only worsened the results. This can be explained by the fact that the CNN models are not overfitting in the first place. Therefore the additional constraining of model's parameters prevented the learning of the basic features and led to underfitting.
 
-\paragraph{Label smoothing}
+\subsection{Label smoothing}
 
 The situation with label smoothing is similar to L2 regularization. Unlike in the dense network, CNNs doesn't need additional help to learn the single phase configurations. While the models trained with label smoothing predict somewhat smoother probabilities as they don't give probability of one even to the single phase configurations, it does not improve the model's performance on the phase transitions
 
-\paragraph{Data Augmentations}
+\subsection{Data Augmentations}
 
 We apply the data augmentations directly on batches during the traning $90\%$ of the time. Meaning the the proportion of augmenten vs. non-augmented samples in our training is approximatelly $9:1$.
 
@@ -493,7 +486,7 @@ We first applied the data augmentations that creates physically equivalent confi
 
 Next we moved to augmentations that can combine different phases which results in non-physical configurations. The best performance on the skyrmion-spiral phase transition without augmentations was $50$ measured by our out-of-order metric. With a use of CutMixes on between skyrmion and spiral lattices, we were able to achieve $16$, which is $\approx 60\%$ improvement on this metric, while keeping the similar testing error on the clean configurations. However, CutMixes also hurt the prediction on the ferromagnet-skyrmion transitions, which was not problematic even for the models using solely non-augmented data. Both of these effects are visible in \ref{fig:ooo-cutmix}. The reason CutMixes work well on the skyrmion-spiral transition, can be explained through the lens of true, mixed, skyrmion-spiral configurations. We can see \ref{fig:trans_sk_sp}, that when the proportion of skyrmions and spirals in given configuration are similar, there are visible clusters of the same phase within the configuration. The CutMix creates such clustered configuration, that approximate the true physcal configuration well enought, that the model learns to interpret them better. By the same logic, CutMixes can hurt the performance on the ferromagnet-skyrmion phase transition \ref{fig:trans_fe_sk}, where the skyrmions in lattices continuously increase the spaces between each other, instead of creating clusters. That is also a probable reason, that MixUps slightly improve performance on this transition. As we can see figure \ref{fig:aug_fe}, the MixUp of ferromagnet and skyrmion lattice effectively makes the skyrmions smaller, making increasing the distance between them, similarly as in the true phase transition.
 
-In the figure \ref{fig:model_comparison_aug} we compare the predictions of multiple models on the phase transitions. We now focus on the models: None, CutMix, MixUp and Custom. \textbf{None} corresponds to the model trained without any augmentations, \textbf{CutMix} and \textbf{MixUp} models were trained on CutMixes resp. MixUps between all $3$ phases, and \textbf{Custom} was trained using MixUps with ferromagnet and skyrmion samples, and CutMixes with skyrmion and spiral samples.
+In the figure \ref{fig:model_comparison_aug} we qualitatively compare the predictions of skyrmion probability using multiple models on the phase transitions. Importantly, the predictions all for the phase that is not present in the given configuration were negligible for all models. We now focus on the models: None, CutMix, MixUp and Custom. \textbf{None} corresponds to the model trained without any data augmentations, \textbf{CutMix} and \textbf{MixUp} models were trained on CutMixes resp. MixUps between all $3$ phases, and \textbf{Custom} was trained using MixUps with ferromagnet and skyrmion samples, and CutMixes with skyrmion and spiral samples. As we can see, tha None model is not very sensitive to the changes in configurations during phase transitions, and tends to change its predictions abruptly. MixUp model also changes abruptly on the skyrmion-spiral transition showing no improvement. On the ferromagnet skyrmion transition however, MixUp improves the predictions, moving towards the curve corresponding to the change in topological charge. On the other hand CutMix model performs very badly on this trasition, even worse than the None model. CutMix helps a lot on the skyrmion-spiral transition where is helps the model more acuratelly estimate the amount of each phase on these configurations. The Custom model performed the best in this transition as it very closely follows the topological charge. It also performed the best out of our models on the ferromagnet-skyrmion transition, however here it does not follow the topological charge that closely.
 
 \begin{figure}[H]
   \centering
@@ -514,9 +507,9 @@ In the figure \ref{fig:model_comparison_aug} we compare the predictions of multi
   \label{fig:ooo-augment}
 \end{figure}
 
-\paragraph{Dropout}
+\subsection{Dropout}
 
-After seeing significant improvements in the model's performance on the phase transitions after the introduction of certain data augmentations, we are interested whether we can further improve with the use of dropout, spatial dropout and MC dropout. However, the larger values of both dropout ($> 0.3$), and spatial dropout ($> 0.2$) significantly disrupted the training, resulting in a poor perfomance on the testing dataset, without any noticeble improvements on the phase transitions. The largest value of these parameters, for which we achieved succesfull training were $0.1$ for both spatial dropout and dropout on the dense layers. For larger values the network tend to undertrain, even when increasing the models capacity and training time.
+After seeing significant improvements in the model's performance on the phase transitions after the introduction of certain data augmentations, we are interested whether we can further improve with the use of dropout, spatial dropout and MC dropout. However, the larger values of both dropout ($> 0.3$), and spatial dropout ($> 0.2$) significantly disrupted the training, resulting in a poor perfomance on the testing dataset, without any noticeble improvements on the phase transitions. The largest value of these parameters, for which we achieved succesfull training were $0.1$ for both spatial dropout and dropout on the dense layers. For larger values the network tend to undertrain, even when increasing the models capacity and training time. Using the droout, we have an additional option to utilize MC dropout regularization. However averaging across $20$ up to $100$ predictions per sample with activated dropout did not significantly changed the resulting predictions.
 
 \begin{figure}[H]
   \centering
@@ -537,21 +530,21 @@ After seeing significant improvements in the model's performance on the phase tr
   \label{fig:model_comparison_aug}
 \end{figure}
 
-The figure \ref{fig:model_comparison_aug} we qualitatively see, how different the behaviour of a model changes on the phase transition, depending on the chosen regularization technique.
+The \textbf{Dropout} model in \ref{fig:model_comparison_aug} was trained using same augmentations as the Custom, but with active dropout layers. We see that the dropout mitigates the improvements caused by augmentations leaving the predictions further away from the topological charge.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/phase_diagram_dep5.pdf}
-    \caption{CNN without regularizations}
+    \caption{Phase diagram using the \textit{None} model}
     \label{fig:phase_diagram_cnn_unregularized}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.48\textwidth}
     \centering
     \includegraphics[width=\textwidth]{img/phase_diagram_cnn_final.pdf}
-    \caption{CNN trained on augmentated images}
+    \caption{Phase diagram using the \textit{Custom} model}
     \label{fig:phase_diagram_cnn_regularized}
   \end{subfigure}
   \caption{Reconstruction of phase diagram using convolutional networks}
@@ -566,5 +559,5 @@ The figure \ref{fig:model_comparison_aug} we qualitatively see, how different th
 \end{figure}
 
 
-
+If we compare the reconstruction of phase diagram made by the unregularized CNN \ref{fig:phase_diagram_cnn_dep5} with the previous phase diagram obtain with dense neural networks \ref{fig:phase_diagram_ffn}, we already see a great improvement, as CNN correctly classifies all the single phase configurations. Then we reconnstruct the phase diagram again using the CNN \ref{fig:phase_diagram_cnn_regularized}, but applying our findings about beheficial choice of hyperparameters and correct use of augmentations. In the figure \ref{fig:phase_diagram_difference} we better see that is the difference caused by our findings. While the predictions on the single phase configurations are identical, near the phase boudaries is the \textit{Custom} regularized model more receptive to mixed phase configurations.
 
