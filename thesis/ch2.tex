@@ -6,6 +6,7 @@ The field of \emph{machine learning (ML)} is a complex discipline grounded in th
 \paragraph{Model architecture} 
 In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\bm{I}$, a neural network learns a mapping $f_\theta(\bm{I})$ parameterized by weights $\theta$, such that $f_\theta(\bm{I})$ gives a meaningful output. The \emph{model architecture} creates the backbone for such function, and have big influence on its quality. Many different neural network architectures were proposed in the field of computer vision. Two basic ones we want to explore are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}. Convolutional networks, however, came through a lot of development and many succesfull image recognition architectures were established, some of which we put into test in our experiments.
 
+
 \section{Activation functions}
 \label{sec:activation}
 
@@ -415,6 +416,7 @@ For convolutional layers, these principles are applied in a spatially-aware mann
 \emph{Regularization} is a set of techniques to prevent overfitting \ref{sec:uofitting}, \textit{(improve generalization)}, often at the cost of increasing the training error. There are many strategies to improve generalization \cite{bengio2017deep}, often at the cost of increasing the training error. In this thesis we explore following regularization strategies: constraining model parameters, modifying the objective function, altering training data, inferfering with the training process. We will describe the strategies relevant to our work in the following section.
 
 \subsection{Parameter-norm penalties}
+
 A common way to regularize, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$ \cite{bengio2017deep}. 
 
 \begin{equation}
