@@ -1,10 +1,29 @@
 
 \chapwithtoc{Conclusion}
 
-In the conclusion, you should summarize what was achieved by the thesis. In a few paragraphs, try to answer the following:
-\begin{itemize}
-\item Was the problem stated in the introduction solved? (Ideally include a list of successfully achieved goals.)
-\item What is the quality of the result? Is the problem solved for good and the mankind does not need to ever think about it again, or just partially improved upon? (Is the incompleteness caused by overwhelming problem complexity that would be out of thesis scope\todo{This is quite common.}, or any theoretical reasons, such as computational hardness?)
-\item Does the result have any practical applications that improve upon something realistic?
-\item Is there any good future development or research direction that could further improve the results of this thesis? (This is often summarized in a separate subsection called `Future work'.)
-\end{itemize}
+In this thesis, we studied the use of neural networks for classification of $3$ magnetic phases, in spin configurations obtained via Monte Carlo simulation. We started by establishing the settings, that enable the machine learning model to reliably recongnize the $3$ phases: ferromagnet, skyrmion and magnetic spiral, on the clean, single phase configurations.  Our main goal was to identify regularization and modeling strategies that improve the model's behavior in regions without clear ground-truth labels, where phases mix smoothly.
+
+We proposed and used a custom metric to evaluate model consistency on phase transitions without relying on explicit labels. This allowed us to systematically compare model architectures and training strategies in a way that focuses on physically meaningful behavior.
+
+Our experiments showed that simple convolutional networks consistently outperformed dense networks and even more sophisticated CNN variants. In particular, full convolutions proved better than depthwise separable convolutions, and architectural add-ons like Squeeze-and-Excite or CBAM did not bring improvements for this task. We also observed that deeper networks tend to perform worse on phase transitions despite excellent standard test-set performance, highlighting the importance of targeted evaluation metrics.
+
+Among optimizers, RMSprop combined with a plateau-based learning rate schedule delivered the best results, significantly improving both convergence speed and stability. Using global average pooling instead of flattening, singnificantly reduced the number of parameters, while maintaining the same performance on the test set and further improving the performance on the skyrmion-spiral transition.
+
+Regarding data augmentation, CutMix achieved the most substantial improvement on the skyrmion–spiral phase transition, improving the out-of-order metric by about $30\%$ compared to the best non-augmented baseline. However, it also degraded performance on the ferromagnet–skyrmion transition, where even unaugmented models achieved perfect results, as measured by our metric. In contrast, MixUp did not significantly affect the skyrmion–spiral transition but slightly improved behavior on the ferromagnetic–skyrmion boundary. The overall the best results were obtained by a model trained on the CutMixes of skyrmion and spiral lattices, together with MixUps of ferromagnets and skyrmion lattices.
+
+We also investigated dropout as a regularization technique. Contrary to common expectations, dropout neither improved test performance nor helped with phase transitions. In fact, it tended to negate the positive effects of augmentation. Using Monte Carlo dropout at inference did not noticeably improve model behavior.
+
+Overall, we have explored a wide range of machine learning methods and systematically mapped which approaches work well and which do not for this classification task. Most importantly, we have shown the impact of using non-physical data augmentations on model performance in during the phase transitions.
+
+A natural next step would be to implement our findings on wider portion of the phase diagram.
+
+
+%\xxx{Was the problem stated in the introduction solved? (Ideally include a list of successfully achieved goals.)}
+%
+%We implemented different model architectures to classify magnetic configurations into $3$ topological phases. Based on out experiments Aften deciding on the basic model architecture, our focus shifted on improving the performance of models on configurations containing mixtures of phases, with the use of different regularization techniques. 
+%
+%\xxx{What is the quality of the result? Is the problem solved for good and the mankind does not need to ever think about it again, or just partially improved upon?}
+%
+%
+%\xxx{Does the result have any practical applications that improve upon something realistic?}
+

@@ -16,11 +16,46 @@ from augmentation import choose_augmentation
 from custom_losses import WeightedSoftCrossEntropy
 import models
 
+# functions for transforming parser objects
+def replace_none_strings(obj):
+    """Recursively replace 'None' string with Python None in args Namespace or dict."""
+    if isinstance(obj, argparse.Namespace):
+        return argparse.Namespace(**replace_none_strings(vars(obj)))
+    elif isinstance(obj, str) and obj.lower() == "none":
+        return None
+    elif isinstance(obj, list):
+        return [replace_none_strings(item) for item in obj]
+    elif isinstance(obj, dict): 
+        return {key: replace_none_strings(value) for key, value in obj.items()}
+    return obj
+
+def str2bool_single(v):
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, str):
+        if v.lower() in ('yes', 'true', 't'):
+            return True
+        elif v.lower() in ('no', 'false', 'n'):
+            return False
+        else:
+            return v
+
+def str2bool(obj):
+    """Recursively convert string booleans to real bools in Namespace, dict, list, or str."""
+    if isinstance(obj, argparse.Namespace):
+        return argparse.Namespace(**str2bool(vars(obj)))
+    elif isinstance(obj, dict):
+        return {k: str2bool(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [str2bool(item) for item in obj]
+    else:
+        return str2bool_single(obj)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--activation", default="relu", type=str, help="Activation type (see keras.activations.__dict__ to see all options)")
-parser.add_argument("--alpha_dropout", default=False, type=bool, help="True to use alpha dropout (iff selu activations is used)") #["tailored", "cutmix", "None", "cutmix", "None"]
-parser.add_argument("--augment", default=None, type=str, choices=[None, "None", "cutmix", "mixup", "adaptive", "tailored"], nargs="+", help="Augmentation type")
-parser.add_argument("--batch_norm", default=True, type=bool, help="True to use batch normalization")
+parser.add_argument("--alpha_dropout", default=False, type=str2bool, help="True to use alpha dropout (iff selu activations is used)")
+parser.add_argument("--augment", default=None, type=str, choices=[None, "None", "cutmix", "mixup", "adaptive", "tailored"], nargs="+", help="Augmentation type") #["tailored", "cutmix", "None", "cutmix", "None"]
+parser.add_argument("--batch_norm", default=True, type=str2bool, help="True to use batch normalization")
 parser.add_argument("--batch_size", default=16, type=int, help="Batch size.")
 parser.add_argument("--bias_regularizer", default=1e-5, type=float, help="Parameter for L2 regularization of bias in convolutional kernel")
 parser.add_argument("--conv_type", default="standard", type=str, choices=["standard", "ds"], help="Convolution type ('ds' stands for depthwise-separable)")
@@ -28,47 +63,38 @@ parser.add_argument("--dataloader_workers", default=0, type=int, help="Dataloade
 parser.add_argument("--decay", default=None, type=str, choices=[None, "None", "linear", "exponential", "cosine", "piecewise", "plateau"], help="Learning rate decay type")
 parser.add_argument("--depth", default=3, type=int, help="Model depth (use default=56 for ResNet)")
 parser.add_argument("--dropout", default=0.0, type=float, help="Dropout rate for dense layers or pixelwise")
-parser.add_argument("--early_stopping", default=False, type=bool, help="Early stopping.")
+parser.add_argument("--early_stopping", default=False, type=str2bool, help="Early stopping.")
 parser.add_argument("--epochs", default=1, type=int, help="Number of epochs.")
 parser.add_argument("--fag", default="GAP", type=str, choices=["GAP", "Flatten", "SE"], nargs="+", help="feature-aggregation: going from CONV to DENSE layer")
 parser.add_argument("--filters", default=8, type=int, help="Number of filters in the first convolutional layer")
-parser.add_argument("--ffm", default=True, type=bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
-parser.add_argument("--grad_cam", default=False, type=bool, help="True to generage grad-CAM images in callback")
+parser.add_argument("--ffm", default=False, type=str2bool, help="If True, filters and feature maps will be saved. Check 'log_filters_and_features' function")
+parser.add_argument("--grad_cam", default=False, type=str2bool, help="True to generage grad-CAM images in callback")
 parser.add_argument("--head", default="softmax", type=str, help="Activation function for the classification head (use any valid keras activation)")
-parser.add_argument("--keep_batch_size", default=True, type=bool, help="If False, batch size will vary (typically will be larger while using Tailored augmentations)")
+parser.add_argument("--keep_batch_size", default=True, type=str2bool, help="If False, batch size will vary (typically will be larger while using Tailored augmentations)")
 parser.add_argument("--kernel_regularizer", default=1e-4, type=float, help="Parameter for L2 regularization of convolutional kernel")
 parser.add_argument("--kernel_size", default=3, type=int, help="Kernel size")
 parser.add_argument("--label_smoothing", default=0., type=float, help="Label smoothing")
-parser.add_argument("--learning_rate", default=0.1, type=float, help="Learning rate")
+parser.add_argument("--learning_rate", default=0.01, type=float, help="Learning rate")
 parser.add_argument("--learning_rate_final", default=0.001, type=float, help="Final learning rate")
 parser.add_argument("--logdir_suffix", default=None, type=str, help="Creates subdirectory 'logs_{logdir_suffix}/' in the 'logs/' directory")
 parser.add_argument("--loss", default="CCE", type=str, choices=["CCE", "KLD", "MSE", "weighted", "focal"], help="Loss function")
-parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn"], help="Model of choice")
-# parser.add_argument("--normalize_input", default=False, type=bool, help="Whether to normalize")
+parser.add_argument("--model", default="model5", type=str, choices=["model5", "resnet", "cbam", "ffn", "se"], help="Model of choice")
+parser.add_argument("--normalize_input", default=False, type=str2bool, help="Whether to normalize")
 parser.add_argument("--optimizer", default="SGD", type=str, choices=["SGD", "Adam", "AdamW", "RMSprop"], help="Optimizer type")
 parser.add_argument("--padding", default ="periodic", type=str, choices=["same", "valid", "periodic"], help="Padding in convolutional layers")
-parser.add_argument("--phase_augment", default=["None", "cutmix", "cutmix"], type=str, choices=["cutmix", "mixup", "None"], nargs="+", help="Combining images within the same phase")
+parser.add_argument("--phase_augment", default=["None", "None", "None"], type=str, choices=["cutmix", "mixup", "None"], nargs="+", help="Combining images within the same phase")
 parser.add_argument("--pooling", default="max", type=str, choices=["max", "average", "no"], help="Pooling type") # TRY None
-parser.add_argument("--save_model", default=False, type=bool, help="If True, trained model will be saved in'saved_models/' directory")
+parser.add_argument("--save_model", default=False, type=str2bool, help="If True, trained model will be saved in'saved_models/' directory")
 parser.add_argument("--scope", default="sub", type=str, choices=["full", "sub"])
 parser.add_argument("--seed", default=42, type=int, help="Random seed.")
 parser.add_argument("--spatial_dropout", default=0.0, type=float, help="Spatial dropout rate for feature maps")
 parser.add_argument("--stochastic_depth", default=0., type=float, help="Stochastic depth")
 parser.add_argument("--stride", default=1, type=int, help="Stride in convolutional layers")
 parser.add_argument("--threads", default=1, type=int, help="Maximum number of threads to use")
-parser.add_argument("--trans_probs", default=True, type=bool, help="Whether to create transitional probs images")
+parser.add_argument("--trans_probs", default=False, type=str2bool, help="Whether to create transitional probs images")
 parser.add_argument("--weight_decay", default=0.004, type=float, help="Weight decay")
 parser.add_argument("--width", default=1, type=int, help="Model width")
 
-def replace_none_strings(obj):
-    """Replace 'None' with None in args."""
-    if isinstance(obj, str) and obj.lower() == "none":
-        return None
-    elif isinstance(obj, list):
-        return [replace_none_strings(item) for item in obj]
-    elif isinstance(obj, dict): 
-        return {key: replace_none_strings(value) for key, value in obj.items()}
-    return obj 
 
 def main(args: argparse.Namespace) -> None:
     # get path to the project base directory (necessary for running on metacentrum)
@@ -110,6 +136,7 @@ def main(args: argparse.Namespace) -> None:
     log_subdir = f"{args.scope}-" if args.scope else ""
     log_subdir += f"{args.model}-{args.logdir_suffix}" if args.logdir_suffix else f"{args.model}"
     base_log_dir = base_path / "logs" / log_subdir
+    base_log_dir.mkdir(parents=True, exist_ok=True)
    
     args.logdir = str(base_log_dir / f"{timestamp}-{args_str}") # Must be converted to string in order to be serializable
 
@@ -193,12 +220,13 @@ def main(args: argparse.Namespace) -> None:
             raise ValueError("Uknown decay '{}'".format(args.decay))
         
     # Optimizer
+    max_norm = 0.5
     if args.optimizer == "SGD":
-        optimizer = keras.optimizers.SGD(learning_rate=get_schedule(args), weight_decay=args.weight_decay, momentum=0.9, nesterov=True, clipnorm=1.0)
+        optimizer = keras.optimizers.SGD(learning_rate=get_schedule(args), weight_decay=args.weight_decay, momentum=0.9, nesterov=True, clipnorm=max_norm)
     elif args.optimizer.startswith("Adam"):
-        optimizer = keras.optimizers.AdamW(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=1.0)#, beta_2=beta2, epsilon=epsilon)
+        optimizer = keras.optimizers.AdamW(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=max_norm)#, beta_2=beta2, epsilon=epsilon)
     elif args.optimizer == "RMSprop":
-        optimizer = keras.optimizers.RMSprop(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=1.0)
+        optimizer = keras.optimizers.RMSprop(learning_rate=get_schedule(args), weight_decay=args.weight_decay, clipnorm=max_norm)
     else:
         raise ValueError("Uknown optimizer '{}'".format(args.optimizer))
     optimizer.exclude_from_weight_decay(var_names=["bias"])
@@ -212,6 +240,9 @@ def main(args: argparse.Namespace) -> None:
         model = models.ModelCBAM(args)
     elif args.model == "ffn":
         model = models.ModelFFN(args)
+    elif args.model == "se":
+        model = models.ModelSE(args)
+ 
     else:
         raise ValueError("Uknown model '{}'".format(args.model))
     
@@ -252,7 +283,7 @@ def main(args: argparse.Namespace) -> None:
         )
 
     if args.save_model:
-        save_dir = base_path / "saved_models" / args.scope / (args.logdir_suffix or "")
+        save_dir = base_path / "saved_models" / args.scope / (f"{args.model}_{args.logdir_suffix}" if args.logdir_suffix else args.model)
         save_dir.mkdir(parents=True, exist_ok=True)
         model.save((save_dir / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
 

@@ -26,4 +26,4 @@ source /auto/vestec1-elixir/home/rendeka/venv/bin/activate
 export SKYRMION_BASE_PATH="/auto/vestec1-elixir/home/rendeka/diploma_thesis"
 
 # Now run the Python script
-python3 $SKYRMION_BASE_PATH/run.py
+python3 $SKYRMION_BASE_PATH/${SCRIPT:-run.py}

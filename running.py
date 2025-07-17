@@ -7,16 +7,18 @@ import gc
 import os
 
 class RUN:
-    SKYRMION_BASE_PATH: str = os.environ.get("SKYRMION_BASE_PATH")
-    ON_LOCAL: bool = SKYRMION_BASE_PATH == "/home/rothals/dev/school/diploma_thesis/dev"
-    
     def __init__(self, name, args_combinations: dict[str, list], n_threads: int = 4):
         """
         Initialize an experiment with a given name and hyperparameter combinations.
-
-        :param name: A descriptive name for the experiment.
-        :param args_combinations: A dictionary of hyperparameter lists.
         """
+        # read env at *instance* creation
+        self.SKYRMION_BASE_PATH = os.environ.get("SKYRMION_BASE_PATH")
+        if not self.SKYRMION_BASE_PATH:
+            raise ValueError(
+                "SKYRMION_BASE_PATH environment variable is not set in this process!"
+            )
+        self.ON_LOCAL = self.SKYRMION_BASE_PATH == "/home/rothals/dev/school/diploma_thesis/dev"
+
         self.name = name
         self.all_combinations = [
             dict(zip(args_combinations.keys(), values))
@@ -27,7 +29,6 @@ class RUN:
     def run_command(self, config):
         """Run skyrmion.py with the given configuration."""
         command = ["python3", os.path.join(self.SKYRMION_BASE_PATH, "skyrmion.py")]
-        
         for arg, value in config.items():
             command.append(arg)
             if isinstance(value, tuple):
@@ -41,6 +42,7 @@ class RUN:
     def run(self):
         """Run all configurations either serially (local) or in parallel."""
         print(f"Running experiment: {self.name}")
+        print(f"Using base path: {self.SKYRMION_BASE_PATH}")
         if self.ON_LOCAL:
             for config in self.all_combinations:
                 self.run_command(config)
