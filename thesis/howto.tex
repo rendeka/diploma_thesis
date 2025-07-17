@@ -1,15 +1,15 @@
 \chapter{Mathematical backgroud}
 \label{sec:ML-background}
-Many real‑world problems are difficult to tackle with classical analytic methods, especially when the input is high‑dimensional and the target concepts are only loosely defined. Consider image recognition: each image is a matrix of real numbers and the goal may be to decide whether there is a dog, a cat, or an elephant. Hand‑crafted geometric features like pointy ears or a trunk can help, but such heuristics do not scale. Modern \emph{machine learning} (ML) and, in particular, \emph{deep learning} (DL) address this limitation by treating the task probabilistically and learning the relevant representations directly from data. In that, both ML and DL is identical with statistics, and the difference between these fields is rather philosofical, and we will refer to ML and DL models often as statistical models in this text. The latter fields are highly driven by improvement in predictive performance. This nature allows the the rapid evolution, with the application to various problems. To name a few, we can mention classification, regression, transcription, translation, anomaly detection, density estimation, and many more. The development in machine learning addresses ever more complex tasks, like image generation, protein folding, or large language models (LLMs) for context-appropriate, human-like text generation. These fields of application are, however, very remote in scale compared to our situation. For example, LLMs are often trained on any available digitized text, routinely using substantial parts of the whole internet content. Compared to that, our data options are much more limited, and our task is specialized and clearly defined. This allows us to use relatively simple statistical models and try to improve their performance with our understanding of their internal dynamics and interpretation of the inference.
+Many real‑world problems are difficult to tackle with classical analytic methods, especially when the input is high‑dimensional and the target concepts are loosely defined. Considering image recognition, where each image is a matrix of real numbers, and the goal may be to decide whether there is a dog, a cat, or an elephant. Hand‑crafted geometric features like pointy ears or a trunk can help, but such heuristics do not scale. Modern \emph{machine learning} (ML) and, in particular, \emph{deep learning} (DL) address this limitation by treating the task probabilistically and learning the relevant representations directly from data. 
 
 \section{Probability and information theory}
 
-Machine learning is grounded in the mathematical frameworks of probability theory and information theory, which provide the tools for modeling uncertainty and quantifying information. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to the example, no two cat images are the same, therefore it is sensible to think about the image of a cat as a sample from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. 
+Machine learning is grounded in the mathematical frameworks of probability theory and information theory, which provide the tools for modeling uncertainty and quantifying information. Machine learning deals with problems containing inherent uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to the example, no two cat images are the same; therefore, it is sensible to think about the image of a cat as a sample from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. 
 
-%In this appendix we define the key concepts from probability and information theory that are used in the thesis. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
+%In this appendix, we define the key concepts from probability and information theory used in the thesis. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
 %
 %\subsection{Sample space}
-%An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
+%An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
 %
 %\subsection{Random variable}
 %A random variable is an important concept in ML because it provides a valid mathematical framework to represent noisy, real-world data. Random variable $X$ is a mapping from the sample space $\Omega$ into some target space (typically $\mathbb{R}$ or $\mathbb{Z}$). We can treat an example from the data as a realization of a random variable. Following the single coin toss example, we can define $X$ simply by $X(\text{head}) = 0$ and $X(\text{tail}) = 1$. The instance of a random variable is denoted by $x$ and equals $x = X(\omega)$ for some $\omega \in \Omega$, in our case $x \in \{0, 1\}$.
@@ -75,7 +75,7 @@ If we observe multiple independent samples $x_1, \dots, x_m$, the total likeliho
     \mathcal{L}(\theta) \equiv \mathcal{L}(\theta \mid x_1, \dots, x_m) = \prod_{i=1}^{m} p(x_i \mid \theta).
 \end{equation}
 
-This product can be numerically unstable, hence we usually work with the \emph{log-likelihood}, which transforms the product into a sum:
+This product can be numericallytable, hence we usually work with the \emph{log-likelihood}, which transforms the product into a sum:
 \begin{equation}
     \log \mathcal{L}(\theta) = \sum_{i=1}^{m} \log p(x_i \mid \theta),
 \end{equation}
@@ -146,7 +146,7 @@ One of the most widely adopted and statistically grounded principles for trainin
 &= \arg\max_{\theta} \prod_{i=1}^{m} p_{\text{model}}(x_i \mid \theta)
 \end{align}
 
-Since optimizing a product of many probabilities can be numerically unstable, but we can use injectivity of the logarithm and maximize the log-likelihood instead:
+Since optimizing a product of many probabilities can be numerically unstable, we can use the injectivity of the logarithm and maximize the log-likelihood instead:
 
 \begin{align}
 \theta_{\text{MLE}} 
@@ -172,21 +172,21 @@ We see that if the empirical data distribution $\hat{p}_{\text{data}}$ accuratel
 \end{itemize}
 
 \paragraph{Loss function}
-In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function} \cite{bengio2017deep}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, it is often advantageous to incorporate additional heuristics or prior knowledge into the loss, as this can lead to improved model performance and better generalization.
+In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function} \cite{bengio2017deep}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, incorporating additional heuristics or prior knowledge into the loss is often advantageous, as this can lead to improved model performance and better generalization.
 
-The \emph{focal loss} \cite{lin2017focal} is a good example of a heuritically modified loss function. This loss is useful when we have a class imbalance in the data. Focal loss modifies the standard cross-entropy loss by down-weighting easy examples and focusing the training on hard, misclassified ones. It is defined as:
+The \emph{focal loss} \cite{lin2017focal} is a good example of a heuristically modified loss function. This loss is functional when we have a class imbalance in the data. Focal loss modifies the standard cross-entropy loss by down-weighting easy examples and focusing the training on hard, misclassified ones. It is defined as:
 
 \begin{equation}
 	\label{eq:focal_loss}
 	\mathcal{L}_{\text{focal}} = -\alpha_t (1 - p_k)^\gamma \log(p_k),
 \end{equation}
 
-where $p_k$ is the model's estimated probability for the true class, $\alpha_k$ is a weighting factor for class $k$, and $\gamma \geq 0$ is a tunable focusing parameter.
+where $p_k$ is the model's estimated probability for the actual class, $\alpha_k$ is a weighting factor for class $k$, and $\gamma \geq 0$ is a tunable focusing parameter.
 
-Once the loss function is defined, the task becomes an optimization problem: finding the global minimum of the loss in the high-dimensional space of the model’s parameters. Training the model is typically an iterative process that updates these parameters step-by-step to minimize the loss. We typically require the loss function to be differentiable, in order to apply gradient-based methods during minimization.
+Once the loss function is defined, the task becomes an optimization problem: finding the global minimum of the loss in the high-dimensional space of the model's parameters. Training the model is typically an iterative process that updates these parameters step-by-step to minimize the loss. We usually require the loss function to be differentiable when gradient-based methods are applied during minimization.
 
 \paragraph{Gradient descent}
-Most optimization methods used in training neural networks, are based on \emph{gradient descent} \cite{bengio2017deep}. The idea is to compute the gradient of the loss function with respect to the model parameters and take a step in the direction that most decreases the loss. If $\theta$ denotes the current parameters and $\mathcal{L}(\theta)$ the loss, then a single update step is given by:
+Most optimization methods in training neural networks are based on \emph{gradient descent} \cite{bengio2017deep}. The idea is to compute the gradient of the loss function with respect to the model parameters and take a step in the direction that most decreases the loss. If $\theta$ denotes the current parameters and $\mathcal{L}(\theta)$ the loss, then a single update step is given by:
 
 \begin{equation}
     \theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta),
@@ -194,31 +194,31 @@ Most optimization methods used in training neural networks, are based on \emph{g
 
 where $\alpha > 0$ is a hyperparameter called \emph{learning rate}, that controls the step size. 
 
-The choice of the learning rate is one of the most critical hyperparameters for the successful training of neural networks. A learning rate that is too high can cause the optimization to diverge, while a learning rate that is too small can result in very slow convergence or getting stuck in suboptimal regions. In practice, it is beneficial not only to choose a good initial learning rate but also to adjust it during training. This approach is known as \emph{learning rate scheduling} or \emph{learning rate decay} and we discuss it further in \ref{subsec:decay-scheduling}.
+The choice of the learning rate is one of the most critical hyperparameters to train the neural networks successfully. A learning rate that is too high can cause the optimization to diverge, while a learning rate that is too small can result in very slow convergence or getting stuck in suboptimal regions. In practice, choosing a reasonable initial learning rate and adjusting it during training is beneficial. This approach is known as \emph{learning rate scheduling} or \emph{learning rate decay}, and we discuss it further in \ref{subsec:decay-scheduling}.
 
-Computing the gradient over the entire dataset can be very slow, if not impossible due to high memory requirements. Instead, we use an approximation based on randomly selected subsets of data. This leads to two widely used variants:
+Due to high memory requirements, computing the gradient over the entire dataset can be very slow, if not impossible. Instead, we use an approximation based on randomly selected subsets of data. This leads to two widely used variants:
 \begin{itemize}
     \item Stochastic gradient descent (SGD): The gradient is computed using a single randomly selected data point. While this is very efficient per update, the variance of the updates is high, which can make training unstable.
-    \item Mini-batch gradient descent: A compromise between full-batch and stochastic methods. The gradient is computed over a small batch of data points, typically ranging from 16 to 512 samples. This approach is the standard in most modern applications, offering both stability and computational efficiency.
+    \item Mini-batch gradient descent: A compromise between full-batch and stochastic methods. The gradient is computed over a small batch of data points, typically 16 to 512 samples. This approach is the standard in most modern applications, offering stability and computational efficiency.
 \end{itemize}
-It it well established that the mini-batch gradient descent is the way to go if applicable, and the most popular optimization algorithms used in ML are its different extensions.
+It is well established that the mini-batch gradient descent is the way to go if applicable, and the most popular optimization algorithms used in ML are its different extensions.
 
 \paragraph{Backpropagation}
-To efficiently compute gradients of the loss with respect to many of the model's parameters, the \emph{backpropagation} algorithm is used. Backpropagation \cite{bengio2017deep} applies the chain rule to propagate the loss gradient from the output layer backward through the network. Each layer computes the gradient of the loss with respect to its parameters and passes the gradient with respect to its inputs to the preceding layer. This recursive process allows the entire gradient $\nabla_\theta \mathcal{L}$ to be computed in time linear in the number of layers.
+The \emph{backpropagation} algorithm is used to efficiently compute the loss gradients of many of the model's parameters. Backpropagation \cite{bengio2017deep} applies the chain rule to propagate the loss gradient from the output layer backward through the network. Each layer computes the gradient of the loss with respect to its parameters and passes the gradient with respect to its inputs to the preceding layer. This recursive process allows the entire gradient $\nabla_\theta \mathcal{L}$ to be computed in time linear in the number of layers.
 
 \paragraph{Underfitting/overfitting}
 \label{sec:uofitting}
-A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common, complementary problems are \cite{bengio2017deep}:
+A central challenge in training neural networks is ensuring that the model performs well on the training data and generalizes to unseen examples. Two common, complementary problems are \cite{bengio2017deep}:
 \begin{itemize}
     \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
     \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise. While training performance is excellent, test performance degrades.
 \end{itemize}
-These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. If the model performs well on previously unseen data, we say it \emph{generalizes} well. In our case, we don't want achieve just low test error, we want to model to generalize even further a to behave well on unlabeled data from phase transitions containing a mixture of phases.
+These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. If the model performs well on previously unseen data, we say it \emph{generalizes} well. In our case, we don't want to achieve just low test error; we want the model to generalize even further and behave well on unlabeled data from phase transitions containing a mixture of phases.
 
 \chapter{Source code}
 
-The practical part of this thesis involved the development of a deep learning project written in the Python programming language, utilizing mainly the the \emph{Keras} framework \cite{chollet2015keras} with the \emph{PyTorch} \cite{paszke2019pytorch} backend. By the nature of our work, we had to be able to train many different neural networks with varying sets of hyperparameters. The modular structure of the project allows for easy modification of the applied architectures, datasets, training procedures, and regularization techniques, while seamlessly running and analysing experiments with different combinations of hyperparameters.
+The practical part of this thesis involved the development of a deep learning project written in the Python programming language, utilizing mainly the \emph{Keras} framework \cite{chollet2015keras} with the \emph{PyTorch} \cite{paszke2019pytorch} backend. By the nature of our work, we had to be able to train many different neural networks with varying sets of hyperparameters. The modular structure of the project allows for easy modification of the applied architectures, datasets, training procedures, and regularization techniques, while seamlessly running and analysing experiments with different combinations of hyperparameters.
 
-The codebase is structured into clearly separated modules for data loading and preprocessing, model definition, model training, callbacks and logging, augmentations, and evaluation and visualization of results. This design enables reproducibility of the experiments described in this thesis, as well as straightforward extension to new use cases or datasets.
+The codebase is structured into clearly separated modules for data loading and preprocessing, model definition, model training, callbacks and logging, augmentations, and evaluation and visualization of results. This design enables reproducibility of the experiments described in this thesis and straightforward extension to new use cases or datasets.
 
 The source code is publicly available at: \url{https://github.com/rendeka/diploma_thesis}.

@@ -1,16 +1,16 @@
 \chapter{Machine learning methods}
 \label{chap2}
 
-The field of \emph{machine learning (ML)} is a complex discipline grounded in the language of probability theory, statistics, and information theory \cite{bengio2017deep}. In this chapter, we describe all the methods and ML techniques applied in the practical part of this thesis. However, to understand all the methods, one must be familiar in the basic concepts from machine learning. Focusing on the applied methods in this chapter, we include the definitions and descriptions of ML fundamentals in the appendix of this thesis \ref{sec:ML-background}.
+The field ,of \emph{machine learning (ML)} is a complex discipline grounded in the language of probability theory, statistics, and information theory \cite{bengio2017deep}. In this chapter, we describe all the methods and ML techniques applied in the practical part of this thesis. However, to understand all the methods, one must be familiar with the basic concepts of machine learning. Focusing on the applied methods in this chapter, we include the definitions and descriptions of ML fundamentals in the appendix of this thesis \ref{sec:ML-background}.
 
 \paragraph{Model architecture} 
-In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\bm{I}$, a neural network learns a mapping $f_\theta(\bm{I})$ parameterized by weights $\theta$, such that $f_\theta(\bm{I})$ gives a meaningful output. The \emph{model architecture} creates the backbone for such function, and have big influence on its quality. Many different neural network architectures were proposed in the field of computer vision. Two basic ones we want to explore are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}. Convolutional networks, however, came through a lot of development and many succesfull image recognition architectures were established, some of which we put into test in our experiments.
+In their essence, neural networks are function approximations and in practice, we leverage them to estimate the probability distribution. Given input data $\bm{I}$, a neural network learns a mapping $f_\theta(\bm{I})$ parameterized by weights $\theta$, such that $f_\theta(\bm{I})$ gives a meaningful output. The \emph{model architecture} creates the backbone for such function, and have big influence on its quality. Many different neural network architectures were proposed in the field of computer vision. Two basic ones we want to explore are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}. Convolutional networks, however, came through a lot of development and many succesfull image recognition architectures were established, some of which we put into test in our experiments.
 
 
 \section{Activation functions}
 \label{sec:activation}
 
-One of the hyperparameters we are interested in exploring is the \emph{activation function}. Activation functions introduce non-linearity into neural networks, enabling them to approximate more complex functions. Choosing the right activation function can impact training dynamics, stability, and ultimately model performance. In this subsection, we describe the activation functions used in our work.
+One of the hyperparameters we are interested in exploring is the \emph{activation function}. Activation functions introduce non-linearity into neural networks, enabling them to approximate more complex functions. Choosing the right activation function can impact training dynamics, stability, and model performance. In this subsection, we describe the activation functions used in our work.
 
 \paragraph{ReLU}
 
@@ -22,7 +22,7 @@ The \emph{Rectified Linear Unit (ReLU)} is one of the most widely used activatio
 
 \paragraph{Leaky ReLU}
 
-By design, ReLU ignores half of the activations, which can obstruct the training. \emph{Leaky ReLU} addresses this by allowing still smaller, but non-zero gradient even for the negative activations:
+By design, ReLU ignores half of the activations, which can obstruct the training. \emph{Leaky ReLU} addresses this by allowing still smaller, but non-zero gradients even for the negative activations:
 
 \begin{equation}
     \mathrm{LeakyReLU}(x) = 
@@ -107,7 +107,7 @@ In our experiments, we use either $3$ sigmoids (normalized afterwards to $1$), o
 
 A fully connected neural network, often referred to as a \emph{dense neural network} or \emph{multilayer perceptron (MLP)}, is one of the fundamental architectures in machine learning. It consists of sequential layers where each neuron in one layer is connected to every neuron in the following layer.
 
-The general structure has an \emph{input layer}, several \emph{hidden layers}, and an \emph{output layer}. Each layer transforms its input vector into an output vector through a combination of a linear transformation and a non-linear activation function.
+The general structure has an \emph{input layer}, several \emph{hidden layers}, and an \emph{output layer}. Each layer transforms its input vector into an output vector through a linear transformation and a non-linear activation function.
 
 Formally, the operation of a fully connected layer can be described as:
 
@@ -129,7 +129,7 @@ While fully connected networks can in principle approximate any continuous funct
 
 \section{Convolutional network}
 
-Convolutional neural networks (CNNs) \cite{bengio2017deep} are designed to process data with a grid-like structure, for example 1-D sequences or 2-D images. Unlike fully connected networks, CNNs capture the spatial structure of the data while greatly reducing the number of parameters.
+Convolutional neural networks (CNNs) \cite{bengio2017deep} are designed to process data with a grid-like structure, for example, 1-D sequences or 2-D images. Unlike fully connected networks, CNNs capture the spatial structure of the data while significantly reducing the number of parameters.
 
 \paragraph{Computation of convolution}
 
@@ -140,7 +140,7 @@ At the heart of a CNN is the \emph{convolutional layer}, where a small filter (a
 	(\bm{I} * \bm{K})(i,j) = \sum_{m}\sum_{n} \bm{I}(i+m, j+n) , \bm{K}(m,n), 
 \end{equation}
 
-where $(i,j)$ are the spatial coordinates of the output, and the sums run over the spatial extent of the filter. The output of this operation is then refered to as \emph{feature map}.
+where $(i,j)$ are the spatial coordinates of the output, and the sums run over the spatial extent of the filter. The output of this operation is then referred to as \emph{feature map}.
 
 \begin{figure}[h!]
   \centering
@@ -149,11 +149,11 @@ where $(i,j)$ are the spatial coordinates of the output, and the sums run over t
   \label{fig:conv2d}
 \end{figure}
 
-The filter does not have to slide over every input location, but can move in larger steps given by the \emph{stride}. A stride of $(s_h, s_w)$ skips $s_h$ rows and $s_w$ columns between successive applications of the filter. This effectively reduces the spatial dimension of the feature map, which can help.
+The filter does not have to slide over every input location, but can move in larger steps given by the \emph{stride}. A $(s_h, s_w)$ stride skips $s_h$ rows and $s_w$ columns between successive filter applications. This effectively reduces the spatial dimension of the feature map, which can help.
 
 \paragraph{Pooling layers}
 
-Other way to reduce the spatial dimensions in CNNs is provided by \emph{pooling layers}. The most common variant is \emph{max pooling}, which down-samples the input by taking the maximum value over non-overlapping regions. For example, a $2\times2$ max pooling operation reduces each $2\times2$ region to a single value:
+Another way to reduce the spatial dimensions in CNNs is provided by \emph{pooling layers}. The most common variant is \emph{max pooling}, which down-samples the input by taking the maximum value over non-overlapping regions. For example, a $2\times2$ max pooling operation reduces each $2\times2$ region to a single value:
 
 \begin{equation} 
 	\label{eq:max-pooling} 
@@ -168,11 +168,11 @@ where $\mathcal{R}(i,j)$ denotes the receptive field corresponding to output loc
 \end{equation}
 
 
-In our experiments we always use the $2\times2$ receptive fields. 
+In our experiments, we always use the $2\times2$ receptive fields. 
 
 \paragraph{Depthwise separable convolutions}
 
-Standard convolutions are computationally expensive, especially when both the input and output have many channels. One way to alleviate this is by using \emph{depthwise separable convolutions}, which decompose a convolution into two simpler operations:
+Standard convolutions are computationally expensive, especially when the input and output have many channels. One way to alleviate this is by using \emph{depthwise separable convolutions}, which decompose a convolution into two simpler operations:
 
 \begin{itemize} 
 	\item \textbf{Depthwise convolution:} A spatial convolution is applied independently to each input channel. 
@@ -259,7 +259,7 @@ The \emph{Squeeze-and-Excitation (SE)} block was introduced in \cite{hu2018squee
 \begin{itemize}
 	\item \textbf{Squeeze:} The spatial information in each channel is aggregated into a single scalar value by global average pooling. This operation reduces the spatial dimensions. For a feature map of shape $H \times W \times C$, the output of the squeeze step is a vector of length $C$.
 	
-	\item \textbf{Excitation:} This squeezed vector is passed through a small bottleneck feedforward neural network (typically a two-layer MLP with a ReLU activation followed by a sigmoid). The output is a set of channel-wise importance weights, one per feature channel. These weights are then used to rescale the original feature map by simple channel-wise multiplication. The network learns to emphasize important features and suppress less useful ones.
+	\item \textbf{Excitation:} This squeezed vector is passed through a small bottleneck feedforward neural network (typically a two-layer MLP with a ReLU activation followed by a sigmoid). The output is a set of channel-wise importance weights, one per feature channel. These weights then rescale the original feature map by simple channel-wise multiplication. The network learns to emphasize important features and suppress less useful ones.
 \end{itemize}
 
 \begin{figure}[h]
@@ -295,24 +295,24 @@ where $\cdot$ denotes element-wise multiplication.
 
 \subsection{Transition to fully connected layer}
 
-After several stages of convolutions and pooling we end up with the high-level feature maps. We have to convert these into a form suitable for classification. This is typically achieved by flattening the feature maps into a $1D$ vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
+After several stages of convolutions and pooling, we end up with the high-level feature maps. We have to convert these into a form suitable for classification. This is typically achieved by flattening the feature maps into a $1D$ vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
 
-Another popular way to transition from convolutional feature maps to dense layers is \emph{global average pooling (GAP)}. Instead of flattening the entire feature map, which can result in a large number of parameters and lead to overfitting, GAP computes the average of each feature map individually. This results in a single scalar value per feature map, significantly reducing the dimensionality while preserving spatially aggregated information. It has no trainable parameters and often improves generalization by enforcing a stronger correspondence between feature maps and categories.
+Another popular way to transition from convolutional feature maps to dense layers is \emph{global average pooling (GAP)}. Instead of flattening the entire feature map, which can result in many parameters and lead to overfitting, GAP computes the average of each feature map individually. This results in a single scalar value per feature map, significantly reducing the dimensionality while preserving spatially aggregated information. It has no trainable parameters and often improves generalization by enforcing a stronger correspondence between feature maps and categories.
 
 \subsection{Classification head}
 
-Between the convolutional features and the final output layer, it is usually beneficial to include a few fully connected layers. This additional structure helps the model better combine the extracted spatial features before producing the final prediction. The densely connected section on top convolutional layers always have the following structure in our implementations:
+Between the convolutional features and the final output layer, including a few fully connected layers is usually beneficial. This additional structure helps the model combine the extracted spatial features better before producing the final prediction. The densely connected section on top of the convolutional layers always has the following structure in our implementations:
 
 \begin{itemize}
-    \item \textbf{Dense} layer: combines extracted spatial features from the convolutional backbone.
-    \item \textbf{Dropout}: regularization (we defaultly turn it off).
+    \item \textbf{Dense} layincludingures from the convolutional backbone.
+    \item \textbf{Dropout}: regularization (we default to turning it off).
     \item \textbf{Dense} layer: further processes the feature representation.
     \item \textbf{Output layer}: produces the final prediction for $3$ classes.
 \end{itemize}
 
 \section{Optimizers}
 
-The term \emph{optimizer} defines the update rule for the model's weights during training, regardless on the concrete architecture. While the training is based on gradient decent, the choice of optimizer can significantly impact convergence and the resulting generalization. In this subsection, we briefly describe the three optimizers used in this thesis: \emph{Nesterov SGD with momentum}, \emph{RMSProp}, and \emph{AdamW}.
+The term \emph{optimizer} defines the update rule for the model's weights during training, regardless of the concrete architecture. While the training is based on gradient descent, the choice of optimizer can significantly affect convergence and the resulting generalization. In this subsection, we briefly describe the three optimizers used in this thesis: \emph{Nesterov SGD with momentum}, \emph{RMSProp}, and \emph{AdamW}.
 
 \paragraph{Nesterov SGD with momentum}
 
@@ -342,11 +342,11 @@ where $\beta \in [0,1)$ is the momentum coefficient.
     \label{eq:nesterov_update}
 \end{equation}
 
-This step can improve convergence, therefore we use SGD with Nesterov momentum as one of the optimizers in our experiments.
+This step can improve convergence; therefore, we use SGD with Nesterov momentum as one of the optimizers in our experiments.
 
 \paragraph{RMSProp}
 
-\emph{RMSProp} \cite{hinton2012rmsprop} was designed to address slow convergence by using adaptive learning rate. RMSProp does it by maintaining an exponentially decaying average of squared gradients:
+\emph{RMSProp} \cite{hinton2012rmsprop} was designed to address slow convergence using adaptive learning rate. RMSProp does it by maintaining an exponentially decaying average of squared gradients:
 
 \begin{equation}
     E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta) (\nabla_\theta \mathcal{L}(\theta))^2,
@@ -358,18 +358,18 @@ This step can improve convergence, therefore we use SGD with Nesterov momentum a
     \label{eq:rmsprop_update_new}
 \end{equation}
 
-where $\beta$ is the decay rate (often set around 0.9) and $\epsilon$ is a small constant for numerical stability. By adapting learning rates individually for each parameter, RMSProp can handle noisy gradients and sharp minima effectively. We use RMSProp in selected experiments to evaluate its impact on training dynamics and generalization.
+where $\beta$ is the decay rate (often set around 0.9) and $\epsilon$ is a small constant for numerical stability. By adapting learning rates individually for each parameter, RMSProp can effectively handle noisy gradients and sharp minima. We use RMSProp in selected experiments to evaluate its impact on training dynamics and generalization.
 
 \section{Decay scheduling}
 \label{subsec:decay-scheduling}
 
-Decay scheduling changes the learning rate during training. The general idea is that as the training progresses, we want to be more conservative with the weight updates, which can be achieved by lowering the learning rate. Even though some optimizers adapt the learning rate during the training, it can still be beneficial to use scheduling. 
+Decay scheduling changes the learning rate during training. The general idea is that as the training progresses, we want to be more conservative with the weight updates, which can be achieved by lowering the learning rate. Even though some optimizers adapt the learning rate during the training, scheduling can still be beneficial. 
 
 \paragraph{None}
-The simplest approach is to keep the learning rate constant throughout the training process. However, this usually leads to suboptimal results in more complex settings.
+The most straightforward approach is to keep the learning rate constant throughout the training process. However, this usually leads to suboptimal results in more complex settings.
 
 \paragraph{Linear decay}
-In \emph{linear decay}, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
+In \emph{linear decay}, the learning rate is reduced linearly from its initial value to a predefined minimum value throughout training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
 
 \begin{equation} 
 	\label{eq:linear-decay} 
@@ -384,7 +384,7 @@ In \emph{linear decay}, the learning rate is reduced linearly from its initial v
 	l_t = l_0 , \gamma^{t}, 
 \end{equation}
 
-where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
+where $\gamma \in (0,1)$ is the decay rate per epoch.
 
 \paragraph{Cosine decay}
 \emph{Cosine decay} schedule reduces the learning rate following a cosine function. It starts at the maximum learning rate and gradually decays to the minimum value:
@@ -397,7 +397,7 @@ where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
 where $l_{\mathrm{min}}$ is the final learning rate. In our experiments, we use $l_0 = 0.1$ and $l_{\mathrm{min}} = \SI{1e-4}{}$ everywhere applicable.
 
 \paragraph{Piecewise decay}
-\emph{Piecewise decay} divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by a factor of $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
+\emph{Piecewise decay} divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
 
 \paragraph{Plateau decay}
 \emph{Plateau}-based methods are similar to piecewise decay, but they monitor some metric and reduce the learning rate by some factor whenever the metric stops improving for a certain number of epochs. Our implementation follows the validation loss, and if the loss doesn't improve in the last $15$ epochs, we divide the current learning rate by a factor of $10$.
@@ -405,19 +405,19 @@ where $l_{\mathrm{min}}$ is the final learning rate. In our experiments, we use 
 \section{Initialization}
 \label{sec:init}
 
-Deep networks can suffer from either exploding and vanishing gradients, which naturally results in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by proper initialization of the weights. For both dense and convolutional layers, a common strategy is to initialize weights from distributions that take into account the number of input and output units. In the mentioned paper, authors proposed so called Xavier (or Glorot) initialization. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in both dense and convolutional layers when the activation function is symmetric around zero.
+Deep networks can suffer from either exploding or vanishing gradients, resulting in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by properly initializing the weights. A common strategy for both dense and convolutional layers is to initialize weights from distributions that consider the number of input and output units. The authors proposed the so-called Xavier (or Glorot) initialization in the mentioned paper. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in dense and convolutional layers when the activation function is symmetric around zero.
 
-For networks with ReLU activations, one widely adopted initialization method is the He initialization \cite{he2015delving}, also known as Kaiming initialization. It draws weights from a zero-mean Gaussian distribution with variance $\frac{2}{n_{\text{in}}}$, where $n_{\text{in}}$ is the number of input connections to the neuron. 
+One widely adopted initialization method for networks with ReLU activations is the He initialization \cite{he2015delving}, also known as Kaiming initialization. It draws weights from a zero-mean Gaussian distribution with variance $\frac{2}{n_{\text{in}}}$, where $n_{\text{in}}$ is the number of input connections to the neuron. 
 
 For convolutional layers, these principles are applied in a spatially-aware manner, where $n_{\text{in}}$ and $n_{\text{out}}$ correspond to the number of input and output channels multiplied by the kernel size.
 
 \section{Regularization}
 
-\emph{Regularization} is a set of techniques to prevent overfitting \ref{sec:uofitting}, \textit{(improve generalization)}, often at the cost of increasing the training error. There are many strategies to improve generalization \cite{bengio2017deep}, often at the cost of increasing the training error. In this thesis we explore following regularization strategies: constraining model parameters, modifying the objective function, altering training data, inferfering with the training process. We will describe the strategies relevant to our work in the following section.
+\emph{Regularization} is a set of techniques to prevent overfitting \ref{sec:uofitting}, \textit{(improve generalization)}, often at the cost of increasing the training error. There are many strategies to improve generalization \cite{bengio2017deep}, often at the cost of increasing the training error. In this thesis, we explore the following regularization strategies: constraining model parameters, modifying the objective function, altering training data, and interfering with the training process. We will describe the strategies relevant to our work in the following section.
 
 \subsection{Parameter-norm penalties}
 
-A common way to regularize, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$ \cite{bengio2017deep}. 
+A common way to regularize is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$ \cite{bengio2017deep}. 
 
 \begin{equation}
 	\label{eq:loss-parameter-norm}
@@ -425,7 +425,7 @@ A common way to regularize, is to limit the capacity of a given model. This can 
 \end{equation}
 where $\lambda \geq 0$ is a hyperparameter weighting the contribution of the parameter-norm to the overall loss function.
 
-This change means that will try to minize both the original loss function and some norm of the models parameters during the training. Noticeably $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$, in fact it is recommended to reagularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture capture interactions between pairs of variables, biases only shifts the overall output. Large biases do not increase variability in activations and on the other hand having a large bias might be sometimes preferable. Therefore penalizing the biases in this way can cause significant and unnecessary underfitting. The most common parameter norms is the $L^2$:
+This change means we will try to minimize both the original loss function and the norm of some model parameters during the training. Noticeably, $\Omega$ doesn't have to penalize all the parameters $\bm{\theta}$. It is recommended to regularize only proper weights $\bm{w}$ (leaving the biases $\bm{b}$ out) in this manner. While proper weights try to capture interactions between pairs of variables, biases only shift the overall output. Large biases do not increase variability in activations, and on the other hand, having a large bias might be sometimes preferable. Therefore, penalizing the biases in this way can cause significant and unnecessary underfitting. The most common parameter norm is the $L^2$:
 
 \begin{equation}
  	\label{eq:l2-regularization}
@@ -439,8 +439,7 @@ This change means that will try to minize both the original loss function and so
 %\end{equation} 
 
 \subsection{Weight decay}
-A \emph{weight decay} is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss functio
-n, it modifies the weight update rule during minimization. Specifically, the weights are updated as:
+A \emph{weight decay} is similar to $L^2$ regularization, but is implemented slightly differently. Instead of changing the loss function, the weight update rule is modified during minimization. Specifically, the weights are updated as:
 
 \begin{equation}
 \bm{w} \leftarrow \bm{w} - \eta \left( \nabla_{\bm{w}} \mathcal{L} + \lambda \bm{w} \right),
@@ -450,22 +449,21 @@ which is the way we implement the $L^2$ regularization in our experiments.
 
 \subsection{Label smoothing}
 
-\emph{Label smoothing} \cite{muller2019does} is a regularization technique that replaces the hard one-hot target labels with a softened version. Instead of assigning full probability $1$ to the correct class and $0$ to all others, we assign a value $1 - \varepsilon$ to the correct class and distribute $\varepsilon$ uniformly among the remaining classes. This prevents the model from becoming too confident in its predictions with a potential to improve generalization.
+\emph{Label smoothing} \cite{muller2019does} is a regularization technique that replaces the hard one-hot target labels with a softened version. Instead of assigning full probability $1$ to the correct class and $0$ to all others, we assign a value $1-\varepsilon$ to the proper class and distribute $\varepsilon$ uniformly among the remaining classes. This prevents the model from becoming too confident in its predictions, with the potential to improve generalization.
 
 \subsection{Data augmentation}
 
-The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always possible, but we can help ourselves by modifying data we already have \cite{bengio2017deep}. We can take advantage of a fact that the physical properties that define the phase of a magnetic configuration, are preserved with respect to some image tranformations. These include:
+The best way to improve the generalization of a machine learning model is to train it on a larger dataset. Getting new data is not always possible, but we can help by modifying data we already have \cite{bengio2017deep}. We can take advantage of the fact that the physical properties that define the phase of a magnetic configuration are preserved with respect to some image transformations. These include:
 
 \begin{itemize}
 	\label{items:physical-augs}
-    \item \textbf{Reflextions and $\mathbf{\ang{90}}$ rotations}: Reflexted and/or rotated configurations are entirely equivalent with respect to each other.
+    \item \textbf{Reflextions and $\mathbf{\ang{90}}$ rotations}: Reflected and/or rotated configurations are entirely equivalent with respect to each other.
     \item \textbf{Rolls}: Due to periodic boundary conditions used in the Monte Carlo simulations, we can "roll" images (shift circularly) in any direction.
     \item \textbf{Global spin rotation (in-plane)}: For ferromagnetic states, we can uniformly rotate all spins, especially within the $xy$-plane, to emphasize that the essential feature is uniformity, not orientation.
 \end{itemize}
 
-We can expect that the neural networks that use these augmentations are more robust and better at generalizing across physically equivalent configurations.
 
-Yet this is not the only benefit data augmentation brings for our usecase. We can also combine images from different classes in order to help our model recognize phase transitions. There are two common approaches for such data augmentation combining multiple classes, \emph{CutMix} \cite{yun2019cutmix} and \emph{MixUp} \cite{zhang2017mixup}. CutMix works by taking a portion of image $1$ (usually rectangular segment) and pasting it onto an image $2$. Resulting image will get label that is a weighted sum of original one-hot encoded labels, with weights proportional to number of pixels contributed by each image. MixUp works again by taking two images, generating random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). Label is then created in same manner. Examples of these augmentations on our data are in \cref{fig:aug_fe,fig:aug_sp}
+Yet this is not the only benefit data augmentation brings for our use case. We can also combine images from different classes to help our model recognize phase transitions. There are two common approaches for such data augmentation combining multiple classes, \emph{CutMix} \cite{yun2019cutmix} and \emph{MixUp} \cite{zhang2017mixup}. CutMix takes a portion of image $1$ (usually a rectangular segment) and pastes it onto an image $2$. The resulting image will get a label that is a weighted sum of the original one-hot encoded labels, with weights proportional to the number of pixels contributed by each image. MixUp works again by taking two images, generating a random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). The label is then created in the same manner. Examples of these augmentations on our data are in \cref{fig:aug_fe,fig:aug_sp}
 
 \begin{figure}[H]
   \centering
@@ -492,7 +490,7 @@ Yet this is not the only benefit data augmentation brings for our usecase. We ca
   \centering
   \begin{subfigure}[b]{0.22\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{img/augment_fe_4.pdf}
+    \includeThe labelics[width=\textwidth]{img/augment_fe_4.pdf}
     \caption{MixUp}
     \label{fig:aug_fe_4}
   \end{subfigure}
@@ -535,14 +533,14 @@ Yet this is not the only benefit data augmentation brings for our usecase. We ca
 
 \subsection{Dropout}
 
-\emph{Dropout} \cite{srivastava2014dropout} is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
+\emph{Dropout} \cite{srivastava2014dropout} is a regularization technique for preventing overfitting by randomly switching off activations during training. Individual neurons are independently set to zero for dense networks with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
 
-Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout} \cite{tompson2015efficient}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature. Implementation of DropBlock doesn't make sense for our usecase, sinse we try to evaluate how much of each phase is present in the given image. Which leaves us with the spatial dropout for convolutional layes as only viable option.
+Dropout can also be applied in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout} \cite{tompson2015efficient}, which drops entire feature maps (channels) or \emph{DropBlock}, which drops a whole rectangular block of features. Implementing DropBlock doesn't make sense for our use case, since we try to evaluate how much of each phase is present in the given image, which leaves us with the spatial dropout for convolutional layers as the only viable option.
 
 \paragraph{Monte Carlo Dropout}
 
-\emph{Monte Carlo dropout} is in it's idea closely connected to the \emph{model ensembling}. Model ensembling is a regularization technique that combines multiple models. The intuition is that individual models make different errors, and averaging their predictions reduces the variance and improves the robustness. The drawback of model ensembling is the computational cost. It is costly to train many models, just to average their predictions. However, we can approximate the model ensemble by using the \emph{Monte-Carlo (MC) dropout} \cite{gal2016dropout}. Monte Carlo dropout extends the idea of dropout to the inference. Instead of disabling dropout during the inference, we can keep it active and perform multiple forward passes. Each forward pass samples a different subnetwork from the full model, effectively creating an ensemble.
+\emph{Monte Carlo dropout} is in it's idea closely connected to the \emph{model ensembling}. Model ensembling is a regularization technique that combines multiple models. The intuition is that individual models make different errors, and averaging their predictions reduces the variance and improves the robustness. The drawback of model ensembling is the computational cost. It is costly to train many models and average their predictions. However, we can approximate the model ensemble by using the \emph{Monte-Carlo (MC) dropout} \cite{gal2016dropout}. Monte Carlo dropout extends the idea of dropout to inference. Instead of disabling dropout during the inference, we can keep it active and perform multiple forward passes. Each forward pass samples a different subnetwork from the full model, effectively creating an ensemble.
 
 \subsection{Early Stopping}
 
-\emph{Early stopping} \cite{prechelt2002early} is a regularization technique that directly interfere with the training process. It requires additional \emph{validation} dataset, that is not used for updating weights. We use it to monitor a  validation loss during training, and instead of training for a fixed number of steps, we stop as soon as the validation loss stops improving (for certain number of epochs, in our case $40$). This stops the model from overtraining, improving the generalization. After early stopping, we restore the model's weights from the epoch with minimal validation loss.
+\emph{Early stopping} \cite{prechelt2002early} is a regularization technique that directly interferes with the training process. It requires an additional \emph{validation} dataset, which is not used for updating weights. We use it to monitor a  validation loss during training, and instead of training for a fixed number of steps, we stop as soon as the validation loss stops improving (for a certain number of epochs, in our case $40$). This prevents the model from overtraining, improving the generalization. After early stopping, we restore the model's weights from the epoch with minimal validation loss.
