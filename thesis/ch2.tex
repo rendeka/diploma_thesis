@@ -4,9 +4,11 @@
 The field of \emph{machine learning (ML)} is a complex discipline grounded in the language of probability theory, statistics, and information theory. In this chapter, we describe all the methods and ML techniques applied in the practical part of this thesis. However, these are based on a deeper understanding of ML concepts. Since this knowledge is not part of the standard curriculum of our study program, the fundamentals of ML are included in an extensive appendix of this thesis, and we will frequently refer to terms explained there.
 
 \section{Model architecture} 
-In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\bm{x}$, a neural network learns a mapping $f_\theta(\bm{x})$ parameterized by weights $\theta$, such that $f_\theta(\bm{x})$ gives a meaningful output. The \emph{model architecture} creates the backbone for such function, and have big influence on its quality. Many different neural network architectures were proposed in the realm of computer vision. Two basic ones we want to explore are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}. Convolutional networks, however, came through a lot of development and many succesfull image recognition architectures were established, some of which we put into test in our experiments.
+In their essence, neural networks are function approximations and in practice we leverage them to estimate the probability distribution. Given input data $\bm{x}$, a neural network learns a mapping $f_\theta(\bm{x})$ parameterized by weights $\theta$, such that $f_\theta(\bm{x})$ gives a meaningful output. The \emph{model architecture} creates the backbone for such function, and have big influence on its quality. Many different neural network architectures were proposed in the field of computer vision. Two basic ones we want to explore are \emph{fully connected networks} and \emph{convolutional neural networks (CNNs)}. Convolutional networks, however, came through a lot of development and many succesfull image recognition architectures were established, some of which we put into test in our experiments.
+
 
 \subsection{Activation functions}
+\label{sec:activation}
 
 One of the hyperparameters we are interested in exploring is the \emph{activation function}. Activation functions introduce non-linearity into neural networks, enabling them to approximate more complex functions. Choosing the right activation function can impact training dynamics, stability, and ultimately model performance. In this subsection, we describe the activation functions used in our work.
 
@@ -74,7 +76,14 @@ where $\Phi(x)$ is the standard normal cumulative distribution function. An appr
     \mathrm{GELU}(x) \approx 0.5\, x \left[1 + \tanh\left(\sqrt{\frac{2}{\pi}} \left(x + 0.044715\, x^3\right)\right)\right].
 \end{equation}
 
-All of the activation functions described earlier are can be used in the hidden layers of a neural network. These however, do not work well for the output layer. The two most common choices for \emph{classification heads} are the \emph{sigmoid} and \emph{softmax} functions.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{img/activations.pdf}
+  \caption{Comparison of different activation functions. Note that the: linear, ReLU, LeakyReLU and ELU activations coninside for $x > 0$.}
+  \label{fig:activations}
+\end{figure}
+
+All of the activation functions described earlier are visualized in the \ref{fig:activations}. All of them are common choice in the hidden layers of various neural networks. These however, do not work well for the output layer. Here, in the \emph{classification heads} there are usually used either \emph{sigmoid} sigmoid \emph{softmax} functions.
 
 \paragraph{Sigmoid}
 
@@ -103,7 +112,8 @@ The general structure is simple: the network has an \emph{input layer}, several 
 Formally, the operation of a fully connected layer can be described as:
 
 \begin{equation} 
-	\label{eq:fully-connected} \bm{h} = \phi(\bm{W}\bm{x} + \bm{b}), 
+	\label{eq:fully-connected} 
+	\bm{h} = \phi(\bm{W}\bm{x} + \bm{b}), 
 \end{equation}
 
 where $\bm{x}$ is the input vector, $\bm{W}$ is the weight matrix, $\bm{b}$ is the bias vector, $\phi$ is a non-linear activation function (such as ReLU or sigmoid), and $\bm{h}$ is the resulting output (also called the hidden state).
@@ -173,27 +183,59 @@ Standard convolutions are computationally expensive, especially when both the in
 
 This decomposition significantly reduces computational cost and the number of parameters, while often maintaining or  improving performance.
 
-\paragraph{Transition to fully connected layer}
+\paragraph{Batch normalization}
 
-After several stages of convolutions and pooling we end up with the high-level feature maps. We must convert these into a form suitable for classification. This is typically achieved by flattening the feature maps into a 1D vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
+Batch normalization normalizes the activations in a layer across each mini-batch, which often improves the training stability \cite{ioffe2015batch}. Given a mini-batch of activations $\{x_1, x_2, \ldots, x_m\}$, the mean and variance are computed as:
 
-Another popular way to transition from convolutional feature maps to dense layers is \emph{global average pooling (GAP)}. Instead of flattening the entire feature map, which can result in a large number of parameters and lead to overfitting, GAP computes the average of each feature map individually. This results in a single scalar value per feature map, significantly reducing the dimensionality while preserving spatially aggregated information. It has no trainable parameters and often improves generalization by enforcing a stronger correspondence between feature maps and categories.
+\begin{equation}
+    \mu_B = \frac{1}{m} \sum_{i=1}^{m} x_i,
+\end{equation}
 
-\subsubsection{Simple convolutional block}
+\begin{equation}
+    \sigma_B^2 = \frac{1}{m} \sum_{i=1}^{m} (x_i - \mu_B)^2.
+\end{equation}
+
+Each activation is then normalized:
+
+\begin{equation}
+    \hat{x}_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}},
+\end{equation}
+
+where $\epsilon$ is a small constant for numerical stability. The learnable parameters $\gamma$ and $\beta$ scale and shift the normalized values:
+
+\begin{equation}
+    y_i = \gamma \hat{x}_i + \beta.
+\end{equation}
+
+During training, we compute running averages of these statistics for use during inference:
+
+\begin{equation}
+\mu_{\text{running}} \leftarrow (1 - \lambda),\mu_{\text{running}} + \lambda,\mu_{\text{batch}},
+\end{equation}
+
+\begin{equation}
+\sigma^2_{\text{running}} \leftarrow (1 - \lambda),\sigma^2_{\text{running}} + \lambda,\sigma^2_{\text{batch}},
+\end{equation}
+
+where $\lambda$ is the momentum hyperparameter controlling the update rate.
+
+During inference, batch normalization replaces batch statistics with these running averages, to ensures that the normalization is independent of the current batch.
+
+\paragraph{Simple convolutional block}
 
 A simple convolutional block is the foundational building unit in CNNs. It is a sequence of layers that work together to extract features from the input data in a hierarchical manner. 
 
 A standard convolutional block usually contains the following components:
 
 \begin{itemize}
-    \item \textbf{Convolutional layer:} Applies several filters to the input, producing a set of feature maps.
+    \item \textbf{Convolutional layer:} Producing a set of feature maps.
     \item \textbf{Batch normalization:} Normalizes the feature maps to stabilize training and improve convergence speed.
-    \item \textbf{Activation function:} A function that is applied element-wise to introduce non-linearity into the model.
+    \item \textbf{Activation function:} Introduces non-linearity into the model.
 \end{itemize}
 
-These blocks can be stacked, often putting a pooling layer between them. This forms deep networks, where each successive block captures increasingly abstract features.
+These blocks can be stacked, often putting a pooling and dropout layer between them. This forms deep networks, where each successive block captures increasingly abstract features.
 
-\subsubsection{Residual connections}
+\paragraph{Residual connections}
 The idea behind residual connections is to enable the network to learn a residual mapping with respect to its input, rather than learning the entire transformation directly.
 
 This is achieved by introducing a shortcut (identity) connection that bypasses one or more convolutional layers. For a given input $\mathrm{x}$ and a series of transformations represented by a function $\mathcal{F}(\mathrm{x})$, the output of a residual block is:
@@ -213,10 +255,8 @@ followed by a non-linear activation function.
 
 When the convolutional layers change the spatial dimensions or number of channels, direct addition is not possible. In such cases, the shortcut connection is implemented using a $1\times1$ convolution to align the shapes of $\mathrm{x}$ and $\mathcal{F}(\mathrm{x})$ before the addition.
 
-\subsubsection{Squeeze and excitation block}
-The Squeeze-and-Excitation (SE) block was introduced in \cite{hu2018squeeze} (CVPR 2018)  the paper Squeeze-and-Excitation Networks (CVPR 2018). Its idea is to improve the representational power of CNNs by explicitly modeling interdependencies between channels.
-
-The SE block has two main stages:
+\paragraph{Squeeze and excitation block}
+The \emph{Squeeze-and-Excitation (SE)} block was introduced in \cite{hu2018squeeze}. Its idea is to improve the representational power of CNNs by explicitly modeling interdependencies between channels. The SE block has two main stages:
 
 \begin{itemize}
 	\item \textbf{Squeeze:} The spatial information in each channel is aggregated into a single scalar value by global average pooling. This operation reduces the spatial dimensions. For a feature map of shape $H \times W \times C$, the output of the squeeze step is a vector of length $C$.
@@ -231,10 +271,10 @@ The SE block has two main stages:
   \label{fig:se_scheme}
 \end{figure}
 
-\subsubsection{CBAM block}
-The Convolutional Block Attention Module (CBAM) enhances feature representations by sequentially applying attention mechanisms along both the channel and spatial dimensions. Unlike the Squeeze-and-Excite block, which focuses solely on channel-wise attention, CBAM extends this idea to also include spatial attention, allowing the network to emphasize what and where to attend.
+\paragraph{CBAM block}
+The \emph{Convolutional Block Attention Module (CBAM)} \cite{woo2018cbam} applies attention mechanisms along both the channel and spatial dimensions, potentially allowing the network to emphasize what and where to attend.
 
-For a given input feature map $\bm{F} \in \mathbb{R}^{C \times H \times W}$, CBAM applies a channel attention module followed by a spatial attention module. The channel attention module aggregates spatial information using global average and max pooling, followed by shared MLP layers, resulting in a channel attention map $M_c \in \mathbb{R}^{C \times 1 \times 1}$. The input is then refined as:
+For a given input feature map $\bm{F} \in \mathbb{R}^{C \times H \times W}$, CBAM applies a channel attention module, similarly as in the SE block, followed by a spatial attention module. The channel attention module aggregates spatial information using global average and max pooling, followed by shared dense layers, resulting in a channel attention map $M_c \in \mathbb{R}^{C \times 1 \times 1}$. The input is then refined as:
 
 \begin{equation}
 	\bm{F'} = M_c(\bm{F}) \cdot \bm{F},
@@ -255,7 +295,23 @@ where $\cdot$ denotes element-wise multiplication.
 	\label{fig:cbam_block}
 \end{figure}
 
-By incorporating both attention types in a lightweight and modular fashion, CBAM can be easily integrated into existing convolutional architectures to improve representational power and performance.
+
+\paragraph{Transition to fully connected layer}
+
+After several stages of convolutions and pooling we end up with the high-level feature maps. We have to convert these into a form suitable for classification. This is typically achieved by flattening the feature maps into a $1D$ vector and feeding it into one or more fully connected layers. These final layers map the learned feature representations to the output classes.
+
+Another popular way to transition from convolutional feature maps to dense layers is \emph{global average pooling (GAP)}. Instead of flattening the entire feature map, which can result in a large number of parameters and lead to overfitting, GAP computes the average of each feature map individually. This results in a single scalar value per feature map, significantly reducing the dimensionality while preserving spatially aggregated information. It has no trainable parameters and often improves generalization by enforcing a stronger correspondence between feature maps and categories.
+
+\paragraph{Classification}
+
+Between the convolutional features and the final output layer, it is usually beneficial to include a few fully connected layers. This additional structure helps the model better combine the extracted spatial features before producing the final prediction. The densely connected section on top convolutional layers always have the following structure in our implementations:
+
+\begin{itemize}
+    \item \textbf{Dense} layer: combines extracted spatial features from the convolutional backbone.
+    \item \textbf{Dropout}: regularization (we defaultly turn it off).
+    \item \textbf{Dense} layer: further processes the feature representation.
+    \item \textbf{Output layer}: produces the final prediction for $3$ classes.
+\end{itemize}
 
 \subsubsection{Optimizers}
 
@@ -293,7 +349,7 @@ This step can improve convergence, therefore we use SGD with Nesterov momentum a
 
 \paragraph{RMSProp}
 
-\emph{RMSProp} was designed to address slow convergence by using adaptive learning rate. RMSProp does it by maintaining an exponentially decaying average of squared gradients:
+\emph{RMSProp} \cite{hinton2012rmsprop} was designed to address slow convergence by using adaptive learning rate. RMSProp does it by maintaining an exponentially decaying average of squared gradients:
 
 \begin{equation}
     E[g^2]_t = \beta E[g^2]_{t-1} + (1 - \beta) (\nabla_\theta \mathcal{L}(\theta))^2,
@@ -307,7 +363,7 @@ This step can improve convergence, therefore we use SGD with Nesterov momentum a
 
 where $\beta$ is the decay rate (often set around 0.9) and $\epsilon$ is a small constant for numerical stability. By adapting learning rates individually for each parameter, RMSProp can handle noisy gradients and sharp minima effectively. We use RMSProp in selected experiments to evaluate its impact on training dynamics and generalization.
 
-\subsubsection{Decay scheduling}
+\subsection{Decay scheduling}
 \label{subsec:decay-scheduling}
 
 Decay scheduling changes the learning rate during training. The general idea is that as the training progresses, we want to be more conservative with the weight updates, which can be achieved by lowering the learning rate. Even though some optimizers adapt the learning rate during the training, it can still be beneficial to use scheduling. 
@@ -316,7 +372,7 @@ Decay scheduling changes the learning rate during training. The general idea is 
 The simplest approach is to keep the learning rate constant throughout the training process. However, this usually leads to suboptimal results in more complex settings.
 
 \paragraph{Linear decay}
-In linear decay, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
+In \emph{linear decay}, the learning rate is reduced linearly from its initial value to a predefined minimum value over the course of training. It is one of the simplest decay strategies. Suppose that $l_0$ is the initial learning rate and $T$ is the total number of steps, then the learning rate at step $t$ is:
 
 \begin{equation} 
 	\label{eq:linear-decay} 
@@ -324,7 +380,7 @@ In linear decay, the learning rate is reduced linearly from its initial value to
 \end{equation}
 
 \paragraph{Exponential decay}
-Exponential decay reduces the learning rate multiplicatively at each step, resulting in a very fast decay, potentially resulting in a rapid early convergence. The formula is:
+\emph{Exponential decay} reduces the learning rate multiplicatively at each step, resulting in a very fast decay, potentially resulting in a rapid early convergence. The formula is:
 
 \begin{equation} 
 	\label{eq:exponential-decay} 
@@ -334,7 +390,7 @@ Exponential decay reduces the learning rate multiplicatively at each step, resul
 where $\gamma \in (0,1)$ is the decay rate per step or per epoch.
 
 \paragraph{Cosine decay}
-Cosine decay schedule reduces the learning rate following a cosine function. It starts at the maximum learning rate and gradually decays to the minimum value:
+\emph{Cosine decay} schedule reduces the learning rate following a cosine function. It starts at the maximum learning rate and gradually decays to the minimum value:
 
 \begin{equation} 
 	\label{eq:cosine-decay} 
@@ -344,12 +400,13 @@ Cosine decay schedule reduces the learning rate following a cosine function. It 
 where $l_{\mathrm{min}}$ is the final learning rate. In our experiments, we use $l_0 = 0.1$ and $l_{\mathrm{min}} = \SI{1e-4}{}$ everywhere applicable.
 
 \paragraph{Piecewise decay}
-Piecewise decay divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by a factor of $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
+\emph{Piecewise decay} divides the training process into several stages, within which the learning rate remains constant. After each stage, the learning rate is manually reduced, often by a factor of $10$. It can be seen as a crude approximation of an optimal decay schedule and is widely used in practice, especially when training dynamics are well-understood.
 
-\paragraph{Plateau-based decay}
-Plateau-based methods are similar to piecewise decay, but they monitor some metric and reduce the learning rate by some factor whenever the metric stops improving for a certain number of epochs. Our implementation follows the validation loss, and if the loss doesn't improve in the last $15$ epochs, we divide the current learning rate by a factor of $10$.
+\paragraph{Plateau decay}
+\emph{Plateau}-based methods are similar to piecewise decay, but they monitor some metric and reduce the learning rate by some factor whenever the metric stops improving for a certain number of epochs. Our implementation follows the validation loss, and if the loss doesn't improve in the last $15$ epochs, we divide the current learning rate by a factor of $10$.
 
 \subsection{Initialization}
+\label{sec:init}
 
 Deep networks can suffer from either exploding and vanishing gradients, which naturally results in poorly performing models. The important work of \cite{glorot2010understanding} showed that this issue can be improved by proper initialization of the weights. For both dense and convolutional layers, a common strategy is to initialize weights from distributions that take into account the number of input and output units. In the mentioned paper, authors proposed so called Xavier (or Glorot) initialization. It uses a variance of $\frac{2}{n_{\text{in}} + n_{\text{out}}}$, balancing the forward and backward signal flow across layers. This initialization works reasonably well in both dense and convolutional layers when the activation function is symmetric around zero.
 
@@ -357,19 +414,11 @@ For networks with ReLU activations, one widely adopted initialization method is 
 
 For convolutional layers, these principles are applied in a spatially-aware manner, where $n_{\text{in}}$ and $n_{\text{out}}$ correspond to the number of input and output channels multiplied by the kernel size.
 
-\subsection{Underfitting/overfitting}
-A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common failure modes are:
-\begin{itemize}
-    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
-    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise. While training performance is excellent, test performance degrades.
-\end{itemize}
-These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. If the model performs well on previously unseen data, we say it \emph{generalizes} well. In our case, we don't want achieve just low test error, we want to model to generalize even further a to behave well on unlabeled data from phase transitions containing a mixture of phases.
-
 \section{Regularization}
 
-\emph{Regularization} is a set of techniques to prevent overfitting, \textit{(improve generalization)}, often at the cost of increasing the training error. There are many strategies to improve generalization \cite{bengio2017deep}, often at the cost of increasing the training error. In this thesis we explore following regularization strategies: constraining model parameters, modifying the objective function, altering training data, inferfering with the training process. We will describe the strategies relevant to our work in the following section.
+\emph{Regularization} is a set of techniques to prevent overfitting \ref{sec:uofitting}, \textit{(improve generalization)}, often at the cost of increasing the training error. There are many strategies to improve generalization \cite{bengio2017deep}, often at the cost of increasing the training error. In this thesis we explore following regularization strategies: constraining model parameters, modifying the objective function, altering training data, inferfering with the training process. We will describe the strategies relevant to our work in the following section.
 
-\subsection{Parameter-norm penalties}
+\paragraph{Parameter-norm penalties}
 A common way to regularize, is to limit the capacity of a given model. This can be achieved by adding parameter-norm $\Omega(\bm{\theta})$ to the loss function $L(\bm{x} \mid \bm{\theta})$ \cite{bengio2017deep}. 
 
 \begin{equation}
@@ -391,27 +440,36 @@ This change means that will try to minize both the original loss function and so
 %	\Omega(\bm{\theta}) = \dfrac{1}{2} ||\bm{w}||_1.
 %\end{equation} 
 
-\subsection{Weight decay}
-A weight decay is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss functio
+\paragraph{Weight decay}
+A \emph{weight decay} is very similar to $L^2$ regularization, but is implemented little differently. Instead of changing the loss functio
 n, it modifies the weight update rule during minimization. Specifically, the weights are updated as:
+
 \begin{equation}
 \bm{w} \leftarrow \bm{w} - \eta \left( \nabla_{\bm{w}} \mathcal{L} + \lambda \bm{w} \right),
 \end{equation}
 
-\subsection{Data augmentation}
+which is the way we implement the $L^2$ regularization in our experiments.
+
+\paragraph{Label smoothing}
+
+\emph{Label smoothing} \cite{muller2019does} is a regularization technique that replaces the hard one-hot target labels with a softened version. Instead of assigning full probability $1$ to the correct class and $0$ to all others, we assign a value $1 - \varepsilon$ to the correct class and distribute $\varepsilon$ uniformly among the remaining classes. This prevents the model from becoming too confident in its predictions with a potential to improve generalization.
+
+\paragraph{Data augmentation}
 
 The best way to improve generalization of machine learning model, is to train it on larger dataset. Getting new data is not always possible, but we can help ourselves by modifying data we already have. We can take advantage of a fact that the physical properties that define the phase of a magnetic configuration, are preserved with respect to some image tranformations. These include:
+
 \begin{itemize}
+	\label{items:physical-augs}
     \item \textbf{Reflextions and $\mathbf{\ang{90}}$ rotations}: Reflexted and/or rotated configurations are entirely equivalent with respect to each other.
-    \item \textbf{Rolls}: Due to periodic boundary conditions used in the Monte Carlo simulations, we can “roll” images (shift circularly) in any direction.
+    \item \textbf{Rolls}: Due to periodic boundary conditions used in the Monte Carlo simulations, we can "roll" images (shift circularly) in any direction.
     \item \textbf{Global spin rotation (in-plane)}: For ferromagnetic states, we can uniformly rotate all spins, especially within the $xy$-plane, to emphasize that the essential feature is uniformity, not orientation.
 \end{itemize}
 
 We can expect that the neural networks that use these augmentations are more robust and better at generalizing across physically equivalent configurations.
 
-Yet this is not the only benefit data augmentation brings for our usecase. We can also combine images from different classes in order to help our model recognize phase transitions. There are two common approaches for such data augmentation combining multiple classes, CutMix and MixUp. CutMix works by taking a portion of image 1 (usually rectangular segment) and pasting it onto an image 2. Resulting image will get label that is a weighted sum of original one-hot encoded labels, with weights proportional to number of pixels contributed by each image. MixUp works again by taking two images, generating random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). Label is then created in same manner.
+Yet this is not the only benefit data augmentation brings for our usecase. We can also combine images from different classes in order to help our model recognize phase transitions. There are two common approaches for such data augmentation combining multiple classes, \emph{CutMix} \cite{yun2019cutmix} and \emph{MixUp} \cite{zhang2017mixup}. CutMix works by taking a portion of image $1$ (usually rectangular segment) and pasting it onto an image $2$. Resulting image will get label that is a weighted sum of original one-hot encoded labels, with weights proportional to number of pixels contributed by each image. MixUp works again by taking two images, generating random number $\alpha \in (0, 1)$ and adding pixels of these images weighted by $\alpha$ (resp. $1 - \alpha$). Label is then created in same manner. Examples of these augmentations on our data are in \cref{fig:aug_fe, fig:aug_sp}
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.22\textwidth}
     \centering
@@ -444,7 +502,7 @@ Yet this is not the only benefit data augmentation brings for our usecase. We ca
   \label{fig:aug_fe}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.22\textwidth}
     \centering
@@ -477,16 +535,16 @@ Yet this is not the only benefit data augmentation brings for our usecase. We ca
   \label{fig:aug_sp}
 \end{figure}
 
-\subsection{Dropout}
+\paragraph{Dropout}
 
 \emph{Dropout} \cite{srivastava2014dropout} is a regularization technique for preventing overfitting by randomly switching of activations during training. For dense networks, individual neurons are independently set to zero with probability $p$, typically $p \in [0, 0.5]$. To balance the loss of the overall signal magnitude during training, we usually scale the remaining activations by a factor $\nicefrac{1}{p}$. Dropout is then disabled during the inference.
 
 Dropout can be applied also in convolutional layers with some modification. Standard dropout would remove individual pixels, which may not be effective due to spatial correlations. Therefore, it is common to use \emph{SpatialDropout} \cite{tompson2015efficient}, which drops entire feature maps (channels) or \emph{DropBlock} which drops entire rectangular block of feature. Implementation of DropBlock doesn't make sense for our usecase, sinse we try to evaluate how much of each phase is present in the given image. Which leaves us with the spatial dropout for convolutional layes as only viable option.
 
-\subsection{Monte Carlo Dropout}
+\paragraph{Monte Carlo Dropout}
 
-Monte Carlo dropout is in it's idea closely connected to the \emph{model ensembling}. Model ensembling is a regularization technique that combines multiple models. The intuition is that individual models make different errors, and averaging their predictions reduces the variance and improves the robustness. The drawback of model ensembling is the computational cost. It is costly to train many models, just to average their predictions. However, we can approximate the model ensemble by using the \emph{Monte-Carlo (MC) dropout} \cite{gal2016dropout}. Monte Carlo dropout extends the idea of dropout to the inference. Instead of disabling dropout during the inference, we can keep it active and perform multiple forward passes. Each forward pass samples a different subnetwork from the full model, effectively creating an ensemble.
+\emph{Monte Carlo dropout} is in it's idea closely connected to the \emph{model ensembling}. Model ensembling is a regularization technique that combines multiple models. The intuition is that individual models make different errors, and averaging their predictions reduces the variance and improves the robustness. The drawback of model ensembling is the computational cost. It is costly to train many models, just to average their predictions. However, we can approximate the model ensemble by using the \emph{Monte-Carlo (MC) dropout} \cite{gal2016dropout}. Monte Carlo dropout extends the idea of dropout to the inference. Instead of disabling dropout during the inference, we can keep it active and perform multiple forward passes. Each forward pass samples a different subnetwork from the full model, effectively creating an ensemble.
 
-\subsection{Early Stopping}
+\paragraph{Early Stopping}
 
 \emph{Early stopping} \cite{prechelt2002early} is a regularization technique that directly interfere with the training process. It requires additional \emph{validation} dataset, that is not used for updating weights. We use it to monitor a  validation loss during training, and instead of training for a fixed number of steps, we stop as soon as the validation loss stops improving (for certain number of epochs, in our case $40$). This stops the model from overtraining, improving the generalization. After early stopping, we restore the model's weights from the epoch with minimal validation loss.

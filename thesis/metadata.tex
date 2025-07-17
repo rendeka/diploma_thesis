@@ -53,22 +53,24 @@
 \def\StudyBranch{FMPMP}
 
 \def\Dedication{%
-Dedication. \xxx{It is nice to say thanks to supervisors, friends, family, book authors and food providers.}
+Dedication. I would like to thank my advisor RNDr. Pavel Baláž, Ph.D. for his guidance, for introducing me to the field of machine learning, and for his patience throughout this journey.
+
+I also want to thank my parents for their support and Natalia for all the love and warmth you always bring me, both in joyful and more gloomy times.
 }
 
 \def\AbstractEN{%
-\xxx{Abstracts are an abstract form of art. Use the most precise, shortest sentences that state what problem the thesis addresses, how it is approached, pinpoint the exact result achieved, and describe the applications and significance of the results. Highlight anything novel that was discovered or improved by the thesis. Maximum length is 200 words, but try to fit into 120. Abstracts are often used for deciding if a reviewer will be suitable for the thesis; a well-written abstract thus increases the probability of getting a reviewer who will like the thesis.}
-% ABSTRACT IS NOT A COPY OF YOUR THESIS ASSIGNMENT!
+In this thesis we study the implementation of neural networks for the problem of classification of simulated magnetic configurations into 3  topological phases: ferromagnet, magnetic skyrmion and magnetic spiral. The main challenge lies in the fact that the phase transitions are continuous, meaning two phases can occur in the same configuration. Even though we don't have true labels for such configurations, we aim to improve the models' performance exactly on such cases. To achieve that, we explore different model architectures, including dense and convolutional networks, choice of hyperparameters including activation functions, and the effect of various regularization techniques such as Dropout Monte Carlo or data augmentations. We found out that simple and quite shallow, convolution networks without attention mechanism work the best, and can reliably classify the single phase configurations, while performing better on the phase transitions compared to the deeper networks. The CutMix data augmentation improves performance on the skyrmion-spiral transition by about $60\%$ according to by us defined metric, compared to the results without augmentations. At the same time, CutMixes harm the perfomance on ferromagnetic-skyrmion boundary. MixUp provides small, but complementary gains. By applying these augmentations, the model learns to predict the probability of a skyrmion phase during phase transition into spiral that alighns with the change in topological charge. On the other hand, Monte Carlo dropout shows no benefit.
 }
 
+
 \def\AbstractCS{%
-\xxx{You will need to submit both Czech and English abstract to the SIS, no matter what language you use in the thesis. If writing in English, translate the contents of \texttt{\textbackslash{}AbstractEN} into this field. In case you do not speak czech, your supervisor should be able to help you with the translation.}
+V této práci se zabýváme implementací neuronových sítí pro klasifikaci simulovaných magnetických konfigurací do tří topologických fází: feromagnet, magnetický skyrmion a magnetická spirála. Hlavní výzva spočívá ve spojitých fázových přechodech, což znamená, že se ve stejné konfiguraci mohou vyskytovat dvě fáze. Přestože pro takové konfigurace nemáme k dispozici lable, snažíme se zlepšit predikce modelů právě v takových případech. Abychom toho dosáhli, zkoumáme různé architektury modelů, včetně plně propojených a konvolučních sítí, volbu hyperparametrů, včetně aktivačních funkcí, a vliv různých regularizačních technik, jako je Dropout Monte Carlo nebo augmentace dat. Zjistili jsme, že nejlépe fungují jednoduché, mělké konvoluční sítě. Dokážou spolehlivě klasifikovat jednofázové konfigurace a zároveň si vedou lépe než hlubší sítě při fázových přechodech. Augmentace dat CutMix zlepšuje výkon na skyrmionově spirálním přechodu podle námi definované metriky přibližně o $60\%$ ve srovnání s výsledky bez augmentací. CutMixy zároveň poškozují predikce na hranici feromagnetu a skyrmionu. MixUp poskytuje malé, ale doplňkové zlepšení. Použitím těchto augmentací se model naučí předpovídat pravděpodobnost skyrmionové fáze při fázovém přechodu do spirály způsobem, který je v souladu se změnou topologického náboje v těchto konfiguracích. Na druhou stranu regularizace dropout Monte Carlo nevykazuje žádný přínos.
 }
 
 % 3 to 5 keywords (recommended), each enclosed in curly braces.
 % Keywords are useful for indexing and searching for the theses by topic.
 \def\Keywords{%
-{magnetism} {skyrmion} {machine learning} {regularization} {neural networks}
+{machine learning} {magnetic skyrmion} {neural networks}
 }
 
 % If your abstracts are long and do not fit in the infopage, you can make the

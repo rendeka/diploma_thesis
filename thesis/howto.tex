@@ -3,37 +3,37 @@ Many real‑world problems are difficult to tackle with classical analytic metho
 
 \section{Probability and information theory}
 
-Machine learning is grounded in the mathematical frameworks of probability theory and information theory, which provide the tools for modeling uncertainty and quantifying information. The reason can be evident from the example we gave at the beginning of this chapter. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to our example, no two cats are the same, and cats can be caught in pictures in various positions from different angles, distances, and backgrounds. Therefore, it is sensible to think about the image of a cat as an example from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label, like a cat. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. 
+Machine learning is grounded in the mathematical frameworks of probability theory and information theory, which provide the tools for modeling uncertainty and quantifying information. Machine learning deals with problems containing inherit uncertainties on multiple levels. The first level of uncertainty is in the input data. Sticking to the example, no two cat images are the same, therefore it is sensible to think about the image of a cat as a sample from a probability distribution of all cat images. The second level of uncertainty lies in the mapping from pixels of an image to the semantic label. We intuitively understand why developing a strict formulation for such mapping is hard. Instead, we can rely on the likelihood of specific outcomes based on distinct features in our input. 
 
-In this appendix we define the key concepts from probability and information theory that are used in the thesis. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
-
-\subsection{Sample space}
-An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
-
-\subsection{Random variable}
-A random variable is an important concept in ML because it provides a valid mathematical framework to represent noisy, real-world data. Random variable $X$ is a mapping from the sample space $\Omega$ into some target space (typically $\mathbb{R}$ or $\mathbb{Z}$). We can treat an example from the data as a realization of a random variable. Following the single coin toss example, we can define $X$ simply by $X(\text{head}) = 0$ and $X(\text{tail}) = 1$. The instance of a random variable is denoted by $x$ and equals $x = X(\omega)$ for some $\omega \in \Omega$, in our case $x \in \{0, 1\}$.
-
-\subsection{Probability distribution}
-Every random variable is closely tied to some probability distribution. Probability distribution quantifies the probability of each state a random variable can take. In the case of a fair coin, it would give both outcomes the same probability $\nicefrac{1}{2}$. Probability distribution can be either continuous or discrete. Both cases are relevant in most ML applications. Let us briefly introduce both of them \cite{bengio2017deep}.
-
-\subsubsection{Discrete probability distribution}
-The discrete probability distribution is characterized by a finite (or countably infinite) set of states. We usually describe it by a \emph{probability mass function} (PMF), denoted by $P$. It assigns a probability to each state of a random variable. We denote $P(X = x) \equiv P(x)$ a probability that a random variable $X$ takes a value $x$. There are three natural properties a proper PMF has to follow:
-
-\begin{align}
-1.\quad&\operatorname{dom}(P) = \mathcal{X}, \\
-2.\quad&P(\bm{x}) \geq 0 \quad  \forall \bm{x} \in \mathcal{X}, \\
-3.\quad&\sum_{\bm{x} \in \mathcal{X}} P(\bm{x}) = 1.
-\end{align}
-
-\subsubsection{Continuous probability distribution}
-Continuous probability distribution is described by \emph{probability density function (PDF)}, denoted by $p$. Analogously to the discrete case, PDF gives us a probability that $x \in [a, b]$ as $\int_a^b p(x) dx$.
-\begin{align}
-1.\quad&\operatorname{dom}(p) = \mathcal{X}, \\
-2.\quad&p(\bm{x}) \geq 0 \quad  \forall \bm{x} \in \mathcal{X}, \\
-3.\quad&\int_{\mathcal{X}} p(\bm{x}) d\bm{x} = 1.
-\end{align}
-
-All the previously introduced concepts extend naturally to multiple dimensions, with the notion of \emph{random vector}. A random vector is a vector-valued function, where each component is a random variable defined on the same underlying sample space. 
+%In this appendix we define the key concepts from probability and information theory that are used in the thesis. Regarding topics in probability, we use \cite{klenke2013probability} as a reference, and \cite{bengio2017deep} for the information theory and ML parts, if not said otherwise. 
+%
+%\subsection{Sample space}
+%An important concept from probability theory, setting the ground for further definitions, is \emph{sample space}, denoted as $\Omega$. Suppose we do an experiment with a probabilistic outcome, like a single coin toss. Sample space is a set of all possible outcomes of such an experiment, in this case $\Omega = \{\text{head}, \text{tail}\}$.
+%
+%\subsection{Random variable}
+%A random variable is an important concept in ML because it provides a valid mathematical framework to represent noisy, real-world data. Random variable $X$ is a mapping from the sample space $\Omega$ into some target space (typically $\mathbb{R}$ or $\mathbb{Z}$). We can treat an example from the data as a realization of a random variable. Following the single coin toss example, we can define $X$ simply by $X(\text{head}) = 0$ and $X(\text{tail}) = 1$. The instance of a random variable is denoted by $x$ and equals $x = X(\omega)$ for some $\omega \in \Omega$, in our case $x \in \{0, 1\}$.
+%
+%\subsection{Probability distribution}
+%Every random variable is closely tied to some probability distribution. Probability distribution quantifies the probability of each state a random variable can take. In the case of a fair coin, it would give both outcomes the same probability $\nicefrac{1}{2}$. Probability distribution can be either continuous or discrete. Both cases are relevant in most ML applications. Let us briefly introduce both of them \cite{bengio2017deep}.
+%
+%\subsubsection{Discrete probability distribution}
+%The discrete probability distribution is characterized by a finite (or countably infinite) set of states. We usually describe it by a \emph{probability mass function} (PMF), denoted by $P$. It assigns a probability to each state of a random variable. We denote $P(X = x) \equiv P(x)$ a probability that a random variable $X$ takes a value $x$. There are three natural properties a proper PMF has to follow:
+%
+%\begin{align}
+%1.\quad&\operatorname{dom}(P) = \mathcal{X}, \\
+%2.\quad&P(\bm{x}) \geq 0 \quad  \forall \bm{x} \in \mathcal{X}, \\
+%3.\quad&\sum_{\bm{x} \in \mathcal{X}} P(\bm{x}) = 1.
+%\end{align}
+%
+%\subsubsection{Continuous probability distribution}
+%Continuous probability distribution is described by \emph{probability density function (PDF)}, denoted by $p$. Analogously to the discrete case, PDF gives us a probability that $x \in [a, b]$ as $\int_a^b p(x) dx$.
+%\begin{align}
+%1.\quad&\operatorname{dom}(p) = \mathcal{X}, \\
+%2.\quad&p(\bm{x}) \geq 0 \quad  \forall \bm{x} \in \mathcal{X}, \\
+%3.\quad&\int_{\mathcal{X}} p(\bm{x}) d\bm{x} = 1.
+%\end{align}
+%
+%All the previously introduced concepts extend naturally to multiple dimensions, with the notion of \emph{random vector}. A random vector is a vector-valued function, where each component is a random variable defined on the same underlying sample space. 
 
 %We often need to work with multiple random vectors, each representing different but potentially related parts of the data. We often need \emph{conditional probability} to model these relationships properly.
 
@@ -45,8 +45,8 @@ All the previously introduced concepts extend naturally to multiple dimensions, 
 
 % In other words, marginalization allows us to "ignore" other variables by aggregating over them. In machine learning, we often marginalize out latent variables that are not directly observable.
 
-\subsection{Conditional probability}
-Suppose we have two random variables $X$ and $Y$. Conditional probability represents the probability of one event given that another event has already occurred. The conditional probability of $X$ given $Y$ is defined as:
+\paragraph{Conditional probability}
+Suppose we have two random variables $X$ and $Y$. Conditional probability represents the probability of one event given that another event has already occurred. The conditional probability of $X$ given $Y$ is defined as \cite{klenke2013probability}:
 
 \begin{equation} 
     P(X=x \mid Y=y) = \frac{P(X=x, Y=y)}{P(Y=y)}, 
@@ -54,39 +54,9 @@ Suppose we have two random variables $X$ and $Y$. Conditional probability repres
 
 where we assume that $P(Y=y) > 0$, and $P(X=x, Y=y)$ denotes a joint probability that the random variables $X$ and $Y$ simultaneously take on values $x$ and $y$ respectively.
 
-\subsection{Expectation, variance, covariance} The expectation (or expected value) of a random variable $X$ captures the average outcome if the experiment were repeated infinitely many times. For a discrete variable:
+\paragraph{Likelihood}
 
-\begin{equation} 
-    \mathbb{E}[X] = \sum_{x} x P(X=x). 
-\end{equation}
-
-Variance measures how much the values of $X$ are spread around the mean:
-
-\begin{equation} 
-    \mathrm{Var}(X) = \mathbb{E}[(X - \mathbb{E}[X])^2]. 
-\end{equation}
-
-Covariance extends this idea to two random variables and measures how much they change together:
-
-\begin{equation} 
-    \mathrm{Cov}(X, Y) = \mathbb{E}[(X - \mathbb{E}[X])(Y - \mathbb{E}[Y])]. 
-\end{equation}
-
-When the covariance is positive, $X$ and $Y$ tend to increase together; when it is negative, one tends to decrease as the other increases.
-
-\subsection{Statistical (in)dependence} 
-Two random variables $X$ and $Y$ are said to be statistically independent if knowing the value of one provides no information about the other. Mathematically, $X$ and $Y$ are independent if and only if:
-
-\begin{equation} 
-    P(X=x, Y=y) = P(X=x) P(Y=y),
-\end{equation}
-
-for all possible values of $x$ and $y$.
-When this condition does not hold, $X$ and $Y$ are dependent. Statistical (in)dependence is important when deffining machine learning models, where we assume that our data are independent.
-
-\subsection{Likelihood}
-
-The \emph{likelihood} tells us how probable a given set of observed data is, under a particular set of model parameters.
+The \emph{likelihood} \cite{klenke2013probability} tells us how probable a given set of observed data is, under a particular set of model parameters.
 
 Let us consider a statistical model, represented as a probability distribution $p(x \mid \theta)$, where:
 \begin{itemize}
@@ -111,8 +81,8 @@ This product can be numerically unstable, hence we usually work with the \emph{l
 
 This transformation preserves the extremal points and makes likelihood easier to deal with, especially when taking derivatives. 
 
-\subsection{Self information}
-The main task of information theory is to quantify the amount of information in the signal. We can use its concepts in ML in order to describe a probability distribution and to compare information contained in two distributions. A very useful quantity describing the amount of information is called \emph{self-information}, denoted as $I$. The intuition behind self-information can be summarized in $3$ properties.
+\paragraph{Self information}
+The main task of information theory is to quantify the amount of information in the signal. We can use its concepts in ML in order to describe a probability distribution and to compare information contained in two distributions \cite{bengio2017deep}. A very useful quantity describing the amount of information is called \emph{self-information}, denoted as $I$. The intuition behind self-information can be summarized in $3$ properties.
 \begin{itemize}
     \item Likely events should carry low information content. For example, if an event $x$ occurs with high probability, it is not surprising, and thus $I(x)$ should be small. In the extreme case of a certain event (i.e., $p(x) = 1$), we expect $I(x) = 0$.
     \item Unlikely events should carry high information content, reflecting that rare events are more surprising and hence more informative.
@@ -126,9 +96,7 @@ To satisfy all the above properties, self-information for a discrete variable is
 	I(x) = - \ln P(x).
 \end{equation}
 
-For the continuous random variable, self-information is defined analogously; the practical difference is that self-information can also be negative. Note that the logarithm in the above definition can have a different base. Using the natural logarithm implies that self-information is measured in \emph{nats}, whereas using the \textit{(from an information theory perspective, more traditional)} base 2 means the unit of self-information is \emph{bits}.
-
-While the self-information deals only with the single example, we can use it to quantify the uncertainty across the whole distribution. This notion is called \emph{Shannon entropy}, denoted as $H(P)$ and it is simply an expected value of self information across the probability distribution.
+While the self-information deals only with the single example, we can use it to quantify the uncertainty across the whole distribution. This notion is called \emph{Shannon entropy} \cite{bengio2017deep}, denoted as $H(P)$ and it is simply an expected value of self information across the probability distribution.
 
 \begin{equation} 
     \label{eq:shannon-entropy} 
@@ -137,7 +105,7 @@ While the self-information deals only with the single example, we can use it to 
 
 Shannon entropy tells us the expected amount of information while observing an event drawn from a given distribution. When dealing with two probability distributions, say $P$ (true target distribution) and $Q$ (model output distribution), we eventually need to measure how different they are.
 
-A quantity that extends the idea of Shannon entropy to two distributions is the \emph{cross-entropy}. Cross-entropy measures how well the predicted distribution $Q$ matches the true distribution $P$. It can be seen as the expected amount of surprise when the true outcomes are sampled according to $P$ but are predicted using $Q$. It is defined as:
+A quantity that extends the idea of Shannon entropy to two distributions is the \emph{cross-entropy} \cite{bengio2017deep}. Cross-entropy measures how well the predicted distribution $Q$ matches the true distribution $P$. It can be seen as the expected amount of surprise when the true outcomes are sampled according to $P$ but are predicted using $Q$. It is defined as:
 
 \begin{equation} 
     \label{eq:cross-entropy} 
@@ -146,7 +114,7 @@ A quantity that extends the idea of Shannon entropy to two distributions is the 
 
 If $P = Q$, the cross-entropy reduces to the Shannon entropy of $P$. In the context of machine learning, especially classification tasks, cross-entropy is often used as a loss function. It penalizes the model $Q$ for assigning low probability to the true label sampled from $P$.
 
-Another important quantity is the \emph{Kullback-Leibler divergence} (KL divergence), denoted as $D_{\mathrm{KL}}(P | Q)$. It quantifies the extra amount of information required to code samples from $P$ when using a coding scheme designed for $Q$. It can be interpreted as a measure of how much $Q$ diverges from $P$, and is defined as:
+A similar quantity is the \emph{Kullback-Leibler divergence} (KL divergence) \cite{bengio2017deep}, denoted as $D_{\mathrm{KL}}(P | Q)$. It quantifies the extra amount of information required to code samples from $P$ when using a coding scheme designed for $Q$. It can be interpreted as a measure of how much $Q$ diverges from $P$, and is defined as:
 
 \begin{equation} 
     \label{eq:kl-divergence} 
@@ -166,10 +134,10 @@ In the practical setting of supervised classification, we do not know the full d
 \subsection{Model training}
 \label{subsec:training}
 
-Machine learning builds on the concepts described in the previous sections of this appendix. In its essence, ML is trying to find a sufficiently accurate mapping between two distributions: the distribution of the input data and the distribution of their corresponding labels \textit{(sometimes referred to as targets)}. This mapping is a statistical model with its output distribution. In practice, we often expect the relationship between input and output distributions to be highly nonlinear, which needs to be reflected in the model's architecture. Training a statistical model is adjusting a subset of its parameters, such that the model's output distribution matches the true label distribution more closely.
+Machine learning builds on the concepts described in the previous sections of this appendix. In its essence, ML is trying to find a sufficiently accurate mapping between two distributions: the distribution of the input data and the distribution of their corresponding labels \textit{(sometimes referred to as targets)}. This mapping is a statistical model with its output distribution. In practice, we often expect the relationship between input and output distributions to be highly nonlinear, which needs to be reflected in the model's architecture. Training a statistical model is adjusting a subset of its parameters, such that the model's output distribution matches the true label distribution more closely. Typical ML model has, besides the trainable parameters, also \emph{hyperparameters}. These are values set before training that control the overall behavior of the learning process, such as learning rate, batch size, model architecture choices, or regularization strengths. Unlike trainable parameters, they are not learned from data but chosen through experimentation or systematic tuning.
 
-\subsubsection{Maximum likelihood estimation}
-One of the most widely adopted and statistically grounded principles for training models is \emph{maximum likelihood estimation (MLE)}. The idea is that given a set of independent training examples $X = x_1, \dots, x_m$, we want to find the model parameters $\theta$ that maximize the likelihood of the observed data under the model distribution $p_{\text{model}}(x \mid \theta)$. Formally, the maximum likelihood estimator is defined as:
+\paragraph{Maximum likelihood estimation}
+One of the most widely adopted and statistically grounded principles for training models is \emph{maximum likelihood estimation (MLE)} \cite{bengio2017deep}. The idea is that given a set of independent training examples $X = x_1, \dots, x_m$, we want to find the model parameters $\theta$ that maximize the likelihood of the observed data under the model distribution $p_{\text{model}}(x \mid \theta)$. Formally, the maximum likelihood estimator is defined as:
 
 \begin{align}
 \theta_{\text{MLE}} 
@@ -202,16 +170,22 @@ We see that if the empirical data distribution $\hat{p}_{\text{data}}$ accuratel
     \item Minimizing the Kullback–Leibler (KL) divergence \eqref{eq:mle_kl}.
 \end{itemize}
 
+\paragraph{Loss function}
+In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function} \cite{bengio2017deep}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, it is often advantageous to incorporate additional heuristics or prior knowledge into the loss, as this can lead to improved model performance and better generalization.
 
-\subsubsection{Loss function}
-In the previous subsection, we demonstrated that the optimal parameters of a statistical model can be found by minimizing various equivalent quantities, such as the negative log-likelihood, cross-entropy, or KL divergence. In machine learning, we formalize this by defining a function, known as the \emph{loss function}. Maximum likelihood estimation provides a principled foundation for designing the loss function. However, in practice, it is often advantageous to incorporate additional heuristics or prior knowledge into the loss, as this can lead to improved model performance and better generalization.
+The \emph{focal loss} \cite{lin2017focal} is a good example of a heuritically modified loss function. This loss is useful when we have a class imbalance in the data. Focal loss modifies the standard cross-entropy loss by down-weighting easy examples and focusing the training on hard, misclassified ones. It is defined as:
 
-An example of a slightly more advanced loss function is so called \emph{focal loss}. This loss is useful when we have a class imbalance in the data, meaning that for example one category has significantly less samples than the other ones.
+\begin{equation}
+	\label{eq:focal_loss}
+	\mathcal{L}_{\text{focal}} = -\alpha_t (1 - p_k)^\gamma \log(p_k),
+\end{equation}
+
+where $p_k$ is the model's estimated probability for the true class, $\alpha_k$ is a weighting factor for class $k$, and $\gamma \geq 0$ is a tunable focusing parameter.
 
 Once the loss function is defined, the task becomes an optimization problem: finding the global minimum of the loss in the high-dimensional space of the model’s parameters. Training the model is typically an iterative process that updates these parameters step-by-step to minimize the loss. We typically require the loss function to be differentiable, in order to apply gradient-based methods during minimization.
 
-\subsubsection{Gradient descent}
-Most optimization methods used in training neural networks, are based on \emph{gradient descent}. The idea is to compute the gradient of the loss function with respect to the model parameters and take a step in the direction that most decreases the loss. If $\theta$ denotes the current parameters and $\mathcal{L}(\theta)$ the loss, then a single update step is given by:
+\paragraph{Gradient descent}
+Most optimization methods used in training neural networks, are based on \emph{gradient descent} \cite{bengio2017deep}. The idea is to compute the gradient of the loss function with respect to the model parameters and take a step in the direction that most decreases the loss. If $\theta$ denotes the current parameters and $\mathcal{L}(\theta)$ the loss, then a single update step is given by:
 
 \begin{equation}
     \theta \leftarrow \theta - \alpha \nabla_\theta \mathcal{L}(\theta),
@@ -228,8 +202,17 @@ Computing the gradient over the entire dataset can be very slow, if not impossib
 \end{itemize}
 It it well established that the mini-batch gradient descent is the way to go if applicable, and the most popular optimization algorithms used in ML are its different extensions.
 
-\subsubsection{Backpropagation}
-To efficiently compute gradients of the loss with respect to many of the model's parameters, the \emph{backpropagation} algorithm is used. Backpropagation applies the chain rule to propagate the loss gradient from the output layer backward through the network. Each layer computes the gradient of the loss with respect to its parameters and passes the gradient with respect to its inputs to the preceding layer. This recursive process allows the entire gradient $\nabla_\theta \mathcal{L}$ to be computed in time linear in the number of layers.
+\paragraph{Backpropagation}
+To efficiently compute gradients of the loss with respect to many of the model's parameters, the \emph{backpropagation} algorithm is used. Backpropagation \cite{bengio2017deep} applies the chain rule to propagate the loss gradient from the output layer backward through the network. Each layer computes the gradient of the loss with respect to its parameters and passes the gradient with respect to its inputs to the preceding layer. This recursive process allows the entire gradient $\nabla_\theta \mathcal{L}$ to be computed in time linear in the number of layers.
+
+\paragraph{Underfitting/overfitting}
+\label{sec:uofitting}
+A central challenge in training neural networks is ensuring that the model not only performs well on the training data but also generalizes to unseen examples. Two common, complementary problems are \cite{bengio2017deep}:
+\begin{itemize}
+    \item \textbf{Underfitting:} The model is too simple or not sufficiently trained and fails to capture the underlying patterns in the data. Both training and test performance are poor.
+    \item \textbf{Overfitting:} The model is too complex or trained for too long and starts to memorize the training data, including noise. While training performance is excellent, test performance degrades.
+\end{itemize}
+These phenomena can be visualized by tracking the training and validation loss over time. In underfitting, both losses remain high. In overfitting, the training loss continues to drop while the validation loss increases. If the model performs well on previously unseen data, we say it \emph{generalizes} well. In our case, we don't want achieve just low test error, we want to model to generalize even further a to behave well on unlabeled data from phase transitions containing a mixture of phases.
 
 \chapter{Source code}
 

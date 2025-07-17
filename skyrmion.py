@@ -285,7 +285,7 @@ def main(args: argparse.Namespace) -> None:
     if args.save_model:
         save_dir = base_path / "saved_models" / args.scope / (f"{args.model}_{args.logdir_suffix}" if args.logdir_suffix else args.model)
         save_dir.mkdir(parents=True, exist_ok=True)
-        model.save((save_dir / f"{args.model}-{timestamp}-{log_args}").with_suffix(".keras"))
+        model.save((save_dir / f"{args.model}-{timestamp}-{args_str}").with_suffix(".keras"))
 
 if __name__ == "__main__":
     # parse args

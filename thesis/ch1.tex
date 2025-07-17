@@ -116,23 +116,25 @@ The dataset we use in this thesis consists of magnetic configurations on a squar
 The magnetic field $B$ is expressed in simulation units as
 
 \begin{equation}
-\frac{B}{J} = \frac{\mu_B B[\text{T}]}{J},
+	B \leftarrow \frac{\mu_B B[\text{T}]}{J},
 \end{equation}
 
 where $\mu_B$ is the Bohr magneton and $B[\text{T}]$ is the magnetic induction in Tesla. Similarly, temperature is made dimensionless by
 
 \begin{equation}
-\frac{T}{J} = \frac{k_B T[\text{K}]}{J},
+	T = \frac{k_B T[\text{K}]}{J},
 \end{equation}
 
 where $k_B$ is the Boltzmann constant and $T[\text{K}]$ is the temperature in Kelvin. 
 
-The simulations were performed at initial temperature $T[\text{K}] = \SI{1}{\kelvin}$ a correspoonding to reduced temperature of $T=0.006$ in the units of $J$. The full dataset contains $9840$ magnetic configurations $3$ dimensional spin vectors on $200\times200$ square grid, simulated using periodic boundary conditions. Consider a unit vector $\bm{u}_{ij}$ pointing from $i$-th to $j$-th spin position. The $\bm{D}_{ij}$ vector is given by the $C_v$ symmetry, and has the following components:
+The temperature was reduced during the simulation up to the final temperature of $T=0.006$ in the units of $J$. The full dataset contains $9840$ magnetic configurations $3$ dimensional spin vectors on $200\times200$ square grid, simulated using periodic boundary conditions. Consider a unit vector $\bm{u}_{ij}$ pointing from $i$-th to $j$-th spin position. The $\bm{D}_{ij}$ vector is given by the $C_v$ symmetry, and has the following components:
 
 \begin{align}
 	\label{eq:DM-components}
 	\bm{D} &= (0, D, 0)  && \text{for } \bm{u}_{ij} = (1, 0, 0), \\
-	\bm{D} &= (-D, 0, 0) && \text{for } \bm{u}_{ij} = (0, 1, 0),
+	\bm{D} &= (0, -D, 0)  && \text{for } \bm{u}_{ij} = (-1, 0, 0), \\
+	\bm{D} &= (-D, 0, 0) && \text{for } \bm{u}_{ij} = (0, 1, 0), \\
+	\bm{D} &= (D, 0, 0) && \text{for } \bm{u}_{ij} = (0, -1, 0),
 \end{align}
 
 facilatiting the formation of Neél type skyrmions. Levels of external fields $D$ and $B$ were also held constant for each individual simulation. However, the values of $D$ and $B$ were systematically changed across different runs. Used values of $D$ ranged from $0$ to $2$, equidistantly spaced with the margin of $0.05$. Values of $B$ ranged from $0$ to $235$ in similar manner, with the spacing by $5$. For each pair of $D$ and $B$ values, we have $5$ independent configurations. The resulting magnetic configurations cover all 3 phases, as well as the transitions between these them.
